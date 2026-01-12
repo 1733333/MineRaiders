@@ -1,8 +1,17 @@
 package Listeners;
 
+import Universal.ItemPool;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +53,7 @@ public class WorldListener implements Listener {
             Material.FLETCHING_TABLE,
             Material.LOOM
     };
+    ItemPool ip = ItemPool.INSTANCE;
     public float[] getContainerValue(Block b) {
         List<Material> normalContainerList = Arrays.stream(normalContainer).toList();
         List<Material> goodContainerList = Arrays.stream(goodContainer).toList();
@@ -53,5 +63,22 @@ public class WorldListener implements Listener {
         if (goodContainerList.contains(m)) return new float[]{3,2.5f,2,1,1,0.5f};
         if (bestContainerList.contains(m)) return new float[]{2,2.5f,2,1.5f,1,1};
         return new float[0];
+    }
+
+    @EventHandler
+    public void playerInteract(PlayerInteractEvent interactEvent){
+        Player p = interactEvent.getPlayer();
+        World w = p.getWorld();
+        Action action = interactEvent.getAction();
+        if(action.equals(Action.RIGHT_CLICK_BLOCK)){
+            Block b = interactEvent.getClickedBlock();
+            w.spawnParticle(Particle.EXPLOSION,b.getLocation(),1);
+            float[]weights = getContainerValue(b);
+            ItemStack[]items = ip.getContents(10,weights);
+            b.setType(Material.CHEST);
+            Chest c = (Chest) b.getState();
+            c.getBlockInventory().setContents(items);
+            c.update(true,true);
+        }
     }
 }
