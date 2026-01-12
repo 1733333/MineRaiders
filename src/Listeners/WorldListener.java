@@ -73,12 +73,12 @@ public class WorldListener implements Listener {
         if(action.equals(Action.RIGHT_CLICK_BLOCK)){
             Block b = interactEvent.getClickedBlock();
             w.spawnParticle(Particle.EXPLOSION,b.getLocation(),1);
+            w.spawnParticle(Particle.BLOCK,b.getLocation(),1,b.getBlockData());
             float[]weights = getContainerValue(b);
             ItemStack[]items = ip.getContents(10,weights);
-            b.setType(Material.CHEST);
-            Chest c = (Chest) b.getState();
-            c.getBlockInventory().setContents(items);
-            c.update(true,true);
+            for(ItemStack i : items){
+                w.dropItem(b.getLocation(),i);
+            }
         }
     }
 }
