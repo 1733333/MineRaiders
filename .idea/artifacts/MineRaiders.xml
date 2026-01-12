@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="MineRaiders">
+    <output-path>$PROJECT_DIR$/out/artifacts/MineRaiders</output-path>
+    <root id="archive" name="MineRaiders.jar">
+      <element id="module-output" name="MineRaiders" />
+      <element id="file-copy" path="$PROJECT_DIR$/src/plugin.yml" />
+    </root>
+  </artifact>
+</component>
