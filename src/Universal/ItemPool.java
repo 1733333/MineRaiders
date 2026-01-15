@@ -103,6 +103,7 @@ public enum ItemPool {
             i51(),
             i52(),
             i53(),
+            i104(),
     };
     ItemStack[] rareItem = {
             i54(),
@@ -196,7 +197,7 @@ public enum ItemPool {
         }
         return -1;
     }
-    public ItemStack[] getContents(int counts,float[]weights){
+    public ItemStack[] getContent(int counts,float[]weights){
         List<ItemStack> content = new ArrayList<>();
         float[] chances = new float[weights.length];
         calculate(weights,chances);
@@ -218,6 +219,20 @@ public enum ItemPool {
             content.add(randItem);
         }
         return content.toArray(new ItemStack[0]);
+    }
+    public int getRarity(ItemStack item){
+        ItemMeta meta = item.getItemMeta();
+        String name = meta.getDisplayName().substring(0,2);
+        Bukkit.broadcastMessage(name + "测试");
+        return switch (name) {
+            case "§7" -> 0;
+            case "§a" -> 1;
+            case "§b" -> 2;
+            case "§d" -> 3;
+            case "§6" -> 4;
+            case "§c" -> 5;
+            default -> -1;
+        };
     }
 
     public ItemStack i0(){
@@ -1410,6 +1425,17 @@ public enum ItemPool {
         meta.setMaxStackSize(1);
         meta.setDisplayName(ChatColor.RED + "【典藏】指南针");
         lore.add(ChatColor.WHITE + "在没有红石的世界里，指南针的收藏价值极高");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack i104(){
+        ItemStack i = new ItemStack(Material.CACTUS);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String>lore = new ArrayList<>();
+        meta.setMaxStackSize(8);
+        meta.setDisplayName(ChatColor.GREEN + "【寻常】仙人掌");
+        lore.add(ChatColor.WHITE + "上面有很多刺，不要被扎到");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();

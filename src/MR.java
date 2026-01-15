@@ -10,6 +10,8 @@ public class MR extends JavaPlugin {
         WorldListener worldListener = new WorldListener();
 
         manager.registerEvents(worldListener,this);
+
+        worldListener.setPlugin(this);
     }
 
     @Override
