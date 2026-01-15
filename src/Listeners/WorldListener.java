@@ -165,6 +165,9 @@ public class WorldListener implements Listener {
                 if(step % 2 == 0){
                     Block b = k.rayTraceBlock(p,4);
                     if(b == null || !b.getType().equals(container.getType())){
+                        p.playSound(p,Sound.ENTITY_ITEM_BREAK,1,1);
+                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                                TextComponent.fromLegacy(ChatColor.RED + "搜索中断"));
                         this.cancel();
                         return;
                     }else {
@@ -177,7 +180,7 @@ public class WorldListener implements Listener {
                 }
                 String message = searchProgress(bound,1);
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        TextComponent.fromLegacy(message));
+                        TextComponent.fromLegacy(ChatColor.AQUA + message));
                 if(count >= bound){
                     Sound s = switch (rarity){
                         case 0,1,2 -> Sound.UI_LOOM_TAKE_RESULT;
