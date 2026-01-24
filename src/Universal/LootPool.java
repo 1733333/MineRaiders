@@ -234,8 +234,10 @@ public enum LootPool {
     }
     public int getRarity(ItemStack item){
         ItemMeta meta = item.getItemMeta();
-        String name = meta.getDisplayName().substring(0,2);
-        return switch (name) {
+        String name = meta.getDisplayName();
+        if(!name.contains("§")) return -1;
+        String cutName = name.substring(0,2);
+        return switch (cutName) {
             case "§7" -> 0;
             case "§a" -> 1;
             case "§b" -> 2;
@@ -396,7 +398,7 @@ public enum LootPool {
         return i.clone();
     }
     public ItemStack i9(){
-        ItemStack i = new ItemStack(Material.RED_SANDSTONE);
+        ItemStack i = new ItemStack(Material.RED_SAND);
         ItemMeta meta = i.getItemMeta();
         ArrayList<String>lore = new ArrayList<>();
         meta.setMaxStackSize(16);

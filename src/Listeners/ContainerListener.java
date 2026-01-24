@@ -1,7 +1,9 @@
 package Listeners;
 
+import Universal.ArmorPool;
 import Universal.LootPool;
 import Universal.Kit;
+import Universal.WeaponPool;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -12,14 +14,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class WorldListener implements Listener {
+public class ContainerListener implements Listener {
     Material[] normalContainer = {
             Material.PALE_OAK_TRAPDOOR,
             Material.BIRCH_TRAPDOOR,
@@ -58,6 +63,8 @@ public class WorldListener implements Listener {
     };
     Kit k = Kit.INSTANCE;
     LootPool lp = LootPool.INSTANCE;
+    ArmorPool ap = ArmorPool.INSTANCE;
+    WeaponPool wp = WeaponPool.INSTANCE;
     Random r = new Random();
     JavaPlugin plugin;
     HashSet<Block> hasContent = new HashSet<>();
@@ -76,7 +83,12 @@ public class WorldListener implements Listener {
         if (normalContainerList.contains(m)) return 0;
         if (goodContainerList.contains(m)) return 1;
         if (bestContainerList.contains(m)) return 2;
-        return -1;
+        return switch (m) {
+            case SMITHING_TABLE -> -2;
+            case FLETCHING_TABLE -> -3;
+            case LOOM -> -4;
+            default -> -1;
+        };
     }
 
     public float[] getContainerValue(Block b) {
@@ -134,27 +146,42 @@ public class WorldListener implements Listener {
         Action action = interactEvent.getAction();
         if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
             Block b = interactEvent.getClickedBlock();
-            if(getContainerRarity(b)>=0) {
+            if(getContainerRarity(b) != -1) {
                 interactEvent.setCancelled(true);
                 openContainer(p, b);
             }
         }
     }
     public void openContainer(Player p,Block container){
-        float[] weights = getContainerValue(container);
         Player searcher = blockSearcherMap.getOrDefault(container,null);
+        int rarity = getContainerRarity(container);
         if(searcher == null) {
             if (p.getCooldown(container.getType()) == 0) {
-                if (weights.length > 0) {
-                    hasContent.add(container);
-                    blockSearcherMap.put(container, p);
-                    p.setCooldown(container.getType(), 10);
-                    ItemStack[] content = blockContent.getOrDefault(container, new ItemStack[0]);
-                    if (content.length == 0) {
-                        int count = getContainerCount(container);
-                        content = lp.getContent(count, weights);
+                if(rarity != -1) {
+                    ItemStack[] content = blockContent.getOrDefault(container,new ItemStack[0]);
+                    if(content.length == 0) {
+                        if (rarity >= 0) {
+                            float[] weights = getContainerValue(container);
+                            int count = getContainerCount(container);
+                            content = lp.getContent(count, weights);
+                        } else {
+                            switch (rarity) {
+                                case -2 -> {
+                                    content = smithContent();
+                                }
+                                case -3 -> {
+                                    content = arrowContent();
+                                }
+                                case -4 -> {
+                                    content = loomContent();
+                                }
+                            }
+                        }
+                        hasContent.add(container);
                         blockContent.put(container, content);
                     }
+                    blockSearcherMap.put(container, p);
+                    p.setCooldown(container.getType(), 10);
                     checkContainer(p, container);
                 }
             }
@@ -210,20 +237,33 @@ public class WorldListener implements Listener {
                 }
                 ItemStack item = content[0];
                 int rarity = lp.getRarity(item);
-                int bound = 5 + rarity;
+                int bound = 5 + Math.abs(rarity);
+                if(p.hasPotionEffect(PotionEffectType.HASTE)){
+                    bound -= 1;
+                }
                 String message = searchProgress(bound,count);
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                         TextComponent.fromLegacy(ChatColor.AQUA + message
                                 + "(" + content.length +")"));
                 if(count >= bound){
-                    Sound s = switch (rarity){
-                        case 0,1,2 -> Sound.UI_LOOM_TAKE_RESULT;
-                        case 3->Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
-                        case 4->Sound.ENTITY_PLAYER_LEVELUP;
-                        case 5->Sound.UI_TOAST_CHALLENGE_COMPLETE;
-                        default -> Sound.ENTITY_ITEM_PICKUP;
-                    };
-                    p.playSound(p,s,1,1);
+                    if(getContainerRarity(container) >= 0) {
+                        Sound s = switch (rarity) {
+                            case 0, 1, 2 -> Sound.UI_LOOM_TAKE_RESULT;
+                            case 3 -> Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
+                            case 4 -> Sound.ENTITY_PLAYER_LEVELUP;
+                            case 5 -> Sound.UI_TOAST_CHALLENGE_COMPLETE;
+                            default -> Sound.ENTITY_ITEM_PICKUP;
+                        };
+                        p.playSound(p,s,1,1);
+                    }else {
+                        Sound s = switch (getContainerRarity(container)) {
+                            case -2 -> Sound.BLOCK_ANVIL_USE;
+                            case -3 -> Sound.BLOCK_BARREL_OPEN;
+                            case -4 -> Sound.ITEM_ARMOR_EQUIP_NETHERITE;
+                            default -> Sound.ENTITY_ITEM_PICKUP;
+                        };
+                        p.playSound(p,s,1,1);
+                    }
                     Location bLoc = container.getLocation();
                     Location pLoc = p.getEyeLocation();
                     Vector offSet = pLoc.toVector().subtract(bLoc.toVector());
@@ -250,9 +290,58 @@ public class WorldListener implements Listener {
             if(i < step){
                 progress.append("|");
             }else {
-                progress.append(".");
+                progress.append("·");
             }
         }
         return progress.toString();
+    }
+    public ItemStack[] smithContent(){
+        List<ItemStack>contentList = new ArrayList<>();
+        ItemStack[]weapons = wp.getContainerWeapons();
+        ItemStack rw = weapons[r.nextInt(weapons.length)];
+        ItemMeta meta = rw.getItemMeta();
+        Damageable dm = (Damageable) meta;
+        if(dm.hasMaxDamage()) {
+            int max = dm.getMaxDamage();
+            dm.setDamage((int) (max * r.nextDouble(0.3, 0.9)));
+            rw.setItemMeta(meta);
+        }
+        contentList.add(rw);
+        return contentList.toArray(new ItemStack[0]);
+    }
+    public ItemStack[] arrowContent() {
+        List<ItemStack> contentList = new ArrayList<>();
+        ItemStack bow;
+        if (r.nextBoolean()) {
+            bow = new ItemStack(Material.BOW);
+        } else {
+            bow = new ItemStack(Material.CROSSBOW);
+        }
+        ItemMeta meta = bow.getItemMeta();
+        Damageable dm = (Damageable) meta;
+        if(dm.hasMaxDamage()) {
+            int max = dm.getMaxDamage();
+            dm.setDamage((int) (max * r.nextDouble(0.3, 0.9)));
+            bow.setItemMeta(meta);
+        }
+        contentList.add(bow);
+        contentList.add(new ItemStack(Material.ARROW, r.nextInt(4, 17)));
+        return contentList.toArray(new ItemStack[0]);
+    }
+    public ItemStack[] loomContent(){
+        List<ItemStack>contentList = new ArrayList<>();
+        ItemStack[]armors = ap.getArmors();
+        for(int i =0;i < 3;i++){
+            contentList.add(armors[r.nextInt(armors.length)]);
+        }
+        for(ItemStack i : contentList){
+            ItemMeta meta = i.getItemMeta();
+            Damageable dm = (Damageable) meta;
+            if(!dm.hasMaxDamage())continue;
+            int max = dm.getMaxDamage();
+            dm.setDamage((int) (max * r.nextDouble(0.3,0.9)));
+            i.setItemMeta(meta);
+        }
+        return contentList.toArray(new ItemStack[0]);
     }
 }

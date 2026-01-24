@@ -1,4 +1,4 @@
-import Listeners.WorldListener;
+import Listeners.ContainerListener;
 import commands.DebugCommand;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -9,13 +9,13 @@ public class MR extends JavaPlugin {
         PluginManager manager = this.getServer().getPluginManager();
 
         DebugCommand debugCommand = new DebugCommand();
-        WorldListener worldListener = new WorldListener();
+        ContainerListener containerListener = new ContainerListener();
 
-        manager.registerEvents(worldListener,this);
+        manager.registerEvents(containerListener,this);
 
         this.getCommand("mineraidersdebug").setExecutor(debugCommand);
 
-        worldListener.setPlugin(this);
+        containerListener.setPlugin(this);
     }
 
     @Override
