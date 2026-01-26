@@ -14,8 +14,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -299,13 +297,6 @@ public class ContainerListener implements Listener {
         List<ItemStack>contentList = new ArrayList<>();
         ItemStack[]weapons = wp.getContainerWeapons();
         ItemStack rw = weapons[r.nextInt(weapons.length)];
-        ItemMeta meta = rw.getItemMeta();
-        Damageable dm = (Damageable) meta;
-        if(dm.hasMaxDamage()) {
-            int max = dm.getMaxDamage();
-            dm.setDamage((int) (max * r.nextDouble(0.3, 0.9)));
-            rw.setItemMeta(meta);
-        }
         contentList.add(rw);
         return contentList.toArray(new ItemStack[0]);
     }
@@ -317,30 +308,15 @@ public class ContainerListener implements Listener {
         } else {
             bow = new ItemStack(Material.CROSSBOW);
         }
-        ItemMeta meta = bow.getItemMeta();
-        Damageable dm = (Damageable) meta;
-        if(dm.hasMaxDamage()) {
-            int max = dm.getMaxDamage();
-            dm.setDamage((int) (max * r.nextDouble(0.3, 0.9)));
-            bow.setItemMeta(meta);
-        }
         contentList.add(bow);
         contentList.add(new ItemStack(Material.ARROW, r.nextInt(4, 17)));
         return contentList.toArray(new ItemStack[0]);
     }
     public ItemStack[] loomContent(){
         List<ItemStack>contentList = new ArrayList<>();
-        ItemStack[]armors = ap.getArmors();
+        ItemStack[]armors = ap.getContainerArmors();
         for(int i =0;i < 3;i++){
             contentList.add(armors[r.nextInt(armors.length)]);
-        }
-        for(ItemStack i : contentList){
-            ItemMeta meta = i.getItemMeta();
-            Damageable dm = (Damageable) meta;
-            if(!dm.hasMaxDamage())continue;
-            int max = dm.getMaxDamage();
-            dm.setDamage((int) (max * r.nextDouble(0.3,0.9)));
-            i.setItemMeta(meta);
         }
         return contentList.toArray(new ItemStack[0]);
     }

@@ -8,7 +8,6 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.Damageable;
@@ -23,7 +22,7 @@ import java.util.ArrayList;
 public enum ArmorPool {
     INSTANCE;
 
-    ItemStack[] armors = {
+    ItemStack[] containerArmors = {
             new ItemStack(Material.LEATHER_HELMET),
             new ItemStack(Material.LEATHER_CHESTPLATE),
             new ItemStack(Material.LEATHER_LEGGINGS),
@@ -97,8 +96,8 @@ public enum ArmorPool {
             obLeg(),
             obBoot(),
     };
-    public ItemStack[] getArmors() {
-        return armors.clone();
+    public ItemStack[] getContainerArmors() {
+        return containerArmors.clone();
     }
     public ItemStack dirtHelm(){
         ItemStack item = new ItemStack(Material.LEATHER_HELMET);

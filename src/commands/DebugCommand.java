@@ -2,6 +2,7 @@ package commands;
 
 import Universal.ArmorPool;
 import Universal.GadgetPool;
+import Universal.Recipes;
 import Universal.WeaponPool;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -9,6 +10,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 
 import java.util.Random;
 
@@ -16,6 +18,7 @@ public class DebugCommand implements CommandExecutor {
     WeaponPool wp = WeaponPool.INSTANCE;
     ArmorPool ap = ArmorPool.INSTANCE;
     GadgetPool gp = GadgetPool.INSTANCE;
+    Recipes re = Recipes.INSTANCE;
     Random r = new Random();
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
@@ -25,8 +28,9 @@ public class DebugCommand implements CommandExecutor {
                     World w = p.getWorld();
                     int num = Integer.parseInt(strings[0]);
                     ItemStack[] items = switch (num) {
-                        case 1 -> ap.getArmors();
+                        case 1 -> ap.getContainerArmors();
                         case 2 -> gp.getGadgets();
+                        case 3 -> re.getRecipes();
                         default -> wp.getRecipeWeapons();
                     };
                     for (ItemStack i : items) {
@@ -37,6 +41,6 @@ public class DebugCommand implements CommandExecutor {
 
             }
         }
-        return false;
+        return true;
     }
 }
