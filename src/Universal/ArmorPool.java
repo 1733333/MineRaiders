@@ -1019,7 +1019,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.RAISER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "黑曜石头盔");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值满时，受到的伤害会大幅降低");
+        lore.add(ChatColor.WHITE + "套装效果：当生命值满时，受到的伤害会大幅降低");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1042,7 +1042,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.RAISER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "黑曜石胸甲");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值满时，受到的伤害会大幅降低");
+        lore.add(ChatColor.WHITE + "套装效果：当生命值满时，受到的伤害会大幅降低");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1065,7 +1065,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "黑曜石护腿");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值满时，受到的伤害会大幅降低");
+        lore.add(ChatColor.WHITE + "套装效果：当生命值满时，受到的伤害会大幅降低");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1088,7 +1088,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.RAISER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "黑曜石靴子");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值满时，受到的伤害会大幅降低");
+        lore.add(ChatColor.WHITE + "套装效果：当生命值满时，受到的伤害会大幅降低");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

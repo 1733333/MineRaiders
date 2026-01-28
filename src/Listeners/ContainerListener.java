@@ -1,9 +1,6 @@
 package Listeners;
 
-import Universal.ArmorPool;
-import Universal.LootPool;
-import Universal.Kit;
-import Universal.WeaponPool;
+import Universal.*;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -15,6 +12,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
@@ -48,7 +46,6 @@ public class ContainerListener implements Listener {
             Material.WAXED_EXPOSED_COPPER_CHEST,
             Material.WAXED_COPPER_CHEST,
             Material.CHEST,
-            Material.BREWING_STAND,
             Material.FURNACE,
             Material.BARREL,
             Material.BEE_NEST,
@@ -62,6 +59,7 @@ public class ContainerListener implements Listener {
     Kit k = Kit.INSTANCE;
     LootPool lp = LootPool.INSTANCE;
     ArmorPool ap = ArmorPool.INSTANCE;
+    BoxPool bp = BoxPool.INSTANCE;
     WeaponPool wp = WeaponPool.INSTANCE;
     Random r = new Random();
     JavaPlugin plugin;
@@ -85,6 +83,7 @@ public class ContainerListener implements Listener {
             case SMITHING_TABLE -> -2;
             case FLETCHING_TABLE -> -3;
             case LOOM -> -4;
+            case BREWING_STAND -> -5;
             default -> -1;
         };
     }
@@ -173,6 +172,9 @@ public class ContainerListener implements Listener {
                                 case -4 -> {
                                     content = loomContent();
                                 }
+                                case -5 -> {
+                                    content = potionContent();
+                                }
                             }
                         }
                         hasContent.add(container);
@@ -237,7 +239,9 @@ public class ContainerListener implements Listener {
                 int rarity = lp.getRarity(item);
                 int bound = 5 + Math.abs(rarity);
                 if(p.hasPotionEffect(PotionEffectType.HASTE)){
-                    bound -= 1;
+                    PotionEffect effect = p.getPotionEffect(PotionEffectType.HASTE);
+                    int amp = effect.getAmplifier() + 1;
+                    bound = Math.max(bound - amp, 1);
                 }
                 String message = searchProgress(bound,count);
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
@@ -258,6 +262,7 @@ public class ContainerListener implements Listener {
                             case -2 -> Sound.BLOCK_ANVIL_USE;
                             case -3 -> Sound.BLOCK_BARREL_OPEN;
                             case -4 -> Sound.ITEM_ARMOR_EQUIP_NETHERITE;
+                            case -5 -> Sound.BLOCK_BREWING_STAND_BREW;
                             default -> Sound.ENTITY_ITEM_PICKUP;
                         };
                         p.playSound(p,s,1,1);
@@ -318,6 +323,12 @@ public class ContainerListener implements Listener {
         for(int i =0;i < 3;i++){
             contentList.add(armors[r.nextInt(armors.length)]);
         }
+        return contentList.toArray(new ItemStack[0]);
+    }
+    public ItemStack[] potionContent() {
+        List<ItemStack> contentList = new ArrayList<>();
+        ItemStack[] potions = bp.getPotions();
+        contentList.add(potions[r.nextInt(potions.length)]);
         return contentList.toArray(new ItemStack[0]);
     }
 }

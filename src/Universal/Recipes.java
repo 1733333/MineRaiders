@@ -32,6 +32,7 @@ public enum Recipes {
             ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
             ItemMeta itemMeta = i.getItemMeta();
             ItemMeta bookMeta = book.getItemMeta();
+            bookMeta.setMaxStackSize(1);
             if (!itemMeta.hasDisplayName()) continue;
             bookMeta.setDisplayName(itemMeta.getDisplayName()
                     + ChatColor.GOLD + "配方");
@@ -45,22 +46,25 @@ public enum Recipes {
             recipeMap.put(i,book);
             recipeList.add(book);
         }
-        for(ItemStack i : gadgets) {
-            ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-            ItemMeta itemMeta = i.getItemMeta();
-            ItemMeta bookMeta = book.getItemMeta();
-            if (!itemMeta.hasDisplayName()) continue;
-            bookMeta.setDisplayName(itemMeta.getDisplayName()
-                    + ChatColor.GOLD + "配方");
-            ArrayList<String> lore = new ArrayList<>();
-            lore.add(ChatColor.WHITE + "一本古老的书");
-            lore.add(ChatColor.WHITE + "记载着合成" + itemMeta.getDisplayName()
-                    + ChatColor.WHITE + "的配方");
-            lore.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
-            bookMeta.setLore(lore);
-            book.setItemMeta(bookMeta);
-            recipeMap.put(i,book);
-            recipeList.add(book);
+        for(int j = 0;j < 5;j++) {
+            for (ItemStack i : gadgets) {
+                ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+                ItemMeta itemMeta = i.getItemMeta();
+                ItemMeta bookMeta = book.getItemMeta();
+                bookMeta.setMaxStackSize(1);
+                if (!itemMeta.hasDisplayName()) continue;
+                bookMeta.setDisplayName(itemMeta.getDisplayName()
+                        + ChatColor.GOLD + "配方");
+                ArrayList<String> lore = new ArrayList<>();
+                lore.add(ChatColor.WHITE + "一本古老的书");
+                lore.add(ChatColor.WHITE + "记载着合成" + itemMeta.getDisplayName()
+                        + ChatColor.WHITE + "的配方");
+                lore.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
+                bookMeta.setLore(lore);
+                book.setItemMeta(bookMeta);
+                recipeMap.put(i, book);
+                recipeList.add(book);
+            }
         }
         recipes = recipeList.toArray(new ItemStack[0]);
     }
@@ -70,11 +74,14 @@ public enum Recipes {
     }
 
     public void registerRecipe(){
-        NamespacedKey w0 = new NamespacedKey(plugin,"bone_stick");
-        ShapedRecipe w0r = new ShapedRecipe(w0,wp.boneStick());
-        w0r.shape(" B "," B "," S ");
-        w0r.setIngredient('B', Material.BONE_BLOCK);
-        w0r.setIngredient('S', Material.BONE);
-        Bukkit.addRecipe(w0r);
+        try {
+            NamespacedKey w0 = new NamespacedKey(plugin, "bone_stick");
+            ShapedRecipe w0r = new ShapedRecipe(w0, wp.boneStick());
+            w0r.shape(" B ", " B ", " S ");
+            w0r.setIngredient('B', Material.BONE_BLOCK);
+            w0r.setIngredient('S', Material.BONE);
+            Bukkit.addRecipe(w0r);
+        } catch (Exception ignored) {
+        }
     }
 }

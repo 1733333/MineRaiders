@@ -1,8 +1,10 @@
 package Listeners;
 
-import Universal.Kit;
+import Universal.*;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,9 +14,18 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Random;
+
 public class GadgetListener implements Listener {
     JavaPlugin plugin;
     Kit k = Kit.INSTANCE;
+    Random r = new Random();
+    ArmorPool ap = ArmorPool.INSTANCE;
+    BoxPool bp = BoxPool.INSTANCE;
+    GadgetPool gp = GadgetPool.INSTANCE;
+    LootPool lp = LootPool.INSTANCE;
+    Recipes rp = Recipes.INSTANCE;
+    WeaponPool wp = WeaponPool.INSTANCE;
 
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -32,24 +43,77 @@ public class GadgetListener implements Listener {
             String tag = k.getLore(hand);
             if (rightClick) {
                 switch (tag) {
-                    case "§f食物收纳盒":
-                    case "§f种子收纳盒":
-                    case "§f树苗收纳盒":
-                    case "§f药水收纳盒":
-                    case "§f唱片收纳盒":
-                    case "§f道具收纳盒":
-                    case "§f武器收纳盒":
-                    case "§f盔甲收纳盒":
-                    case "§f魔咒收纳盒":
-                    case "§f陶片收纳盒":
-                    case "§f号角收纳盒":
-                    case "§f纹饰收纳盒":
-                    case "§f钥匙收纳盒":
-                    case "§f配方收纳盒":
+                }
+                if(tag.contains("收纳盒")){
+                    openBox(p,hand,tag);
                 }
             }
         } else if (offHand.getType() != Material.AIR) {
 
+        }
+    }
+    public void openBox(Player p,ItemStack hand,String tag) {
+        World w = p.getWorld();
+        String box = tag.substring(0, 4);
+        ItemStack[] loots;
+        int amount = 1;
+        switch (box) {
+            case "§f食物":
+                loots = bp.getFoods();
+                break;
+            case "§f植物":
+                loots = bp.getPlants();
+                break;
+            case "§f树苗":
+                loots = bp.getSaplings();
+                break;
+            case "§f海洋":
+                loots = bp.getSea();
+                break;
+            case "§f唱片":
+                loots = bp.getDiscs();
+                break;
+            case "§f道具":
+                loots = gp.getGadgets();
+                break;
+            case "§f武器":
+                loots = wp.getBoxWeapons();
+                break;
+            case "§f盔甲":
+                loots = ap.getContainerArmors();
+                amount = 2;
+                break;
+            case "§f魔咒":
+                loots = bp.getEnchantedBooks();
+                amount = 2;
+                break;
+            case "§f陶片":
+                loots = bp.getPotteries();
+                break;
+            case "§f号角":
+                loots = bp.getHorns();
+                break;
+            case "§f纹饰":
+                loots = bp.getPatterns();
+                break;
+            case "§f钥匙":
+                loots = lp.getKeys();
+                break;
+            case "§f配方":
+                loots = rp.getRecipes();
+                break;
+            default:
+                return;
+        }
+        if(loots.length > 0) {
+            w.playSound(p, Sound.BLOCK_SHULKER_BOX_OPEN, 1, 1);
+            for(int i = 0; i < amount;i ++) {
+                w.dropItem(p.getLocation(), loots[r.nextInt(loots.length)]);
+            }
+            if (!p.getGameMode().equals(GameMode.CREATIVE)) {
+                int count = hand.getAmount();
+                hand.setAmount(count - 1);
+            }
         }
     }
 }

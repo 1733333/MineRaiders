@@ -185,10 +185,40 @@ public enum LootPool {
     ItemStack[] keys = {
             i62(),
             k0(),
+            k0(),
+            k0(),
+            k0(),
             k1(),
+            k1(),
+            k1(),
+            k2(),
             k2(),
             k3(),
     };
+    ItemStack[] boxes = {
+            i47(),
+            i48(),
+            i64(),
+            i65(),
+            i66(),
+            i67(),
+            i76(),
+            i77(),
+            i78(),
+            i79(),
+            i80(),
+            i81(),
+            i82(),
+            i95(),
+    };
+
+    public ItemStack[] getKeys() {
+        return keys.clone();
+    }
+
+    public ItemStack[] getBoxes() {
+        return boxes.clone();
+    }
 
     public void calculate(float[] chancePool, float[] chances) {
         float f = 0;
@@ -877,6 +907,7 @@ public enum LootPool {
         meta.setMaxStackSize(8);
         meta.setDisplayName(ChatColor.GREEN + "【寻常】食物收纳盒");
         lore.add(ChatColor.WHITE + "食物收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种食物");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -890,8 +921,9 @@ public enum LootPool {
         ItemMeta meta = i.getItemMeta();
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(8);
-        meta.setDisplayName(ChatColor.GREEN + "【寻常】种子收纳盒");
-        lore.add(ChatColor.WHITE + "种子收纳盒");
+        meta.setDisplayName(ChatColor.GREEN + "【寻常】植物收纳盒");
+        lore.add(ChatColor.WHITE + "植物收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种植物");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1089,6 +1121,7 @@ public enum LootPool {
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】树苗收纳盒");
         lore.add(ChatColor.WHITE + "树苗收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种树苗");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1102,8 +1135,9 @@ public enum LootPool {
         ItemMeta meta = i.getItemMeta();
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(4);
-        meta.setDisplayName(ChatColor.AQUA + "【稀有】药水收纳盒");
-        lore.add(ChatColor.WHITE + "药水收纳盒");
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】海洋收纳盒");
+        lore.add(ChatColor.WHITE + "海洋收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种水产品");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1119,6 +1153,7 @@ public enum LootPool {
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】唱片收纳盒");
         lore.add(ChatColor.WHITE + "唱片收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种唱片");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1134,6 +1169,7 @@ public enum LootPool {
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】道具收纳盒");
         lore.add(ChatColor.WHITE + "道具收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种道具");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1248,6 +1284,7 @@ public enum LootPool {
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】武器收纳盒");
         lore.add(ChatColor.WHITE + "武器收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种武器");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1263,6 +1300,7 @@ public enum LootPool {
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】盔甲收纳盒");
         lore.add(ChatColor.WHITE + "盔甲收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种盔甲");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1278,6 +1316,7 @@ public enum LootPool {
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】魔咒收纳盒");
         lore.add(ChatColor.WHITE + "魔咒收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种附魔书");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1293,6 +1332,7 @@ public enum LootPool {
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】陶片收纳盒");
         lore.add(ChatColor.WHITE + "陶片收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种陶片");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1308,6 +1348,7 @@ public enum LootPool {
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】号角收纳盒");
         lore.add(ChatColor.WHITE + "号角收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种号角");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1323,6 +1364,7 @@ public enum LootPool {
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】纹饰收纳盒");
         lore.add(ChatColor.WHITE + "纹饰收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种盔甲纹饰");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1338,6 +1380,7 @@ public enum LootPool {
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】钥匙收纳盒");
         lore.add(ChatColor.WHITE + "钥匙收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种钥匙");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");
@@ -1498,6 +1541,7 @@ public enum LootPool {
         meta.setMaxStackSize(1);
         meta.setDisplayName(ChatColor.GOLD + "【珍奇】配方收纳盒");
         lore.add(ChatColor.WHITE + "配方收纳盒");
+        lore.add(ChatColor.WHITE + "里面装有各种配方");
         lore.add(ChatColor.WHITE + "拿在手上，使用" +
                 ChatColor.AQUA + " 鼠标右键 " +
                 ChatColor.WHITE + "打开");

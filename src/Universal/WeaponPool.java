@@ -17,21 +17,16 @@ import java.util.ArrayList;
 public enum WeaponPool {
     INSTANCE;
     ItemStack[] recipeWeapons = {
-            boneStick(),
-            glassSword(),
             warHammer(),
             flameBow(),
             bambooSpear(),
             crystalSword(),
             echoAxe(),
-            cactusSword(),
-            flintSword(),
             quartzSword(),
             netherSword(),
             goldenCarrot(),
             echoSword(),
             fireSword(),
-            broom(),
             emeraldWand(),
             windBow(),
             masterStick(),
@@ -66,12 +61,57 @@ public enum WeaponPool {
             broom(),
             emeraldWand(),
     };
+    public ItemStack[] boxWeapons = {
+        new ItemStack(Material.WOODEN_SWORD),
+        new ItemStack(Material.WOODEN_SWORD),
+        new ItemStack(Material.STONE_SWORD),
+        new ItemStack(Material.STONE_SWORD),
+        new ItemStack(Material.COPPER_SWORD),
+        new ItemStack(Material.COPPER_SWORD),
+        new ItemStack(Material.GOLDEN_SWORD),
+        new ItemStack(Material.GOLDEN_SWORD),
+        new ItemStack(Material.IRON_SWORD),
+        new ItemStack(Material.IRON_SWORD),
+        new ItemStack(Material.WOODEN_SPEAR),
+        new ItemStack(Material.WOODEN_SPEAR),
+        new ItemStack(Material.STONE_SPEAR),
+        new ItemStack(Material.STONE_SPEAR),
+        new ItemStack(Material.COPPER_SPEAR),
+        new ItemStack(Material.COPPER_SPEAR),
+        new ItemStack(Material.GOLDEN_SPEAR),
+        new ItemStack(Material.GOLDEN_SPEAR),
+        new ItemStack(Material.IRON_SPEAR),
+        new ItemStack(Material.IRON_SPEAR),
+        new ItemStack(Material.WOODEN_AXE),
+        new ItemStack(Material.WOODEN_AXE),
+        new ItemStack(Material.STONE_AXE),
+        new ItemStack(Material.STONE_AXE),
+        new ItemStack(Material.COPPER_AXE),
+        new ItemStack(Material.COPPER_AXE),
+        new ItemStack(Material.GOLDEN_AXE),
+        new ItemStack(Material.GOLDEN_AXE),
+        new ItemStack(Material.IRON_AXE),
+        new ItemStack(Material.IRON_AXE),
+            boneStick(),
+            glassSword(),
+            warHammer(),
+            bambooSpear(),
+            cactusSword(),
+            flintSword(),
+            quartzSword(),
+            goldenCarrot(),
+            fireSword(),
+            broom(),
+            emeraldWand(),
+    };
 
     public ItemStack[] getRecipeWeapons() {
         return recipeWeapons.clone();
     }
 
     public ItemStack[] getContainerWeapons() {return containerWeapons.clone();}
+
+    public ItemStack[] getBoxWeapons() {return boxWeapons.clone();}
 
     public ItemStack boneStick(){
         ItemStack item = new ItemStack(Material.IRON_AXE);

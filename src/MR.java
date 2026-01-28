@@ -1,5 +1,6 @@
 import Listeners.ContainerListener;
 import Listeners.GadgetListener;
+import Universal.BoxPool;
 import Universal.Recipes;
 import commands.DebugCommand;
 import org.bukkit.plugin.PluginManager;
@@ -9,6 +10,7 @@ public class MR extends JavaPlugin {
     @Override
     public void onEnable() {
         Recipes recipes = Recipes.INSTANCE;
+        BoxPool boxPool = BoxPool.INSTANCE;
 
         PluginManager manager = this.getServer().getPluginManager();
 
@@ -27,6 +29,9 @@ public class MR extends JavaPlugin {
 
         recipes.registerStack();
         recipes.registerRecipe();
+        boxPool.registerBooks();
+        boxPool.registerHorns();
+        boxPool.registerPotions();
     }
 
     @Override
