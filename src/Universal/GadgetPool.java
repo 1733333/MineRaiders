@@ -151,6 +151,7 @@ public enum GadgetPool {
         ((PotionMeta)itemMeta).addCustomEffect(
                 new PotionEffect(PotionEffectType.SPEED,12000,0),false);
         itemMeta.setDisplayName(ChatColor.AQUA + "能量饮料");
+        itemMeta.setMaxStackSize(16);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "能量饮料");
         lore.add(ChatColor.WHITE + "饮用后获得速度效果");

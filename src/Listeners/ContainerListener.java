@@ -5,10 +5,12 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -49,7 +51,8 @@ public class ContainerListener implements Listener {
             Material.FURNACE,
             Material.BARREL,
             Material.BEE_NEST,
-            Material.LECTERN
+            Material.LECTERN,
+            Material.DECORATED_POT
     };
     Material[] bestContainer = {
             Material.CRAFTER,
@@ -90,7 +93,7 @@ public class ContainerListener implements Listener {
 
     public float[] getContainerValue(Block b) {
         return switch (getContainerRarity(b)) {
-            case 0 -> new float[]{5f, 3f, 1.375f, 0.55f, 0.05f, 0.025f};
+            case 0 -> new float[]{5f, 3f, 1.25f, 0.45f, 0.035f, 0.015f};
             case 1 -> new float[]{3.75f, 2.75f, 1.75f, 1.5f, 0.15f, 0.1f};
             case 2 -> new float[]{2f, 2f, 2f, 2f, 1.25f, 0.75f};
             default -> new float[0];
@@ -103,8 +106,8 @@ public class ContainerListener implements Listener {
         switch (rarity){
             case 0:{
                 count = 1;
-                max = 7;
-                chance = 0.95;
+                max = 4;
+                chance = 0.90;
             }
             break;
             case 1:{
@@ -284,6 +287,36 @@ public class ContainerListener implements Listener {
             }
         };
         check.runTaskTimer(plugin,0L,4L);
+    }
+    @EventHandler
+    public void itemParticle(ItemSpawnEvent spawnEvent) {
+        Item item = spawnEvent.getEntity();
+        World w = item.getWorld();
+        ItemStack stack = item.getItemStack();
+        int rarity = lp.getRarity(stack);
+        Color c = switch (rarity) {
+            case 0 -> Color.GRAY;
+            case 1 -> Color.LIME;
+            case 2 -> Color.AQUA;
+            case 3 -> Color.FUCHSIA;
+            case 4 -> Color.ORANGE;
+            case 5 -> Color.RED;
+            default -> Color.WHITE;
+        };
+        if (rarity >= 0) {
+            BukkitRunnable particle = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (item.isDead()) {
+                        this.cancel();
+                    }
+                    Particle.DustOptions dust = new Particle.DustOptions(c, 0.5f);
+                    w.spawnParticle(Particle.DUST, item.getLocation().add(0, 1.9, 0),
+                            rarity + 1, 0, 0.5, 0, dust);
+                }
+            };
+            particle.runTaskTimer(plugin, 0L, 2L);
+        }
     }
     public String searchProgress(int total,int step){
         StringBuilder progress = new StringBuilder();

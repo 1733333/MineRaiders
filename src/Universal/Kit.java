@@ -3,6 +3,8 @@ package Universal;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -10,10 +12,9 @@ import org.bukkit.util.Vector;
 
 public enum Kit {
     INSTANCE;
-    public Block rayTraceBlock(Player p, int radius){
-        Location eLoc = p.getEyeLocation();
-        Vector eVec = eLoc.getDirection().normalize();
-        Location bLoc = eLoc.clone();
+    public Block rayTraceBlock(Location loc,Vector vec, int radius){
+        Vector eVec = vec.normalize();
+        Location bLoc = loc.clone();
         for(int i = 0;i <= radius;i ++){
             Block b = bLoc.getBlock();
             Material type = b.getType();
@@ -35,7 +36,9 @@ public enum Kit {
     }
 
 
-    public double distance(Location l1,Location l2){
+    public double distance(Entity e1,Entity e2){
+        Location l1 = e1.getLocation();
+        Location l2 = e2.getLocation();
         return (l1.subtract(l2)).length();
     }
 }

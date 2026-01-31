@@ -768,7 +768,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "幻翼头盔");
         lore.add(ChatColor.WHITE + "受到伤害会获得速度效果，无法叠加");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值下降到一半以下时，会原地释放一次烟雾弹");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会原地释放一次烟雾弹");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -786,7 +786,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "幻翼胸甲");
         lore.add(ChatColor.WHITE + "受到伤害会获得速度效果，无法叠加");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值下降到一半以下时，会原地释放一次烟雾弹");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会原地释放一次烟雾弹");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -804,7 +804,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "幻翼护腿");
         lore.add(ChatColor.WHITE + "受到伤害会获得速度效果，无法叠加");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值下降到一半以下时，会原地释放一次烟雾弹");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会原地释放一次烟雾弹");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -822,7 +822,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "幻翼靴子");
         lore.add(ChatColor.WHITE + "受到伤害会获得速度效果，无法叠加");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值下降到一半以下时，会原地释放一次烟雾弹");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会原地释放一次烟雾弹");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -843,7 +843,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "紫水晶头盔");
-        lore.add(ChatColor.WHITE + "套装效果：来自玩家的伤害减少25%");
+        lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
         lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次破片");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
@@ -865,7 +865,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "紫水晶胸甲");
-        lore.add(ChatColor.WHITE + "套装效果：来自玩家的伤害减少25%");
+        lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
         lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次破片");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
@@ -887,7 +887,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "紫水晶护腿");
-        lore.add(ChatColor.WHITE + "套装效果：来自玩家的伤害减少25%");
+        lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
         lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次破片");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
@@ -909,7 +909,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "紫水晶靴子");
-        lore.add(ChatColor.WHITE + "套装效果：来自玩家的伤害减少25%");
+        lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
         lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次破片");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
@@ -931,7 +931,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石头盔");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值下降到一半以下时，会获得生命吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会获得伤害吸收效果");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -952,7 +952,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石胸甲");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值下降到一半以下时，会获得生命吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会获得伤害吸收效果");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -973,7 +973,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石护腿");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值下降到一半以下时，会获得生命吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会获得伤害吸收效果");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -994,7 +994,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石靴子");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值下降到一半以下时，会获得生命吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会获得伤害吸收效果");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -1019,7 +1019,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.RAISER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "黑曜石头盔");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值满时，受到的伤害会大幅降低");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值满时，受到的伤害会大幅降低");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1042,7 +1042,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.RAISER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "黑曜石胸甲");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值满时，受到的伤害会大幅降低");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值满时，受到的伤害会大幅降低");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1065,7 +1065,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "黑曜石护腿");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值满时，受到的伤害会大幅降低");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值满时，受到的伤害会大幅降低");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1088,7 +1088,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.AMETHYST, TrimPattern.RAISER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "黑曜石靴子");
-        lore.add(ChatColor.WHITE + "套装效果：当生命值满时，受到的伤害会大幅降低");
+        lore.add(ChatColor.WHITE + "套装奖励：当生命值满时，受到的伤害会大幅降低");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1108,7 +1108,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.DIAMOND, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "回响头盔");
-        lore.add(ChatColor.WHITE + "套装效果：来自怪物的伤害减少50%");
+        lore.add(ChatColor.WHITE + "套装奖励：来自怪物的伤害减少50%");
         lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次诱捕手雷");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
@@ -1130,7 +1130,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.DIAMOND, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "回响胸甲");
-        lore.add(ChatColor.WHITE + "套装效果：来自怪物的伤害减少50%");
+        lore.add(ChatColor.WHITE + "套装奖励：来自怪物的伤害减少50%");
         lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次诱捕手雷");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
@@ -1152,7 +1152,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.DIAMOND, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "回响护腿");
-        lore.add(ChatColor.WHITE + "套装效果：来自怪物的伤害减少50%");
+        lore.add(ChatColor.WHITE + "套装奖励：来自怪物的伤害减少50%");
         lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次诱捕手雷");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
@@ -1174,7 +1174,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.DIAMOND, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "回响靴子");
-        lore.add(ChatColor.WHITE + "套装效果：来自怪物的伤害减少50%");
+        lore.add(ChatColor.WHITE + "套装奖励：来自怪物的伤害减少50%");
         lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次诱捕手雷");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);

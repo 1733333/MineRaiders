@@ -270,14 +270,14 @@ public enum LootPool {
         ItemMeta meta = item.getItemMeta();
         String name = meta.getDisplayName();
         if (!name.contains("§")) return -1;
-        String cutName = name.substring(0, 2);
+        String cutName = name.substring(0, 3);
         return switch (cutName) {
-            case "§7" -> 0;
-            case "§a" -> 1;
-            case "§b" -> 2;
-            case "§d" -> 3;
-            case "§6" -> 4;
-            case "§c" -> 5;
+            case "§7【" -> 0;
+            case "§a【" -> 1;
+            case "§b【" -> 2;
+            case "§d【" -> 3;
+            case "§6【" -> 4;
+            case "§c【" -> 5;
             default -> -1;
         };
     }
