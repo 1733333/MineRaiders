@@ -19,6 +19,7 @@ public class DebugCommand implements CommandExecutor {
     LootPool lp = LootPool.INSTANCE;
     Random r = new Random();
     Monsters m = Monsters.INSTANCE;
+    Kit k = Kit.INSTANCE;
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         if (commandSender instanceof Player p) {
@@ -27,7 +28,9 @@ public class DebugCommand implements CommandExecutor {
                     World w = p.getWorld();
                     int num = Integer.parseInt(strings[0]);
                     switch (num){
-                        case 0:m.shredder(p.getLocation());
+                        case 0->m.shredder(p.getLocation());
+                        case 1->m.flea(p.getLocation());
+                        case 2->m.pop(p.getLocation());
                     }
                 }
             } catch (Exception ignored) {

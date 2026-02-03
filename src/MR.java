@@ -1,5 +1,6 @@
 import Listeners.ContainerListener;
 import Listeners.GadgetListener;
+import Listeners.MonsterListener;
 import Universal.BoxPool;
 import Universal.Monsters;
 import Universal.Recipes;
@@ -19,14 +20,17 @@ public class MR extends JavaPlugin {
         DebugCommand debugCommand = new DebugCommand();
         ContainerListener containerListener = new ContainerListener();
         GadgetListener gadgetListener = new GadgetListener();
+        MonsterListener monsterListener = new MonsterListener();
 
         manager.registerEvents(containerListener,this);
         manager.registerEvents(gadgetListener,this);
+        manager.registerEvents(monsterListener,this);
 
         this.getCommand("mineraidersdebug").setExecutor(debugCommand);
 
         containerListener.setPlugin(this);
         gadgetListener.setPlugin(this);
+        monsterListener.setPlugin(this);
         recipes.setPlugin(this);
         monsters.setPlugin(this);
 

@@ -46,6 +46,7 @@ public class GadgetListener implements Listener {
                 }
                 if(tag.contains("收纳盒")){
                     openBox(p,hand,tag);
+                    interactEvent.setCancelled(true);
                 }
             }
         } else if (offHand.getType() != Material.AIR) {
