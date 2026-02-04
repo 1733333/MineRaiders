@@ -31,14 +31,21 @@ public class MonsterListener implements Listener {
         LivingEntity damaged = (LivingEntity) damageEvent.getEntity();
         DamageType damageType = damageEvent.getDamageSource().getDamageType();
         String aName = attacker.getName();
+        String dName = damaged.getName();
+        World w = attacker.getWorld();
         if(aName.equals("§c粉碎者")){
             if(!damageType.equals(DamageType.ARROW)) {
                 damageEvent.setCancelled(true);
             }
         }
-        if(aName.equals("§a爆爆")){
-            if(!damageType.equals(DamageType.EXPLOSION)) {
+        if(aName.equals("§6火球")){
+            if(!damageType.equals(DamageType.IN_FIRE)) {
                 damageEvent.setCancelled(true);
+            }
+        }
+        if(dName.equals("§6火球")){
+            if(damaged.hasPotionEffect(PotionEffectType.RESISTANCE)) {
+                w.playSound(damaged,Sound.ITEM_SHIELD_BLOCK,1,1);
             }
         }
         if(aName.equals("§a跳蚤")) {
@@ -103,7 +110,6 @@ public class MonsterListener implements Listener {
                 k.explode(mob,mob,10,1,5);
                 w.spawnParticle(Particle.EXPLOSION_EMITTER,mob.getLocation(),1);
                 w.playSound(mob.getLocation(), Sound.ENTITY_GENERIC_EXPLODE,1,1);
-                mob.remove();
             }
         }
     }

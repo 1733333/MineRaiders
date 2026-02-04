@@ -51,6 +51,14 @@ public enum Kit {
         Location l2 = e2.getLocation();
         return (l1.subtract(l2)).length();
     }
+    public double locDistance(Location l1,Location l2){
+        return (l1.subtract(l2)).length();
+    }
+    public double angle(Vector v1,Vector v2){
+        Vector v1N = v1.clone().normalize();
+        Vector v2N = v2.clone().normalize();
+        return v1N.dot(v2N);
+    }
     public void explode(LivingEntity source,Entity jar,double damage,double amp,int radius){
         World w = source.getWorld();
         Collection<Entity> entities = w.getNearbyEntities(jar.getLocation(),radius,radius,radius);
@@ -61,8 +69,13 @@ public enum Kit {
                 if(distance >= 1){
                     damage -= distance * amp;
                 }
-                l.damage(damage, DamageSource.builder(DamageType.FIREBALL)
-                        .withCausingEntity(source).build());
+                if (source.getName().equals("§a爆爆")) {
+                    l.damage(damage);
+                    source.remove();
+                }else {
+                    l.damage(damage, DamageSource.builder(DamageType.EXPLOSION)
+                            .withCausingEntity(source).build());
+                }
             }
         }
     }
@@ -122,24 +135,6 @@ public enum Kit {
         cloud.setParticle(Particle.FLAME);
         cloud.setRadius((float) radius);
         cloud.setCustomName(source.getName() + "的火");
-        int x = loc.getBlockX();
-        int y = loc.getBlockY();
-        int z = loc.getBlockZ();
-        for(int a = -radius;a <= radius;a++){
-            for(int b = -radius;b <= radius;b++){
-                for(int c = -radius;c <=radius;c++) {
-                    if (a * a + b * b + c * c <= radius * radius) {
-                        Location newLoc = new Location(w, x + a, y + b, z + c);
-                        Block block = w.getBlockAt(newLoc);
-                        if (block.getType() == Material.AIR
-                                || block.getType() == Material.LIGHT
-                                || block.getType() == Material.POWDER_SNOW) {
-                            block.setType(Material.FIRE);
-                        }
-                    }
-                }
-            }
-        }
         BukkitRunnable fireDamage = new BukkitRunnable() {
             @Override
             public void run() {
@@ -156,9 +151,10 @@ public enum Kit {
                             if(p1.getGameMode() == GameMode.SPECTATOR)continue;
                         }
                         double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
-                        l.damage(max * 0.1,source);
                         int fire = l.getFireTicks();
                         l.setFireTicks(fire + 50);
+                        l.damage(max * 0.1, DamageSource.builder(DamageType.ON_FIRE)
+                                .withDirectEntity(source).build());
                         w.playSound(l.getLocation(),Sound.ENTITY_PLAYER_HURT_ON_FIRE,1,1);
                     }
                 }

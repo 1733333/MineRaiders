@@ -14,10 +14,10 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
-import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 
 public enum Monsters {
@@ -42,11 +42,11 @@ public enum Monsters {
         meta2.setColor(Color.BLACK);
         chest.setItemMeta(meta1);
         leg.setItemMeta(meta2);
-        double health = 100;
-        s.getEquipment().clear();
         s.getEquipment().setHelmet(new ItemStack(Material.OBSERVER));
         s.getEquipment().setChestplate(chest);
         s.getEquipment().setLeggings(leg);
+        double health = 100;
+        s.getEquipment().clear();
         s.setCustomName(ChatColor.RED + "粉碎者");
         s.getAttribute(Attribute.SCALE).setBaseValue(0.8);
         s.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
@@ -240,10 +240,135 @@ public enum Monsters {
     public void pop(Location loc){
         World w = loc.getWorld();
         Creeper s = (Creeper) w.spawnEntity(loc,EntityType.CREEPER);
+        s.getEquipment().setHelmet(new ItemStack(Material.IRON_BLOCK));
         s.getAttribute(Attribute.SCALE).setBaseValue(0.5);
         s.getAttribute(Attribute.MAX_HEALTH).setBaseValue(5);
         s.setCustomName(ChatColor.GREEN + "爆爆");
         s.setExplosionRadius(2);
         s.setFuseTicks(20);
+    }
+    public void fireBall(Location loc){
+        World w = loc.getWorld();
+        Zombie z = (Zombie) w.spawnEntity(loc,EntityType.ZOMBIE);
+        z.getEquipment().clear();
+        z.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.25);
+        z.getAttribute(Attribute.MAX_HEALTH).setBaseValue(5);
+        z.setCustomName(ChatColor.GOLD + "火球");
+        ItemStack chest = new ItemStack(Material.LEATHER_CHESTPLATE);
+        ItemStack leg = new ItemStack(Material.LEATHER_LEGGINGS);
+        ItemStack boot = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta meta1 = (LeatherArmorMeta) chest.getItemMeta();
+        LeatherArmorMeta meta2 = (LeatherArmorMeta) leg.getItemMeta();
+        LeatherArmorMeta meta3 = (LeatherArmorMeta) boot.getItemMeta();
+        meta1.setColor(Color.BLACK);
+        meta2.setColor(Color.BLACK);
+        meta3.setColor(Color.BLACK);
+        chest.setItemMeta(meta1);
+        leg.setItemMeta(meta2);
+        boot.setItemMeta(meta3);
+        z.getEquipment().setHelmet(new ItemStack(Material.NETHERITE_BLOCK));
+        z.getEquipment().setChestplate(chest);
+        z.getEquipment().setLeggings(leg);
+        z.getEquipment().setBoots(boot);
+        z.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 86400, 1));
+        z.setBaby();
+        BukkitRunnable getTarget = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (z.isDead()) {
+                    this.cancel();
+                    return;
+                }
+                if (z.getTarget() == null) {
+                    double radius = 10;
+                    for (Entity e : z.getNearbyEntities(radius, radius, radius)) {
+                        if (e instanceof Player p) {
+                            if (k.distance(z, p) > radius) continue;
+                            if (p.getGameMode().equals(GameMode.SURVIVAL)) {
+                                z.setTarget(p);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        BukkitRunnable shoot = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (z.isDead()) {
+                    this.cancel();
+                    return;
+                }
+                if (z.getTarget() != null) {
+                    LivingEntity t = z.getTarget();
+                    if(!isShooting.contains(z)) {
+                        if (k.distance(t, z) <= 6 &&
+                                !z.hasPotionEffect(PotionEffectType.SLOWNESS)) {
+                            fireBallShoot(z);
+                            isShooting.add(z);
+                        }
+                    }
+                }
+            }
+        };
+        getTarget.runTaskTimer(plugin, 0L, 100L);
+        shoot.runTaskTimer(plugin, 0L, 80L);
+    }
+    public void fireBallShoot(LivingEntity shooter){
+        World w = shooter.getWorld();
+        shooter.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 200, 10));
+        shooter.removePotionEffect(PotionEffectType.RESISTANCE);
+        w.playSound(shooter.getLocation(),Sound.ENTITY_BLAZE_HURT,1,1);
+        Location shootLoc = shooter.getEyeLocation();
+        Vector stabVec = shootLoc.getDirection().setY(0);
+        int range = 6;
+        BukkitRunnable shoot = new BukkitRunnable() {
+            int count = 0;
+            @Override
+            public void run() {
+                if(shooter.isDead() || count > 9){
+                    if(count > 9){
+                        shooter.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 86400, 1));
+                        shooter.removePotionEffect(PotionEffectType.SLOWNESS);
+                    }
+                    isShooting.remove(shooter);
+                    this.cancel();
+                    return;
+                }
+                w.playSound(shootLoc,Sound.ITEM_FIRECHARGE_USE,1,1);
+                List<Entity> entities = shooter.getNearbyEntities(range, range, range);
+                for (Entity e : entities) {
+                    if(e instanceof Player p1){
+                        if(p1.getGameMode() == GameMode.SPECTATOR)continue;
+                    }
+                    if (e instanceof LivingEntity l) {
+                        double distance = k.distance(l,shooter);
+                        double ballDistance = k.locDistance(shootLoc
+                                .add(stabVec.multiply(0.9)),l.getLocation());
+                        Vector lVec = l.getEyeLocation().toVector();
+                        Vector pVec = shooter.getEyeLocation().toVector();
+                        Vector sVec = lVec.clone().subtract(pVec);
+                        double angle = k.angle(stabVec, sVec);
+                        if (distance <= range && angle > 0.95 || ballDistance < 2) {
+                            int fire = l.getFireTicks();
+                            l.setFireTicks(fire + 40);
+                            w.playSound(l.getEyeLocation(),
+                                    Sound.ENTITY_PLAYER_HURT_ON_FIRE, 1, 1);
+                        }
+                    }
+                }
+                for(int i = 0;i < 20;i++){
+                    double x = r.nextDouble() - r.nextDouble();
+                    double y = r.nextDouble() - r.nextDouble();
+                    double z = r.nextDouble() - r.nextDouble();
+                    Vector spread = new Vector(x, y, z).normalize();
+                    Vector shoot = stabVec.clone().add(spread.multiply(0.5));
+                    w.spawnParticle(Particle.FLAME,shootLoc,0,
+                            shoot.getX(),shoot.getY(),shoot.getZ(),0.1);
+                }
+                count += 1;
+            }
+        };
+        shoot.runTaskTimer(plugin,30L,5L);
     }
 }

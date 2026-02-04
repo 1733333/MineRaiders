@@ -1182,5 +1182,64 @@ public enum ArmorPool {
         return item;
     }
 
-
+    public ItemStack mobHelm(Color c){
+        ItemStack item = new ItemStack(Material.LEATHER_HELMET);
+        LeatherArmorMeta itemMeta = (LeatherArmorMeta) item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.WHITE + "怪物头盔");
+        Attribute a1 = Attribute.ARMOR;
+        AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),0, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.HEAD.getGroup());
+        itemMeta.addAttributeModifier(a1,m1);
+        itemMeta.setUnbreakable(true);
+        itemMeta.setColor(c);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "给怪物用的装饰性护甲");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack mobChest(Color c){
+        ItemStack item = new ItemStack(Material.LEATHER_CHESTPLATE);
+        LeatherArmorMeta itemMeta = (LeatherArmorMeta) item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.WHITE + "怪物头盔");
+        Attribute a1 = Attribute.ARMOR;
+        AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),0, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.CHEST.getGroup());
+        itemMeta.addAttributeModifier(a1,m1);
+        itemMeta.setUnbreakable(true);
+        itemMeta.setColor(c);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "给怪物用的装饰性护甲");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack mobLeg(Color c){
+        ItemStack item = new ItemStack(Material.LEATHER_LEGGINGS);
+        LeatherArmorMeta itemMeta = (LeatherArmorMeta) item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.WHITE + "怪物头盔");
+        Attribute a1 = Attribute.ARMOR;
+        AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),0, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.LEGS.getGroup());
+        itemMeta.addAttributeModifier(a1,m1);
+        itemMeta.setUnbreakable(true);
+        itemMeta.setColor(c);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "给怪物用的装饰性护甲");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack mobBoot(Color c){
+        ItemStack item = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta itemMeta = (LeatherArmorMeta) item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.WHITE + "怪物头盔");
+        Attribute a1 = Attribute.ARMOR;
+        AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),0, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.FEET.getGroup());
+        itemMeta.addAttributeModifier(a1,m1);
+        itemMeta.setUnbreakable(true);
+        itemMeta.setColor(c);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "给怪物用的装饰性护甲");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
 }

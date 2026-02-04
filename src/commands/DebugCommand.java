@@ -31,6 +31,7 @@ public class DebugCommand implements CommandExecutor {
                         case 0->m.shredder(p.getLocation());
                         case 1->m.flea(p.getLocation());
                         case 2->m.pop(p.getLocation());
+                        case 3->m.fireBall(p.getLocation());
                     }
                 }
             } catch (Exception ignored) {
