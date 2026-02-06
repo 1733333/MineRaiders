@@ -6,9 +6,12 @@ import org.bukkit.block.Block;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -126,10 +129,8 @@ public enum Kit {
         };
         gassing.runTaskTimer(plugin,0L,20L);
     }
-    public void fire(LivingEntity source,Entity jar,int duration,int radius){
+    public void fire(LivingEntity source,Location loc,int duration,int radius){
         World w = source.getWorld();
-        Location loc = jar.getLocation();
-        jar.remove();
         AreaEffectCloud cloud = (AreaEffectCloud) w.spawnEntity(loc,EntityType.AREA_EFFECT_CLOUD);
         cloud.setDuration(duration * 30);
         cloud.setParticle(Particle.FLAME);
@@ -145,21 +146,24 @@ public enum Kit {
                 w.spawnParticle(Particle.FLAME,loc,200,radius/2.0,radius/2.0,radius/2.0,0);
                 Collection<Entity>entities = w.getNearbyEntities(loc,radius,radius,radius);
                 for(Entity e : entities){
-                    if(distance(jar,e) > radius)continue;
+                    if(locDistance(loc,e.getLocation()) > radius)continue;
                     if(e instanceof LivingEntity l){
                         if(e instanceof Player p1){
                             if(p1.getGameMode() == GameMode.SPECTATOR)continue;
                         }
-                        double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
-                        int fire = l.getFireTicks();
-                        l.setFireTicks(fire + 50);
-                        l.damage(max * 0.1, DamageSource.builder(DamageType.ON_FIRE)
-                                .withDirectEntity(source).build());
+                        l.setFireTicks(100);
+                        l.damage(4, DamageSource.builder(DamageType.IN_FIRE)
+                                .withCausingEntity(cloud).build());
                         w.playSound(l.getLocation(),Sound.ENTITY_PLAYER_HURT_ON_FIRE,1,1);
                     }
                 }
             }
         };
         fireDamage.runTaskTimer(plugin,0L,30L);
+    }
+
+    public boolean isArmored(LivingEntity l){
+        EntityEquipment e = l.getEquipment();
+        return e.getArmorContents().length != 0;
     }
 }
