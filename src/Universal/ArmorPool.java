@@ -43,10 +43,10 @@ public enum ArmorPool {
             new ItemStack(Material.CHAINMAIL_CHESTPLATE),
             new ItemStack(Material.CHAINMAIL_LEGGINGS),
             new ItemStack(Material.CHAINMAIL_BOOTS),
-            dirtHelm(),
-            dirtChest(),
-            dirtLeg(),
-            dirtBoot(),
+            wheatHelm(),
+            wheatChest(),
+            wheatLeg(),
+            wheatBoot(),
             woodHelm(),
             woodChest(),
             woodLeg(),
@@ -99,21 +99,94 @@ public enum ArmorPool {
     public ItemStack[] getContainerArmors() {
         return containerArmors.clone();
     }
+    public ItemStack wheatHelm(){
+        ItemStack item = new ItemStack(Material.LEATHER_HELMET);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.WHITE + "干草头盔");
+        ((Damageable)itemMeta).setMaxDamage(25);
+        Attribute a1 = Attribute.ARMOR;
+        AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup());
+        itemMeta.addAttributeModifier(a1,m1);
+        ((LeatherArmorMeta)itemMeta).setColor(Color.fromRGB(216,202,94));
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "干草头盔");
+        lore.add(ChatColor.WHITE + "几乎没有防御力");
+        lore.add(ChatColor.WHITE + "当受到伤害时");
+        lore.add(ChatColor.WHITE + "每个部位的干草材质护甲");
+        lore.add(ChatColor.WHITE + "都会提供1点的饱食度回复");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack wheatChest(){
+        ItemStack item = new ItemStack(Material.LEATHER_CHESTPLATE);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.WHITE + "干草胸甲");
+        ((Damageable)itemMeta).setMaxDamage(30);
+        Attribute a1 = Attribute.ARMOR;
+        AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),1.5, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.CHEST.getGroup());
+        itemMeta.addAttributeModifier(a1,m1);
+        ((LeatherArmorMeta)itemMeta).setColor(Color.fromRGB(216,202,94));
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "干草胸甲");
+        lore.add(ChatColor.WHITE + "几乎没有防御力");
+        lore.add(ChatColor.WHITE + "当受到伤害时");
+        lore.add(ChatColor.WHITE + "每个部位的干草材质护甲");
+        lore.add(ChatColor.WHITE + "都会提供1点的饱食度回复");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack wheatLeg(){
+        ItemStack item = new ItemStack(Material.LEATHER_LEGGINGS);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.WHITE + "干草护腿");
+        ((Damageable)itemMeta).setMaxDamage(25);
+        Attribute a1 = Attribute.ARMOR;
+        AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),1, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.LEGS.getGroup());
+        itemMeta.addAttributeModifier(a1,m1);
+        ((LeatherArmorMeta)itemMeta).setColor(Color.fromRGB(216,202,94));
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "干草护腿");
+        lore.add(ChatColor.WHITE + "几乎没有防御力");
+        lore.add(ChatColor.WHITE + "当受到伤害时");
+        lore.add(ChatColor.WHITE + "每个部位的干草材质护甲");
+        lore.add(ChatColor.WHITE + "都会提供1点的饱食度回复");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack wheatBoot(){
+        ItemStack item = new ItemStack(Material.LEATHER_BOOTS);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.WHITE + "干草靴子");
+        ((Damageable)itemMeta).setMaxDamage(20);
+        Attribute a1 = Attribute.ARMOR;
+        AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),0.5, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.FEET.getGroup());
+        itemMeta.addAttributeModifier(a1,m1);
+        ((LeatherArmorMeta)itemMeta).setColor(Color.fromRGB(216,202,94));
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "干草靴子");
+        lore.add(ChatColor.WHITE + "几乎没有防御力");
+        lore.add(ChatColor.WHITE + "当受到伤害时");
+        lore.add(ChatColor.WHITE + "每个部位的干草材质护甲");
+        lore.add(ChatColor.WHITE + "都会提供1点的饱食度回复");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
     public ItemStack dirtHelm(){
         ItemStack item = new ItemStack(Material.LEATHER_HELMET);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.WHITE + "泥土头盔");
-        ((Damageable)itemMeta).setMaxDamage(25);
+        ((Damageable)itemMeta).setMaxDamage(45);
         Attribute a1 = Attribute.ARMOR;
         AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup());
         itemMeta.addAttributeModifier(a1,m1);
         ((LeatherArmorMeta)itemMeta).setColor(Color.fromRGB(192,150,55));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "泥土头盔");
-        lore.add(ChatColor.WHITE + "几乎没有防御力");
-        lore.add(ChatColor.WHITE + "当受到伤害时");
-        lore.add(ChatColor.WHITE + "每个部位的泥土材质护甲");
-        lore.add(ChatColor.WHITE + "都会提供1点的饱食度回复");
+        lore.add(ChatColor.WHITE + "防御力很低，但是耐久高一些");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -122,17 +195,14 @@ public enum ArmorPool {
         ItemStack item = new ItemStack(Material.LEATHER_CHESTPLATE);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.WHITE + "泥土胸甲");
-        ((Damageable)itemMeta).setMaxDamage(30);
+        ((Damageable)itemMeta).setMaxDamage(55);
         Attribute a1 = Attribute.ARMOR;
         AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),1.5, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.CHEST.getGroup());
         itemMeta.addAttributeModifier(a1,m1);
         ((LeatherArmorMeta)itemMeta).setColor(Color.fromRGB(192,150,55));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "泥土胸甲");
-        lore.add(ChatColor.WHITE + "几乎没有防御力");
-        lore.add(ChatColor.WHITE + "当受到伤害时");
-        lore.add(ChatColor.WHITE + "每个部位的泥土材质护甲");
-        lore.add(ChatColor.WHITE + "都会提供1点的饱食度回复");
+        lore.add(ChatColor.WHITE + "防御力很低，但是耐久高一些");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -141,17 +211,14 @@ public enum ArmorPool {
         ItemStack item = new ItemStack(Material.LEATHER_LEGGINGS);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.WHITE + "泥土护腿");
-        ((Damageable)itemMeta).setMaxDamage(25);
+        ((Damageable)itemMeta).setMaxDamage(50);
         Attribute a1 = Attribute.ARMOR;
         AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),1, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.LEGS.getGroup());
         itemMeta.addAttributeModifier(a1,m1);
         ((LeatherArmorMeta)itemMeta).setColor(Color.fromRGB(192,150,55));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "泥土护腿");
-        lore.add(ChatColor.WHITE + "几乎没有防御力");
-        lore.add(ChatColor.WHITE + "当受到伤害时");
-        lore.add(ChatColor.WHITE + "每个部位的泥土材质护甲");
-        lore.add(ChatColor.WHITE + "都会提供1点的饱食度回复");
+        lore.add(ChatColor.WHITE + "防御力很低，但是耐久高一些");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -160,17 +227,14 @@ public enum ArmorPool {
         ItemStack item = new ItemStack(Material.LEATHER_BOOTS);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.WHITE + "泥土靴子");
-        ((Damageable)itemMeta).setMaxDamage(20);
+        ((Damageable)itemMeta).setMaxDamage(40);
         Attribute a1 = Attribute.ARMOR;
         AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),0.5, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.FEET.getGroup());
         itemMeta.addAttributeModifier(a1,m1);
         ((LeatherArmorMeta)itemMeta).setColor(Color.fromRGB(192,150,55));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "泥土靴子");
-        lore.add(ChatColor.WHITE + "几乎没有防御力");
-        lore.add(ChatColor.WHITE + "当受到伤害时");
-        lore.add(ChatColor.WHITE + "每个部位的泥土材质护甲");
-        lore.add(ChatColor.WHITE + "都会提供1点的饱食度回复");
+        lore.add(ChatColor.WHITE + "防御力很低，但是耐久高一些");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -768,7 +832,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "幻翼头盔");
         lore.add(ChatColor.WHITE + "受到伤害会获得速度效果，无法叠加");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会原地释放一次烟雾弹");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会原地释放一次烟雾弹");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -786,7 +850,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "幻翼胸甲");
         lore.add(ChatColor.WHITE + "受到伤害会获得速度效果，无法叠加");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会原地释放一次烟雾弹");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会原地释放一次烟雾弹");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -804,7 +868,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "幻翼护腿");
         lore.add(ChatColor.WHITE + "受到伤害会获得速度效果，无法叠加");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会原地释放一次烟雾弹");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会原地释放一次烟雾弹");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -822,7 +886,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "幻翼靴子");
         lore.add(ChatColor.WHITE + "受到伤害会获得速度效果，无法叠加");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会原地释放一次烟雾弹");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会原地释放一次烟雾弹");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -844,7 +908,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "紫水晶头盔");
         lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
-        lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次破片");
+        lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次破片");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -866,7 +930,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "紫水晶胸甲");
         lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
-        lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次破片");
+        lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次破片");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -888,7 +952,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "紫水晶护腿");
         lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
-        lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次破片");
+        lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次破片");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -910,7 +974,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "紫水晶靴子");
         lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
-        lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次破片");
+        lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次破片");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -931,7 +995,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石头盔");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会获得伤害吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会获得伤害吸收效果");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -952,7 +1016,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石胸甲");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会获得伤害吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会获得伤害吸收效果");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -973,7 +1037,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石护腿");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会获得伤害吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会获得伤害吸收效果");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -994,7 +1058,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石靴子");
-        lore.add(ChatColor.WHITE + "套装奖励：当生命值下降到一半以下时，会获得伤害吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会获得伤害吸收效果");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -1109,7 +1173,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "回响头盔");
         lore.add(ChatColor.WHITE + "套装奖励：来自怪物的伤害减少50%");
-        lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次诱捕手雷");
+        lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次诱捕手雷");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -1131,7 +1195,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "回响胸甲");
         lore.add(ChatColor.WHITE + "套装奖励：来自怪物的伤害减少50%");
-        lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次诱捕手雷");
+        lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次诱捕手雷");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -1153,7 +1217,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "回响护腿");
         lore.add(ChatColor.WHITE + "套装奖励：来自怪物的伤害减少50%");
-        lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次诱捕手雷");
+        lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次诱捕手雷");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -1175,7 +1239,7 @@ public enum ArmorPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "回响靴子");
         lore.add(ChatColor.WHITE + "套装奖励：来自怪物的伤害减少50%");
-        lore.add(ChatColor.WHITE + "当生命值下降到一半以下时，会释放一次诱捕手雷");
+        lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次诱捕手雷");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -1200,7 +1264,7 @@ public enum ArmorPool {
     public ItemStack mobChest(Color c){
         ItemStack item = new ItemStack(Material.LEATHER_CHESTPLATE);
         LeatherArmorMeta itemMeta = (LeatherArmorMeta) item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.WHITE + "怪物头盔");
+        itemMeta.setDisplayName(ChatColor.WHITE + "怪物胸甲");
         Attribute a1 = Attribute.ARMOR;
         AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),0, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.CHEST.getGroup());
         itemMeta.addAttributeModifier(a1,m1);
@@ -1215,7 +1279,7 @@ public enum ArmorPool {
     public ItemStack mobLeg(Color c){
         ItemStack item = new ItemStack(Material.LEATHER_LEGGINGS);
         LeatherArmorMeta itemMeta = (LeatherArmorMeta) item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.WHITE + "怪物头盔");
+        itemMeta.setDisplayName(ChatColor.WHITE + "怪物护腿");
         Attribute a1 = Attribute.ARMOR;
         AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),0, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.LEGS.getGroup());
         itemMeta.addAttributeModifier(a1,m1);
@@ -1230,7 +1294,7 @@ public enum ArmorPool {
     public ItemStack mobBoot(Color c){
         ItemStack item = new ItemStack(Material.LEATHER_BOOTS);
         LeatherArmorMeta itemMeta = (LeatherArmorMeta) item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.WHITE + "怪物头盔");
+        itemMeta.setDisplayName(ChatColor.WHITE + "怪物靴子");
         Attribute a1 = Attribute.ARMOR;
         AttributeModifier m1 = new AttributeModifier(NamespacedKey.randomKey(),0, AttributeModifier.Operation.ADD_NUMBER,EquipmentSlot.FEET.getGroup());
         itemMeta.addAttributeModifier(a1,m1);

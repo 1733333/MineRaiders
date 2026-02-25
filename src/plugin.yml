@@ -10,3 +10,9 @@ commands:
       - mrd
       - mrdebug
     usage: /mineraidersdebug [index]
+  loots:
+    description: get all loots
+    usage: /loots
+  gadgets:
+    description: get all gadgets
+    usage: /gadgets

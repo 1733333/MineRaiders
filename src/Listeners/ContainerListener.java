@@ -5,11 +5,18 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
+import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -33,6 +40,8 @@ public class ContainerListener implements Listener {
             Material.COMPOSTER,
             Material.CHISELED_BOOKSHELF,
             Material.CAULDRON,
+            Material.LAVA_CAULDRON,
+            Material.WATER_CAULDRON,
             Material.CARVED_PUMPKIN,
             Material.JUKEBOX,
             Material.MUDDY_MANGROVE_ROOTS
@@ -69,6 +78,7 @@ public class ContainerListener implements Listener {
     HashSet<Block> hasContent = new HashSet<>();
     HashMap<Block, ItemStack[]>blockContent = new HashMap<>();
     HashMap<Block,Player>blockSearcherMap = new HashMap<>();
+    HashMap<Block,Integer>doorBreakMap = new HashMap<>();
     HashMap<Player,Block>playerSearchBlockMap = new HashMap<>();
 
     public void setPlugin(JavaPlugin plugin) {
@@ -138,7 +148,6 @@ public class ContainerListener implements Listener {
         }
         return count;
     }
-
     @EventHandler
     public void playerInteract(PlayerInteractEvent interactEvent) {
         Player p = interactEvent.getPlayer();
@@ -148,11 +157,56 @@ public class ContainerListener implements Listener {
             Block b = interactEvent.getClickedBlock();
             if(getContainerRarity(b) != -1) {
                 interactEvent.setCancelled(true);
-                openContainer(p, b);
+                if(p.getCooldown(Material.COMMAND_BLOCK_MINECART) == 0) {
+                    p.setCooldown(Material.COMMAND_BLOCK_MINECART,10);
+                    openContainer(p, b);
+                }
+            }
+            if(b.getType() == Material.IRON_DOOR){
+                Block b1 = w.getBlockAt(b.getLocation().add(0,1,0));
+                Block b2 = w.getBlockAt(b.getLocation().add(0,-1,0));
+                int count = doorBreakMap.getOrDefault(b,0);
+                if(p.getCooldown(Material.IRON_DOOR) == 0){
+                    p.setCooldown(Material.IRON_DOOR,40);
+                    if(r.nextDouble() < 0.15 || count >= 6){
+                        doorBreakMap.remove(b);
+                        doorBreakMap.remove(b1);
+                        doorBreakMap.remove(b2);
+                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                                TextComponent.fromLegacy("门被踹开了"));
+                        w.playSound(b.getLocation(),Sound.BLOCK_HEAVY_CORE_BREAK,1,1);
+                        w.playSound(b.getLocation(),Sound.BLOCK_HEAVY_CORE_BREAK,1,1);
+                        w.playSound(b.getLocation(),Sound.BLOCK_HEAVY_CORE_BREAK,1,1);
+                        w.spawnParticle(Particle.BLOCK,b.getLocation(),20,0.5,0.5,0.5,0.1,
+                                Bukkit.createBlockData(Material.IRON_DOOR));
+                        b.breakNaturally();
+                        for(Entity e : w.getNearbyEntities(b.getLocation(),1,1,1)){
+                            if(e instanceof Item i){
+                                if(i.getItemStack().getType() == Material.IRON_DOOR){
+                                    i.remove();
+                                }
+                            }
+                        }
+                    }else {
+                        int damage = 1;
+                        w.playSound(b.getLocation(),Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR,3,1);
+                        doorBreakMap.put(b,count + damage);
+                        if(b1.getType() == Material.IRON_DOOR){
+                            doorBreakMap.put(b1,count + damage);
+                        }
+                        if(b2.getType() == Material.IRON_DOOR){
+                            doorBreakMap.put(b2,count + damage);
+                        }
+                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                                TextComponent.fromLegacy("门松动了一些，再试试吧"));
+                        w.spawnParticle(Particle.LARGE_SMOKE,b.getLocation(),10,0.5,0.5,0.5,0.05);
+                    }
+                }
             }
         }
     }
     public void openContainer(Player p,Block container){
+        World w = p.getWorld();
         Player searcher = blockSearcherMap.getOrDefault(container,null);
         int rarity = getContainerRarity(container);
         if(searcher == null) {
@@ -183,6 +237,13 @@ public class ContainerListener implements Listener {
                         hasContent.add(container);
                         blockContent.put(container, content);
                     }
+                    Sound s = switch (rarity){
+                        case 0 -> Sound.BLOCK_CHEST_OPEN;
+                        case 1 -> Sound.BLOCK_BARREL_OPEN;
+                        case 2 -> Sound.BLOCK_ENDER_CHEST_OPEN;
+                        default -> Sound.BLOCK_COPPER_CHEST_OPEN;
+                    };
+                    w.playSound(container.getLocation(),s,1,1);
                     blockSearcherMap.put(container, p);
                     p.setCooldown(container.getType(), 10);
                     checkContainer(p, container);
@@ -227,7 +288,7 @@ public class ContainerListener implements Listener {
                         blockSearcherMap.remove(container);
                         p.playSound(p,Sound.ENTITY_ITEM_BREAK,1,1);
                         p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                                TextComponent.fromLegacy(ChatColor.RED + "搜索中断"));
+                                TextComponent.fromLegacy(ChatColor.RED + "搜索中断，视线中没有容器或距离过远"));
                         this.cancel();
                         return;
                     }else {
@@ -239,6 +300,7 @@ public class ContainerListener implements Listener {
                     }
                 }
                 ItemStack item = content[0];
+                ItemStack item2 = null;
                 int rarity = lp.getRarity(item);
                 int bound = 5 + Math.abs(rarity);
                 if(p.hasPotionEffect(PotionEffectType.HASTE)){
@@ -246,21 +308,18 @@ public class ContainerListener implements Listener {
                     int amp = effect.getAmplifier() + 1;
                     bound = Math.max(bound - amp, 1);
                 }
+                if(p.hasPotionEffect(PotionEffectType.LUCK)){
+                    if(r.nextInt(4) == 0){
+                        ItemStack[]items2 = lp.getContent(1,getContainerValue(container));
+                        item2 = items2[0];
+                    }
+                }
                 String message = searchProgress(bound,count);
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                         TextComponent.fromLegacy(ChatColor.AQUA + message
                                 + "(" + content.length +")"));
-                if(count >= bound){
-                    if(getContainerRarity(container) >= 0) {
-                        Sound s = switch (rarity) {
-                            case 0, 1, 2 -> Sound.UI_LOOM_TAKE_RESULT;
-                            case 3 -> Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
-                            case 4 -> Sound.ENTITY_PLAYER_LEVELUP;
-                            case 5 -> Sound.UI_TOAST_CHALLENGE_COMPLETE;
-                            default -> Sound.ENTITY_ITEM_PICKUP;
-                        };
-                        p.playSound(p,s,1,1);
-                    }else {
+                if(count >= bound) {
+                    if (getContainerRarity(container) < 0) {
                         Sound s = switch (getContainerRarity(container)) {
                             case -2 -> Sound.BLOCK_ANVIL_USE;
                             case -3 -> Sound.BLOCK_BARREL_OPEN;
@@ -268,19 +327,35 @@ public class ContainerListener implements Listener {
                             case -5 -> Sound.BLOCK_BREWING_STAND_BREW;
                             default -> Sound.ENTITY_ITEM_PICKUP;
                         };
-                        p.playSound(p,s,1,1);
+                        p.playSound(p, s, 1, 1);
                     }
                     Location bLoc = container.getLocation();
                     Location pLoc = p.getEyeLocation();
                     Vector offSet = pLoc.toVector().subtract(bLoc.toVector());
-                    w.dropItem(bLoc.add(offSet.multiply(0.5)),item);
-                    w.spawnParticle(Particle.EXPLOSION,container.getLocation(),1);
-                    w.spawnParticle(Particle.BLOCK,container.getLocation()
-                            ,50,1.5,1.5,1.5,container.getBlockData());
-                    ItemStack[]newContent = new ItemStack[content.length-1];
+                    w.dropItem(bLoc.add(offSet.multiply(0.5)), item);
+                    if (item2 != null) {
+                        w.dropItem(bLoc.add(offSet.multiply(0.5)), item2);
+                        w.spawnParticle(Particle.TOTEM_OF_UNDYING,bLoc,20,1,1,1,0.5);
+                        int rarity2 = lp.getRarity(item2);
+                        if(rarity2 > rarity){
+                            rarity = rarity2;
+                        }
+                    }
+                    Sound s = switch (rarity) {
+                        case 0, 1, 2 -> Sound.UI_LOOM_TAKE_RESULT;
+                        case 3 -> Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
+                        case 4 -> Sound.ENTITY_PLAYER_LEVELUP;
+                        case 5 -> Sound.UI_TOAST_CHALLENGE_COMPLETE;
+                        default -> Sound.ENTITY_ITEM_PICKUP;
+                    };
+                    p.playSound(p, s, 1, 1);
+                    w.spawnParticle(Particle.EXPLOSION, container.getLocation(), 1);
+                    w.spawnParticle(Particle.BLOCK, container.getLocation()
+                            , 50, 1.5, 1.5, 1.5, container.getBlockData());
+                    ItemStack[] newContent = new ItemStack[content.length - 1];
                     System.arraycopy(content, 1, newContent, 0, newContent.length);
-                    blockContent.put(container,newContent);
-                    checkContainer(p,container);
+                    blockContent.put(container, newContent);
+                    checkContainer(p, container);
                     this.cancel();
                 }
                 step += 1;
@@ -303,19 +378,33 @@ public class ContainerListener implements Listener {
             case 5 -> Color.RED;
             default -> Color.WHITE;
         };
-        if (rarity >= 0) {
+        if (rarity > 0) {
             BukkitRunnable particle = new BukkitRunnable() {
                 @Override
                 public void run() {
                     if (item.isDead()) {
                         this.cancel();
                     }
-                    Particle.DustOptions dust = new Particle.DustOptions(c, 0.5f);
-                    w.spawnParticle(Particle.DUST, item.getLocation().add(0, 1.9, 0),
-                            rarity + 1, 0, 0.5, 0, dust);
+                    Particle p = switch (rarity){
+                        case 1 -> Particle.COPPER_FIRE_FLAME;
+                        case 2 -> Particle.SOUL_FIRE_FLAME;
+                        case 3 -> Particle.REVERSE_PORTAL;
+                        case 4 -> Particle.FLAME;
+                        case 5 -> Particle.RAID_OMEN;
+                        default -> Particle.CLOUD;
+                    };
+                    if(rarity == 5){
+                        w.spawnParticle(p, item.getLocation().add(0, 1.5, 0),
+                                0, 0, 1, 0, 0.1);
+                        w.spawnParticle(p, item.getLocation().add(0, 0.7, 0),
+                                0, 0, 1, 0, 0.1);
+                    }
+                    w.spawnParticle(p, item.getLocation().add(0, 0.4, 0),
+                            0, 0, 1, 0, 0.07 + rarity / 50.0);
+
                 }
             };
-            particle.runTaskTimer(plugin, 0L, 2L);
+            particle.runTaskTimer(plugin, 0L, 3L);
         }
     }
     public String searchProgress(int total,int step){

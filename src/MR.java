@@ -1,11 +1,15 @@
-import Listeners.ContainerListener;
-import Listeners.GadgetListener;
-import Listeners.MonsterListener;
-import Listeners.PlayerListener;
+import Listeners.*;
 import Universal.BoxPool;
+import Universal.Kit;
 import Universal.Monsters;
 import Universal.Recipes;
 import commands.DebugCommand;
+import commands.GadgetCommand;
+import commands.LootCommand;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -15,38 +19,54 @@ public class MR extends JavaPlugin {
         Recipes recipes = Recipes.INSTANCE;
         BoxPool boxPool = BoxPool.INSTANCE;
         Monsters monsters = Monsters.INSTANCE;
+        Kit k = Kit.INSTANCE;
 
         PluginManager manager = this.getServer().getPluginManager();
 
         DebugCommand debugCommand = new DebugCommand();
+        LootCommand lootCommand =  new LootCommand();
+        GadgetCommand gadgetCommand = new GadgetCommand();
         ContainerListener containerListener = new ContainerListener();
         GadgetListener gadgetListener = new GadgetListener();
         MonsterListener monsterListener = new MonsterListener();
+        InventoryListener inventoryListener = new InventoryListener();
         PlayerListener playerListener = new PlayerListener();
 
         manager.registerEvents(containerListener,this);
         manager.registerEvents(gadgetListener,this);
         manager.registerEvents(monsterListener,this);
+        manager.registerEvents(inventoryListener,this);
         manager.registerEvents(playerListener,this);
 
         this.getCommand("mineraidersdebug").setExecutor(debugCommand);
+        this.getCommand("loots").setExecutor(lootCommand);
+        this.getCommand("gadgets").setExecutor(gadgetCommand);
 
         containerListener.setPlugin(this);
         gadgetListener.setPlugin(this);
         monsterListener.setPlugin(this);
-        playerListener.setPlugin(this);
         recipes.setPlugin(this);
         monsters.setPlugin(this);
+        playerListener.setPlugin(this);
+        k.setPlugin(this);
 
         recipes.registerStack();
         recipes.registerRecipe();
         boxPool.registerBooks();
         boxPool.registerHorns();
         boxPool.registerPotions();
+
+        Bukkit.broadcastMessage(ChatColor.AQUA + "插件已重载");
+        for (Player p : Bukkit.getOnlinePlayers()){
+            p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP,1,2);
+        }
     }
 
     @Override
     public void onDisable() {
-
+        Bukkit.broadcastMessage(ChatColor.RED + "插件已卸载");
+        for (Player p : Bukkit.getOnlinePlayers()){
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP,1,1);
+        }
     }
 }

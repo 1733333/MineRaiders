@@ -152,6 +152,7 @@ public enum LootPool {
             i81(),
             i82(),
             i109(),
+            i110(),
     };
     ItemStack[] legendaryItem = {
             i83(),
@@ -241,6 +242,16 @@ public enum LootPool {
         }
         return -1;
     }
+    public ItemStack[] getAllLoots(){
+        List<ItemStack> content = new ArrayList<>();
+        content.addAll(List.of(commonItem));
+        content.addAll(List.of(uncommonItem));
+        content.addAll(List.of(rareItem));
+        content.addAll(List.of(epicItem));
+        content.addAll(List.of(legendaryItem));
+        content.addAll(List.of(mysticItem));
+        return content.toArray(new ItemStack[0]);
+    }
 
     public ItemStack[] getContent(int counts, float[] weights) {
         List<ItemStack> content = new ArrayList<>();
@@ -280,6 +291,26 @@ public enum LootPool {
             case "§c【" -> 5;
             default -> -1;
         };
+    }
+    public ItemStack pageUp() {
+        ItemStack item = new ItemStack(Material.RED_STAINED_GLASS_PANE);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.RED + "上一页");
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "点击回到上一页");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack pageDown() {
+        ItemStack item = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.GREEN + "下一页");
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "点击去到下一页");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
     }
 
     public ItemStack k0() {
@@ -1717,5 +1748,19 @@ public enum LootPool {
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
+    }
+    public ItemStack i110(){
+        ItemStack item = new ItemStack(Material.WOLF_SPAWN_EGG);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】狼群");
+        itemMeta.setMaxStackSize(4);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "狼群");
+        lore.add(ChatColor.WHITE + "扔到空中后一段时间后");
+        lore.add(ChatColor.WHITE + "会分裂成若干威力巨大的追踪弹药");
+        lore.add(ChatColor.WHITE + "追踪范围内的怪物");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
     }
 }

@@ -1,11 +1,13 @@
 package Universal;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -23,6 +25,8 @@ public enum GadgetPool {
             soup(),
             meat(),
             energyDrink(),
+            energyDrinkPro(),
+            energyDrinkProMax(),
             baitNade(),
             fragNade(),
             gasNade(),
@@ -32,7 +36,7 @@ public enum GadgetPool {
             fireCamp(),
             glowCamp(),
             explodeMine(),
-            fragMine(),
+            pyroMine(),
             gasMine(),
             slowMine(),
     };
@@ -41,12 +45,15 @@ public enum GadgetPool {
         return gadgets.clone();
     }
     public ItemStack snowGolem(){
-        ItemStack item = new ItemStack(Material.FLOWER_BANNER_PATTERN);
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "flower_banner_pattern[consumable={animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "霜雪图腾");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "霜雪图腾");
-        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "使用");
         lore.add(ChatColor.WHITE + "生成一个雪傀儡炮塔");
         lore.add(ChatColor.WHITE + "自动攻击附近的敌人");
@@ -54,13 +61,16 @@ public enum GadgetPool {
         item.setItemMeta(itemMeta);
         return item;
     }
-    public ItemStack ironGolem(){
-        ItemStack item = new ItemStack(Material.FIELD_MASONED_BANNER_PATTERN);
+    public ItemStack ironGolem() {
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "field_masoned_banner_pattern[consumable={animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "钢铁图腾");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "钢铁图腾");
-        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "使用");
         lore.add(ChatColor.WHITE + "生成一个铁傀儡守卫");
         lore.add(ChatColor.WHITE + "自动攻击附近的敌人");
@@ -69,26 +79,32 @@ public enum GadgetPool {
         return item;
     }
     public ItemStack wolfGolem(){
-        ItemStack item = new ItemStack(Material.PIGLIN_BANNER_PATTERN);
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "guster_banner_pattern[consumable={animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "狩猎图腾");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "狩猎图腾");
-        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "使用");
-        lore.add(ChatColor.WHITE + "生成一匹狼");
+        lore.add(ChatColor.WHITE + "生成一个冤魂");
         lore.add(ChatColor.WHITE + "自动索敌附近的玩家");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
     }
     public ItemStack zombieGolem(){
-        ItemStack item = new ItemStack(Material.SKULL_BANNER_PATTERN);
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "skull_banner_pattern[consumable={animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "瘟疫图腾");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "瘟疫图腾");
-        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "投掷");
         lore.add(ChatColor.WHITE + "在落点处生成2个小僵尸");
         itemMeta.setLore(lore);
@@ -96,25 +112,31 @@ public enum GadgetPool {
         return item;
     }
     public ItemStack speedNeedle(){
-        ItemStack item = new ItemStack(Material.WARPED_FUNGUS_ON_A_STICK);
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "stick[consumable={consume_seconds:1,animation:\"block\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.trident.hit\"}]},item_model=\"cyan_candle\"]"
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "肾上腺素");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "肾上腺素");
-        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "使用");
         lore.add(ChatColor.WHITE + "获得速度、力量和凋零效果");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
     }
-    public ItemStack healNeedle(){
-        ItemStack item = new ItemStack(Material.CARROT_ON_A_STICK);
+    public ItemStack healNeedle() {
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "stick[consumable={consume_seconds:1,animation:\"block\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.trident.hit\"}]},item_model=\"orange_candle\"]"
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "生命针剂");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "生命针剂");
-        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "使用");
         lore.add(ChatColor.WHITE + "获得生命回复、生命吸收、挖掘疲劳和虚弱效果");
         itemMeta.setLore(lore);
@@ -125,6 +147,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.SUSPICIOUS_STEW);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "压缩浓汤");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "压缩浓汤");
         lore.add(ChatColor.WHITE + "食用后获得大量饱食度和饱和度");
@@ -136,6 +159,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.COOKED_BEEF);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "贪婪肉排");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "贪婪肉排");
         lore.add(ChatColor.WHITE + "食用后暂时增加生命值上限");
@@ -147,7 +171,7 @@ public enum GadgetPool {
     public ItemStack energyDrink(){
         ItemStack item = new ItemStack(Material.POTION);
         ItemMeta itemMeta = item.getItemMeta();
-        ((PotionMeta)itemMeta).setColor(Color.ORANGE);
+        ((PotionMeta)itemMeta).setColor(Color.YELLOW);
         ((PotionMeta)itemMeta).addCustomEffect(
                 new PotionEffect(PotionEffectType.SPEED,12000,0),false);
         itemMeta.setDisplayName(ChatColor.AQUA + "能量饮料");
@@ -164,6 +188,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.CREEPER_SPAWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "破片手雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "破片手雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -177,6 +202,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.SLIME_SPAWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "毒气手雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "毒气手雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -191,6 +217,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.BLAZE_SPAWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "火焰手雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "火焰手雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -205,6 +232,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.PHANTOM_SPAWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "紊乱手雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "紊乱手雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -219,6 +247,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.SKELETON_SPAWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "烟雾手雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "烟雾手雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -233,6 +262,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.ALLAY_SPAWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "诱饵手雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "诱饵手雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -247,6 +277,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.SOUL_CAMPFIRE);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "察觉之锣");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "察觉之锣");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -261,6 +292,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.CAMPFIRE);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "狂欢之锣");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "狂欢之锣");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -276,6 +308,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.WITHER_SKELETON_SKULL);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "电击地雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "电击地雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -290,6 +323,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.ZOMBIE_HEAD);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "毒气地雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "毒气地雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -304,6 +338,7 @@ public enum GadgetPool {
         ItemStack item = new ItemStack(Material.CREEPER_HEAD);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "爆炸地雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "爆炸地雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
@@ -314,16 +349,55 @@ public enum GadgetPool {
         item.setItemMeta(itemMeta);
         return item;
     }
-    public ItemStack fragMine(){
-        ItemStack item = new ItemStack(Material.SKELETON_SKULL);
+    public ItemStack pyroMine(){
+        ItemStack item = new ItemStack(Material.PIGLIN_HEAD);
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.AQUA + "破片地雷");
+        itemMeta.setDisplayName(ChatColor.AQUA + "火焰地雷");
+        itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
-        lore.add(ChatColor.WHITE + "破片地雷");
+        lore.add(ChatColor.WHITE + "火焰地雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "部署");
         lore.add(ChatColor.WHITE + "实体进入范围内触发");
-        lore.add(ChatColor.WHITE + "触发后跳至半空，之后向触发方向飞散破片");
+        lore.add(ChatColor.WHITE + "触发后跳至半空，之后释放火焰");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack energyDrinkPro(){
+        ItemStack item = new ItemStack(Material.POTION);
+        ItemMeta itemMeta = item.getItemMeta();
+        ((PotionMeta)itemMeta).setColor(Color.YELLOW.mixColors(Color.ORANGE));
+        ((PotionMeta)itemMeta).addCustomEffect(
+                new PotionEffect(PotionEffectType.SPEED,9600,0),false);
+        ((PotionMeta)itemMeta).addCustomEffect(
+                new PotionEffect(PotionEffectType.HASTE,9600,0),false);
+        itemMeta.setDisplayName(ChatColor.YELLOW + "能量饮料-Pro");
+        itemMeta.setMaxStackSize(16);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "能量饮料-Pro");
+        lore.add(ChatColor.WHITE + "饮用后获得速度、急迫效果");
+        lore.add(ChatColor.WHITE + "刮地皮好帮手");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack energyDrinkProMax(){
+        ItemStack item = new ItemStack(Material.POTION);
+        ItemMeta itemMeta = item.getItemMeta();
+        ((PotionMeta)itemMeta).setColor(Color.ORANGE);
+        ((PotionMeta)itemMeta).addCustomEffect(
+                new PotionEffect(PotionEffectType.SPEED,7200,0),false);
+        ((PotionMeta)itemMeta).addCustomEffect(
+                new PotionEffect(PotionEffectType.HASTE,7200,0),false);
+        ((PotionMeta)itemMeta).addCustomEffect(
+                new PotionEffect(PotionEffectType.LUCK,7200,0),false);
+        itemMeta.setDisplayName(ChatColor.GOLD + "能量饮料-ProMax");
+        itemMeta.setMaxStackSize(16);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "能量饮料-ProMax");
+        lore.add(ChatColor.WHITE + "饮用后获得速度、急迫、幸运效果");
+        lore.add(ChatColor.WHITE + "刮地皮最好的搭档");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

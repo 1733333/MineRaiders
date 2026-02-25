@@ -19,6 +19,7 @@ public enum Recipes {
     WeaponPool wp = WeaponPool.INSTANCE;
     ArmorPool ap = ArmorPool.INSTANCE;
     GadgetPool gp = GadgetPool.INSTANCE;
+    LootPool lp = LootPool.INSTANCE;
     ItemStack[] recipes = new ItemStack[0];
     HashMap<ItemStack, ItemStack> recipeMap = new HashMap<>();
     int key = 0;
@@ -77,17 +78,19 @@ public enum Recipes {
     }
 
     public void registerRecipe() {
-        Bukkit.resetRecipes();
-        r0();r10();r20();r30();r40();r50();r60();r70();r80();r90();r100();
-        r1();r11();r21();r31();r41();r51();r61();r71();r81();r91();r101();
-        r2();r12();r22();r32();r42();r52();r62();r72();r82();r92();
-        r3();r13();r23();r33();r43();r53();r63();r73();r83();r93();
-        r4();r14();r24();r34();r44();r54();r64();r74();r84();r94();
-        r5();r15();r25();r35();r45();r55();r65();r75();r85();r95();
-        r6();r16();r26();r36();r46();r56();r66();r76();r86();r96();
-        r7();r17();r27();r37();r47();r57();r67();r77();r87();r97();
-        r8();r18();r28();r38();r48();r58();r68();r78();r88();r98();
-        r9();r19();r29();r39();r49();r59();r69();r79();r89();r99();
+        try {
+            r0();r10();r20();r30();r40();r50();r60();r70();r80();r90();r100();
+            r1();r11();r21();r31();r41();r51();r61();r71();r81();r91();r101();
+            r2();r12();r22();r32();r42();r52();r62();r72();r82();r92();r102();
+            r3();r13();r23();r33();r43();r53();r63();r73();r83();r93();r103();
+            r4();r14();r24();r34();r44();r54();r64();r74();r84();r94();r104();
+            r5();r15();r25();r35();r45();r55();r65();r75();r85();r95();r105();
+            r6();r16();r26();r36();r46();r56();r66();r76();r86();r96();r106();
+            r7();r17();r27();r37();r47();r57();r67();r77();r87();r97();r107();
+            r8();r18();r28();r38();r48();r58();r68();r78();r88();r98();r108();
+            r9();r19();r29();r39();r49();r59();r69();r79();r89();r99();
+        } catch (Exception ignored) {
+        }
     }
 
     public void r0() {
@@ -491,9 +494,9 @@ public enum Recipes {
 
     public void r38() {
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.fragMine());
+        ShapedRecipe r = new ShapedRecipe(w, gp.pyroMine());
         r.shape("AAA", "BCB", "AAA");
-        r.setIngredient('A', Material.BONE);
+        r.setIngredient('A', Material.GOLD_NUGGET);
         r.setIngredient('B', Material.LAPIS_LAZULI);
         r.setIngredient('C', Material.ARMOR_STAND);
         Bukkit.addRecipe(r);
@@ -517,7 +520,7 @@ public enum Recipes {
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
         ShapedRecipe r = new ShapedRecipe(w, item);
         r.shape("ABA", "BCB", "ABA");
-        r.setIngredient('A', Material.IRON_NUGGET);
+        r.setIngredient('A', Material.COPPER_NUGGET);
         r.setIngredient('B', Material.SUGAR);
         r.setIngredient('C', Material.WATER_BUCKET);
         Bukkit.addRecipe(r);
@@ -1014,6 +1017,73 @@ public enum Recipes {
         ShapedRecipe r = new ShapedRecipe(w, new ItemStack(Material.CHAINMAIL_BOOTS));
         r.shape("A A", "A A", "   ");
         r.setIngredient('A', Material.IRON_NUGGET);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r102() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, ap.wheatHelm());
+        r.shape("AAA", "A A", "   ");
+        r.setIngredient('A', Material.WHEAT);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r103() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, ap.wheatChest());
+        r.shape("A A", "AAA", "AAA");
+        r.setIngredient('A', Material.WHEAT);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r104() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, ap.wheatLeg());
+        r.shape("AAA", "A A", "A A");
+        r.setIngredient('A', Material.WHEAT);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r105() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, ap.wheatBoot());
+        r.shape("A A", "A A", "   ");
+        r.setIngredient('A', Material.WHEAT);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r106() {
+        ItemStack item = gp.energyDrinkPro().clone();
+        item.setAmount(4);
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, item);
+        r.shape("ABA", "BCB", "ABA");
+        r.setIngredient('A', Material.IRON_NUGGET);
+        r.setIngredient('B', Material.HONEYCOMB);
+        r.setIngredient('C', Material.WATER_BUCKET);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r107() {
+        ItemStack item = gp.energyDrinkProMax().clone();
+        item.setAmount(4);
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, item);
+        r.shape("ABA", "BCB", "ABA");
+        r.setIngredient('A', Material.GOLD_NUGGET);
+        r.setIngredient('B', Material.RESIN_CLUMP);
+        r.setIngredient('C', Material.WATER_BUCKET);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r108() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, lp.i110());
+        r.shape("ABA", "ACA", "ADA");
+        r.setIngredient('A', Material.AMETHYST_SHARD);
+        r.setIngredient('B', Material.END_CRYSTAL);
+        r.setIngredient('C', Material.FIREWORK_ROCKET);
+        r.setIngredient('D', Material.TNT);
         Bukkit.addRecipe(r);
         key += 1;
     }
