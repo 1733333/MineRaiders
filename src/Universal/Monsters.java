@@ -118,8 +118,8 @@ public enum Monsters {
 
             @Override
             public void run() {
-                if (shooter.isDead() || count > 2) {
-                    if (count > 2) {
+                if (shooter.isDead() || count > 3) {
+                    if (count > 3) {
                         shooter.removePotionEffect(PotionEffectType.SLOWNESS);
                     }
                     cancel();
@@ -196,7 +196,7 @@ public enum Monsters {
             public void run() {
                 if (shooter.isDead() || count > 3) {
                     if (count > 3) {
-                        shoot.runTaskTimer(plugin, 0L, 5L);
+                        shoot.runTaskTimer(plugin, 0L, 4L);
                     }
                     cancel();
                     return;
@@ -321,10 +321,8 @@ public enum Monsters {
                 w.playSound(shootLoc, Sound.ITEM_FIRECHARGE_USE, 1.0F, 1.0F);
                 List<Entity> entities = shooter.getNearbyEntities(range, range, range);
                 for (Entity e : entities) {
-                    if (e instanceof LivingEntity) {
-                        LivingEntity l = (LivingEntity)e;
-                        if (e instanceof Player) {
-                            Player p = (Player)e;
+                    if (e instanceof LivingEntity l) {
+                        if (e instanceof Player p) {
                             if (p.getGameMode() == GameMode.SPECTATOR)
                                 continue;
                         }
@@ -691,7 +689,7 @@ public enum Monsters {
                                 if (p.isDead() || count > 30) {
                                     this.cancel();
                                 }
-                                w.playSound(p.getLocation(), Sound.ITEM_CROSSBOW_SHOOT, 1, 1);
+                                w.playSound(p.getLocation(), Sound.BLOCK_BAMBOO_WOOD_FENCE_GATE_OPEN, 1, 1);
                                 Location shootLoc = p.getEyeLocation();
                                 Vector shootVec = shootLoc.getDirection();
                                 if (p.getTarget() != null) {
@@ -700,9 +698,10 @@ public enum Monsters {
                                     Vector sVec = shootLoc.toVector();
                                     shootVec = (lVec.subtract(sVec)).normalize();
                                 }
-                                Arrow a = w.spawnArrow(shootLoc, shootVec, 2, 5);
+                                Arrow a = w.spawnArrow(shootLoc, shootVec, 4, 5);
                                 a.setTicksLived(1100);
-                                a.setDamage(2.5);
+                                a.setDamage(1);
+                                a.setCritical(true);
                                 a.setShooter(p);
                                 count += 1;
                             }

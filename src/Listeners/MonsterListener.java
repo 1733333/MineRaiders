@@ -161,6 +161,7 @@ public class MonsterListener implements Listener {
     @EventHandler
     public void entityDeath(EntityDeathEvent deathEvent){
         LivingEntity dead = deathEvent.getEntity();
+        World w = dead.getWorld();
         String dName = dead.getName();
         if (dName.equals("§7堡垒底盘") || dName.equals("§7堡垒炮塔")) {
             if(!dead.getPassengers().isEmpty()){
@@ -177,12 +178,27 @@ public class MonsterListener implements Listener {
                 }
             }
         }
+        if (dName.equals("§6火球")) {
+            BukkitRunnable fire = new BukkitRunnable() {
+                public void run() {
+                    MonsterListener.this.k.fire(dead, dead, 5, 3,3);
+                }
+            };
+            fire.runTaskLater(plugin, 20L);
+            w.spawnParticle(Particle.EXPLOSION, dead.getLocation(), 1);
+            w.spawnParticle(Particle.FLAME, dead.getLocation(), 20, 0.0D, 0.0D, 0.0D, 0.3D);
+        }
+    }
+    @EventHandler
+    public void mobDeathSound(EntityDeathEvent deathEvent) {
+        final LivingEntity mob = deathEvent.getEntity();
+        World w = mob.getWorld();
     }
     @EventHandler
     public void damageSoundEffect(EntityDamageEvent damageEvent) {
         Entity e = damageEvent.getEntity();
         World w = e.getWorld();
-        if(damageEvent.getDamage() > 5) {
+        if(damageEvent.getDamage() > 3) {
             if (e instanceof LivingEntity d) {
                 String dName = d.getName();
                 if (dName.equals("§7堡垒底盘")) {
@@ -253,21 +269,6 @@ public class MonsterListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void mobDeath(EntityDeathEvent deathEvent) {
-        final LivingEntity mob = deathEvent.getEntity();
-        World w = mob.getWorld();
-        if (mob.getName().equals("§6火球")) {
-            BukkitRunnable fire = new BukkitRunnable() {
-                public void run() {
-                    MonsterListener.this.k.fire(mob, mob, 5, 3,3);
-                }
-            };
-            fire.runTaskLater(plugin, 20L);
-            w.spawnParticle(Particle.EXPLOSION, mob.getLocation(), 1);
-            w.spawnParticle(Particle.FLAME, mob.getLocation(), 20, 0.0D, 0.0D, 0.0D, 0.3D);
-        }
-    }
     @EventHandler
     public void slimeSplit(SlimeSplitEvent splitEvent){
         Entity e = splitEvent.getEntity();

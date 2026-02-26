@@ -3,9 +3,7 @@ import Universal.BoxPool;
 import Universal.Kit;
 import Universal.Monsters;
 import Universal.Recipes;
-import commands.DebugCommand;
-import commands.GadgetCommand;
-import commands.LootCommand;
+import commands.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -26,21 +24,29 @@ public class MR extends JavaPlugin {
         DebugCommand debugCommand = new DebugCommand();
         LootCommand lootCommand =  new LootCommand();
         GadgetCommand gadgetCommand = new GadgetCommand();
+        WeaponCommand weaponCommand = new WeaponCommand();
+        ArmorCommand armorCommand = new ArmorCommand();
         ContainerListener containerListener = new ContainerListener();
         GadgetListener gadgetListener = new GadgetListener();
         MonsterListener monsterListener = new MonsterListener();
         InventoryListener inventoryListener = new InventoryListener();
         PlayerListener playerListener = new PlayerListener();
+        ArmorListener armorListener = new ArmorListener();
+        WeaponListener weaponListener = new WeaponListener();
 
         manager.registerEvents(containerListener,this);
         manager.registerEvents(gadgetListener,this);
         manager.registerEvents(monsterListener,this);
         manager.registerEvents(inventoryListener,this);
         manager.registerEvents(playerListener,this);
+        manager.registerEvents(armorListener,this);
+        manager.registerEvents(weaponListener,this);
 
         this.getCommand("mineraidersdebug").setExecutor(debugCommand);
-        this.getCommand("loots").setExecutor(lootCommand);
-        this.getCommand("gadgets").setExecutor(gadgetCommand);
+        this.getCommand("getloots").setExecutor(lootCommand);
+        this.getCommand("getgadgets").setExecutor(gadgetCommand);
+        this.getCommand("getweapons").setExecutor(weaponCommand);
+        this.getCommand("getarmors").setExecutor(armorCommand);
 
         containerListener.setPlugin(this);
         gadgetListener.setPlugin(this);
@@ -48,6 +54,8 @@ public class MR extends JavaPlugin {
         recipes.setPlugin(this);
         monsters.setPlugin(this);
         playerListener.setPlugin(this);
+        armorListener.setPlugin(this);
+        weaponListener.setPlugin(this);
         k.setPlugin(this);
 
         recipes.registerStack();

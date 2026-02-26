@@ -146,7 +146,6 @@ public enum WeaponPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "玻璃剑");
         lore.add(ChatColor.WHITE + "非常锋利，但是易碎");
-        lore.add(ChatColor.WHITE + "受到伤害后会碎掉");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

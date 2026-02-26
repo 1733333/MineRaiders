@@ -42,7 +42,6 @@ public class GadgetListener implements Listener {
     Recipes rp = Recipes.INSTANCE;
     WeaponPool wp = WeaponPool.INSTANCE;
     HashSet<Player>isPlaying = new HashSet<>();
-    HashMap<Projectile,LivingEntity>projectEntityMap = new HashMap<>();
     HashMap<String,BukkitRunnable> playerTask = new HashMap<>();
     int[]musicScore1 = new int[]{
             8,
@@ -83,16 +82,6 @@ public class GadgetListener implements Listener {
         if (e instanceof ArmorStand a) {
             if (a.getCustomName() != null) {
                 deathEvent.getDrops().clear();
-            }
-        }
-    }
-    @EventHandler
-    public void projectHitEntity(ProjectileHitEvent hitEvent){
-        Projectile pr = hitEvent.getEntity();
-        if(hitEvent.getHitEntity() != null){
-            Entity e = hitEvent.getHitEntity();
-            if(e instanceof LivingEntity l) {
-                projectEntityMap.put(pr, l);
             }
         }
     }
@@ -738,34 +727,11 @@ public class GadgetListener implements Listener {
                     if (nade.isDead() || k.hitBallBlock(nade)) {
                         this.cancel();
                         nade.remove();
-                        double max = 40;
-                        Allay a = (Allay) w.spawnEntity(nade.getLocation(),EntityType.ALLAY);
-                        a.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max);
-                        a.setHealth(max);
-                        BukkitRunnable damage = new BukkitRunnable() {
-                            int count = 0;
-                            @Override
-                            public void run() {
-                                if(a.isDead()){
-                                    this.cancel();
-                                    return;
-                                }
-                                a.damage(max * 0.08);
-                                if(count % 2 == 0){
-                                    for(Entity e : a.getNearbyEntities(12,12,12)){
-                                        if(e instanceof Mob m){
-                                            m.setTarget(a);
-                                        }
-                                    }
-                                }
-                                count += 1;
-                            }
-                        };
-                        damage.runTaskTimer(plugin,0L,20L);
+                        k.bait(p,nade,40,0.08);
                     }
                 }
             };
-            land.runTaskTimer(plugin, 2L, 1L);
+            land.runTaskTimer(plugin, 3L, 1L);
         }
     }
     public void explodeMine(Player p, ItemStack hand,Location loc, BlockFace face){
@@ -1149,25 +1115,6 @@ public class GadgetListener implements Listener {
                                 BukkitRunnable traceEnemy = new BukkitRunnable() {
                                     @Override
                                     public void run() {
-                                        LivingEntity hitEntity = projectEntityMap.getOrDefault(a, null);
-                                        if (hitEntity != null || a.isDead()) {
-                                            if (hitEntity != null) {
-                                                int count = 0;
-                                                for (Entity e : a.getNearbyEntities(3, 3, 3)) {
-                                                    if (e instanceof Arrow a1) {
-                                                        a1.remove();
-                                                        projectEntityMap.remove(a1);
-                                                        count += 1;
-                                                    }
-                                                }
-                                                hitEntity.damage(count * 30);
-                                                projectEntityMap.remove(a);
-                                                w.playSound(a.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 2, 1);
-                                                w.spawnParticle(Particle.EXPLOSION_EMITTER, a.getLocation(), 1);
-                                            }
-                                            this.cancel();
-                                        }
-                                        w.spawnParticle(Particle.END_ROD, a.getLocation(), 0);
                                         List<Entity> entityInRange = a.getNearbyEntities(40, 40, 40);
                                         LivingEntity nearest = null;
                                         double nearestDistanceSquared = Double.MAX_VALUE;
@@ -1181,11 +1128,29 @@ public class GadgetListener implements Listener {
                                                 }
                                             }
                                         }
+                                        double distance = -1;
                                         if (nearest != null) {
                                             Vector arrowLocVector = a.getLocation().toVector();
                                             Vector entityVector = (nearest.getEyeLocation().toVector()).subtract(arrowLocVector);
                                             a.setVelocity(entityVector.normalize());
+                                            distance = k.distance(a,nearest);
                                         }
+                                        if ((distance > 0 && distance < 2) || a.isDead()) {
+                                            if ((distance > 0 && distance < 2)) {
+                                                int count = 0;
+                                                for (Entity e : a.getNearbyEntities(3, 3, 3)) {
+                                                    if (e instanceof Arrow a1) {
+                                                        a1.remove();
+                                                        count += 1;
+                                                    }
+                                                }
+                                                nearest.damage(count * 30,p);
+                                                w.playSound(a.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 2, 1);
+                                                w.spawnParticle(Particle.EXPLOSION_EMITTER, a.getLocation(), 1);
+                                            }
+                                            this.cancel();
+                                        }
+                                        w.spawnParticle(Particle.END_ROD, a.getLocation(), 0);
                                     }
                                 };
                                 traceEnemy.runTaskTimer(plugin, 20L,2L);

@@ -1,5 +1,6 @@
 package Listeners;
 
+import Events.PlayerShieldBreakEvent;
 import Universal.Kit;
 import Universal.PlayerStats;
 import net.md_5.bungee.api.ChatMessageType;
@@ -11,9 +12,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -92,27 +91,29 @@ public class PlayerListener implements Listener {
     public void playerDeath(EntityDamageEvent damageEvent) {
         double damage = damageEvent.getFinalDamage();
         DamageType damageType = damageEvent.getDamageSource().getDamageType();
-        if(damageType.equals(DamageType.OUT_OF_WORLD))return;
-        if(damageType.equals(DamageType.FIREWORKS)){
+        if (damageType.equals(DamageType.OUT_OF_WORLD)) return;
+        if (damageType.equals(DamageType.FIREWORKS)) {
             damageEvent.setCancelled(true);
         }
         Entity entity = damageEvent.getEntity();
         if (entity instanceof Player p) {
-            if(p.getLastDamage() == 0)return;
+            if (p.getNoDamageTicks() > p.getMaximumNoDamageTicks()) { //i think -grater
+                damageEvent.setCancelled(true);
+                return;
+            }
             World w = p.getWorld();
-            double health = p.getHealth();
             if (damage >= p.getHealth()) {
                 damageEvent.setCancelled(true);
                 ItemStack offHand = p.getEquipment().getItemInOffHand();
-                if(offHand.getType() == Material.TOTEM_OF_UNDYING){
-                    w.playSound(p.getLocation(),Sound.ITEM_TOTEM_USE,1,1);
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION,600,1));
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION,100,1));
+                if (offHand.getType() == Material.TOTEM_OF_UNDYING) {
+                    w.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1, 1);
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 600, 1));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 1));
                     offHand.setAmount(0);
                     return;
                 }
-                if(!playerStats.isDying(p)) {
-                    for(PotionEffect po : p.getActivePotionEffects()){
+                if (!playerStats.isDying(p)) {
+                    for (PotionEffect po : p.getActivePotionEffects()) {
                         p.removePotionEffect(po.getType());
                     }
                     p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 10));
@@ -123,33 +124,18 @@ public class PlayerListener implements Listener {
                     crawling(p);
                     sos(p);
                     playerStats.setDying(p);
-                    for(Entity e : p.getNearbyEntities(10,10,10)){
-                        if(e instanceof Mob m){
-                            if(m.getTarget() == p){
+                    for (Entity e : p.getNearbyEntities(10, 10, 10)) {
+                        if (e instanceof Mob m) {
+                            if (m.getTarget() == p) {
                                 m.setTarget(null);
                             }
                         }
                     }
-                }else {
+                } else {
                     p.setHealth(20);
                     playerStats.stopDying(p);
                     p.removePotionEffect(PotionEffectType.MINING_FATIGUE);
                     p.removePotionEffect(PotionEffectType.WEAKNESS);
-                }
-            }
-            if (health >= 12) {
-                damage *= 0.9;
-                damageEvent.setDamage(damage);
-            }
-            if(!playerStats.isDying(p)) {
-                if (this.k.isArmored(p) && health >= 12.0 && health - damage <= 12.0) {
-                    if (p.getCooldown(Material.BARRIER) == 0) {
-                        w.spawnParticle(Particle.SONIC_BOOM, p.getLocation().add(0, 1, 0), 1);
-                        w.playSound(p.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 1.0F, 1.0F);
-                        w.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0F, 1.0F);
-                        w.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1.0F, 1.0F);
-                        p.setCooldown(Material.BARRIER, 100);
-                    }
                 }
             }
         }
@@ -165,12 +151,24 @@ public class PlayerListener implements Listener {
                 .flicker(true)
                 .with(FireworkEffect.Type.BALL_LARGE).build());
         firework.setFireworkMeta(meta);
+        BukkitRunnable smoke = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if(firework.isDead()){
+                    w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0F, 4F);
+                    w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 1.0F, 4F);
+                    this.cancel();
+                }
+                w.spawnParticle(Particle.CAMPFIRE_SIGNAL_SMOKE,firework.getLocation(),0);
+                w.spawnParticle(Particle.FLASH,firework.getLocation(),0,Color.RED);
+            }
+        };
         BukkitRunnable sos = new BukkitRunnable() {
             int count = 0;
             public void run() {
                 switch (count) {
                     case 0,1,2,4,6,8,10,11,12:
-                        w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1.0F, 2F);
+                        w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1.0F, 4F);
                         break;
                 }
                 if (count == 12)
@@ -179,6 +177,7 @@ public class PlayerListener implements Listener {
             }
         };
         sos.runTaskTimer(plugin, 0L, 3L);
+        smoke.runTaskTimer(plugin, 0L, 1L);
     }
     @EventHandler
     public void playerInteractEntity(PlayerInteractAtEntityEvent interact){
@@ -270,4 +269,35 @@ public class PlayerListener implements Listener {
         }
         return progress.toString();
     }
+    @EventHandler(priority = EventPriority.HIGH)
+    public void playerShieldListener(EntityDamageEvent damageEvent) {
+        Entity e = damageEvent.getEntity();
+        World w = e.getWorld();
+        double damage = damageEvent.getFinalDamage();
+        if (e instanceof Player p) {
+            if (!playerStats.isDying(p)) {
+                double shield = playerStats.getShield(p);
+                if (p.getNoDamageTicks() > p.getMaximumNoDamageTicks()) {
+                    damageEvent.setCancelled(true);
+                    return;
+                }
+                shield -= damage;
+                damage *= 0.75;
+                if (shield <= 0) {
+                    shield = 0;
+                    if (k.isArmored(p)) {
+                        w.spawnParticle(Particle.SONIC_BOOM, p.getLocation().add(0, 1, 0), 1);
+                        w.playSound(p.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 1.0F, 1.0F);
+                        w.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0F, 1.0F);
+                        w.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1.0F, 1.0F);
+                        Bukkit.getPluginManager().callEvent(new PlayerShieldBreakEvent(p));
+                    }
+                }
+                playerStats.setShield(p,0);
+            }
+        }
+        damageEvent.setDamage(damage);
+    }
+
+
 }

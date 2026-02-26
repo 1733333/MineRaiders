@@ -250,7 +250,7 @@ public enum LootPool {
         content.addAll(List.of(epicItem));
         content.addAll(List.of(legendaryItem));
         content.addAll(List.of(mysticItem));
-        return content.toArray(new ItemStack[0]);
+        return content.toArray(new ItemStack[0]).clone();
     }
 
     public ItemStack[] getContent(int counts, float[] weights) {

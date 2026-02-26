@@ -43,11 +43,13 @@ public enum Kit {
         return null;
     }
     public String getLore(ItemStack item) {
-        if(item.getItemMeta() != null) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta.hasLore()) {
-                String[] lore = meta.getLore().toArray(new String[0]);
-                return lore[0];
+        if(item != null) {
+            if (item.getItemMeta() != null) {
+                ItemMeta meta = item.getItemMeta();
+                if (meta.hasLore()) {
+                    String[] lore = meta.getLore().toArray(new String[0]);
+                    return lore[0];
+                } else return "";
             } else return "";
         }else return "";
     }
@@ -289,6 +291,32 @@ public enum Kit {
             }
         };
         glitching.runTaskTimer(plugin,0L,40L);
+    }
+    public void bait(Player p,Entity jar,double health,double amp){
+        World w = p.getWorld();
+        Allay a = (Allay) w.spawnEntity(jar.getLocation(),EntityType.ALLAY);
+        a.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
+        a.setHealth(health);
+        BukkitRunnable damage = new BukkitRunnable() {
+            int count = 0;
+            @Override
+            public void run() {
+                if(a.isDead()){
+                    this.cancel();
+                    return;
+                }
+                a.damage(health * amp);
+                if(count % 2 == 0){
+                    for(Entity e : a.getNearbyEntities(12,12,12)){
+                        if(e instanceof Mob m){
+                            m.setTarget(a);
+                        }
+                    }
+                }
+                count += 1;
+            }
+        };
+        damage.runTaskTimer(plugin,0L,20L);
     }
     public boolean hitBallBlock(Entity e){
         World w = e.getWorld();
