@@ -39,6 +39,11 @@ public enum GadgetPool {
             pyroMine(),
             gasMine(),
             slowMine(),
+            copperBattery(),
+            ironBattery(),
+            goldenBattery(),
+            diamondBattery(),
+            netherBattery(),
     };
 
     public ItemStack[] getGadgets() {
@@ -398,6 +403,86 @@ public enum GadgetPool {
         lore.add(ChatColor.WHITE + "能量饮料-ProMax");
         lore.add(ChatColor.WHITE + "饮用后获得速度、急迫、幸运效果");
         lore.add(ChatColor.WHITE + "刮地皮最好的搭档");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack copperBattery(){
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "copper_nautilus_armor[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+        );
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.AQUA + "铜质电池");
+        itemMeta.setMaxStackSize(4);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "铜质电池");
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
+                + ChatColor.WHITE + "使用");
+        lore.add(ChatColor.WHITE + "使用后缓慢回复少量的护盾");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack ironBattery(){
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "iron_nautilus_armor[consumable={consume_seconds:1.5,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+        );
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.AQUA + "铁质电池");
+        itemMeta.setMaxStackSize(4);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "铁质电池");
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
+                + ChatColor.WHITE + "使用");
+        lore.add(ChatColor.WHITE + "使用后快速回复一定量的护盾");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack goldenBattery(){
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "golden_nautilus_armor[consumable={consume_seconds:2,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+        );
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.AQUA + "黄金电池");
+        itemMeta.setMaxStackSize(4);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "黄金电池");
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
+                + ChatColor.WHITE + "使用");
+        lore.add(ChatColor.WHITE + "使用后稍慢回复多量的护盾");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack diamondBattery(){
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "diamond_nautilus_armor[consumable={consume_seconds:2,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+        );
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.AQUA + "钻石电池");
+        itemMeta.setMaxStackSize(4);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "钻石电池");
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
+                + ChatColor.WHITE + "使用");
+        lore.add(ChatColor.WHITE + "使用后快速回复大量的护盾");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack netherBattery(){
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "netherite_nautilus_armor[consumable={consume_seconds:3,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+        );
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.AQUA + "下界电池");
+        itemMeta.setMaxStackSize(4);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "下界电池");
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
+                + ChatColor.WHITE + "使用");
+        lore.add(ChatColor.WHITE + "使用后立刻补满护盾");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

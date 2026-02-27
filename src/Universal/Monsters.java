@@ -36,7 +36,7 @@ public enum Monsters {
         s.getEquipment().setHelmet(new ItemStack(Material.OBSERVER));
         s.getEquipment().setChestplate(ap.mobChest(Color.BLACK));
         s.getEquipment().setLeggings(ap.mobLeg(Color.BLACK));
-        double health = 100;
+        double health = 150;
         s.setCustomName(ChatColor.RED + "粉碎者");
         s.getAttribute(Attribute.SCALE).setBaseValue(0.8);
         s.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
@@ -619,10 +619,10 @@ public enum Monsters {
         };
         boom.runTaskTimer(plugin,0L,10L);
     }
-    public void bastion(Location loc){
+    public void bastion(Location loc) {
         World w = loc.getWorld();
-        Ravager b = (Ravager) w.spawnEntity(loc,EntityType.RAVAGER);
-        Pillager p = (Pillager) w.spawnEntity(loc,EntityType.PILLAGER);
+        Ravager b = (Ravager) w.spawnEntity(loc, EntityType.RAVAGER);
+        Pillager p = (Pillager) w.spawnEntity(loc, EntityType.PILLAGER);
         b.addPassenger(p);
         double max = 700;
         double scale = 1.35;
@@ -633,8 +633,8 @@ public enum Monsters {
         b.setHealth(max);
         b.setCustomName(ChatColor.GRAY + "堡垒底盘");
         b.setSilent(true);
-        b.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,PotionEffect.INFINITE_DURATION,1));
-        b.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,PotionEffect.INFINITE_DURATION,10));
+        b.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 1));
+        b.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 10));
         p.getAttribute(Attribute.SCALE).setBaseValue(scale);
         p.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max);
         p.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
@@ -653,7 +653,7 @@ public enum Monsters {
                     for (Entity e : p.getNearbyEntities(radius, radius, radius)) {
                         if (e instanceof Player p1) {
                             if (k.distance(p, p1) > radius) continue;
-                            if (playerStats.isDying(p1))continue;
+                            if (playerStats.isDying(p1)) continue;
                             if (p1.getGameMode().equals(GameMode.SURVIVAL)) {
                                 p.setTarget(p1);
                                 b.setTarget(p1);
@@ -672,42 +672,33 @@ public enum Monsters {
                 }
                 Color c = Color.AQUA;
                 if (p.getTarget() != null) {
-                    LivingEntity l = p.getTarget();
-                    Location shooterLoc = p.getEyeLocation();
-                    Location targetLoc = l.getEyeLocation();
-                    Vector sV = shooterLoc.toVector();
-                    Vector tV = targetLoc.toVector();
-                    double distance = k.distance(p,l);
-                    RayTraceResult result = w.rayTraceBlocks(shooterLoc, tV.subtract(sV), distance);
-                    if (result == null) {
-                        c = Color.RED;
-                        BukkitRunnable shoot = new BukkitRunnable() {
-                            int count = 0;
+                    c = Color.RED;
+                    BukkitRunnable shoot = new BukkitRunnable() {
+                        int count = 0;
 
-                            @Override
-                            public void run() {
-                                if (p.isDead() || count > 30) {
-                                    this.cancel();
-                                }
-                                w.playSound(p.getLocation(), Sound.BLOCK_BAMBOO_WOOD_FENCE_GATE_OPEN, 1, 1);
-                                Location shootLoc = p.getEyeLocation();
-                                Vector shootVec = shootLoc.getDirection();
-                                if (p.getTarget() != null) {
-                                    LivingEntity target = p.getTarget();
-                                    Vector lVec = target.getEyeLocation().toVector();
-                                    Vector sVec = shootLoc.toVector();
-                                    shootVec = (lVec.subtract(sVec)).normalize();
-                                }
-                                Arrow a = w.spawnArrow(shootLoc, shootVec, 4, 5);
-                                a.setTicksLived(1100);
-                                a.setDamage(1);
-                                a.setCritical(true);
-                                a.setShooter(p);
-                                count += 1;
+                        @Override
+                        public void run() {
+                            if (p.isDead() || count > 30) {
+                                this.cancel();
                             }
-                        };
-                        shoot.runTaskTimer(plugin, 0L, 1L);
-                    }
+                            w.playSound(p.getLocation(), Sound.BLOCK_BAMBOO_WOOD_TRAPDOOR_OPEN, 1, 1);
+                            Location shootLoc = p.getEyeLocation();
+                            Vector shootVec = shootLoc.getDirection();
+                            if (p.getTarget() != null) {
+                                LivingEntity target = p.getTarget();
+                                Vector lVec = target.getEyeLocation().toVector();
+                                Vector sVec = shootLoc.toVector();
+                                shootVec = (lVec.subtract(sVec)).normalize();
+                            }
+                            Arrow a = w.spawnArrow(shootLoc, shootVec, 4, 5);
+                            a.setTicksLived(1100);
+                            a.setDamage(1);
+                            a.setCritical(true);
+                            a.setShooter(p);
+                            count += 1;
+                        }
+                    };
+                    shoot.runTaskTimer(plugin, 0L, 1L);
                 }
                 Location subLoc = p.getEyeLocation();
                 Vector subVec = p.getEyeLocation().getDirection();
@@ -718,7 +709,7 @@ public enum Monsters {
                 }
             }
         };
-        getTarget.runTaskTimer(plugin,0L,100L);
-        shooting.runTaskTimer(plugin,0L,50L);
+        getTarget.runTaskTimer(plugin, 0L, 100L);
+        shooting.runTaskTimer(plugin, 0L, 50L);
     }
 }

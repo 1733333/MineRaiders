@@ -32,6 +32,7 @@ public class MR extends JavaPlugin {
         InventoryListener inventoryListener = new InventoryListener();
         PlayerListener playerListener = new PlayerListener();
         ArmorListener armorListener = new ArmorListener();
+        ArmorEquipListener armorEquipListener = new ArmorEquipListener();
         WeaponListener weaponListener = new WeaponListener();
 
         manager.registerEvents(containerListener,this);
@@ -40,6 +41,7 @@ public class MR extends JavaPlugin {
         manager.registerEvents(inventoryListener,this);
         manager.registerEvents(playerListener,this);
         manager.registerEvents(armorListener,this);
+        manager.registerEvents(armorEquipListener,this);
         manager.registerEvents(weaponListener,this);
 
         this.getCommand("mineraidersdebug").setExecutor(debugCommand);

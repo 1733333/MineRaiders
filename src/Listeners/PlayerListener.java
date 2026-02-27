@@ -1,5 +1,6 @@
 package Listeners;
 
+import Events.ArmorEquipEvent;
 import Events.PlayerShieldBreakEvent;
 import Universal.Kit;
 import Universal.PlayerStats;
@@ -7,6 +8,10 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarFlag;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -36,6 +41,7 @@ public class PlayerListener implements Listener {
     HashSet<Player>beingRevive = new HashSet<>();
     HashMap<Player,Player>whoIsReviving = new HashMap<>();
     HashMap<String,BukkitRunnable>playerTask = new HashMap<>();
+    HashMap<String, BossBar>playerBar = new HashMap<>();
 
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -155,8 +161,8 @@ public class PlayerListener implements Listener {
             @Override
             public void run() {
                 if(firework.isDead()){
-                    w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0F, 4F);
-                    w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 1.0F, 4F);
+                    w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 4F, 1F);
+                    w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 4F, 1F);
                     this.cancel();
                 }
                 w.spawnParticle(Particle.CAMPFIRE_SIGNAL_SMOKE,firework.getLocation(),0);
@@ -275,6 +281,13 @@ public class PlayerListener implements Listener {
         World w = e.getWorld();
         double damage = damageEvent.getFinalDamage();
         if (e instanceof Player p) {
+            if(!playerStats.isShieldOn(p))return;
+            if (playerStats.hasShield(p)) {
+                Particle.DustOptions dust = new Particle.DustOptions(Color.AQUA,0.7f);
+                w.spawnParticle(Particle.DUST,p.getLocation().add(0,1,0),
+                        100,0.5,1,0.5,dust);
+            }
+            BossBar bar = playerBar.getOrDefault(p.getName(),null);
             if (!playerStats.isDying(p)) {
                 double shield = playerStats.getShield(p);
                 if (p.getNoDamageTicks() > p.getMaximumNoDamageTicks()) {
@@ -283,7 +296,7 @@ public class PlayerListener implements Listener {
                 }
                 shield -= damage;
                 damage *= 0.75;
-                if (shield <= 0) {
+                if (shield <= 0 && playerBar.getOrDefault(p.getName(),null) != null) {
                     shield = 0;
                     if (k.isArmored(p)) {
                         w.spawnParticle(Particle.SONIC_BOOM, p.getLocation().add(0, 1, 0), 1);
@@ -293,11 +306,49 @@ public class PlayerListener implements Listener {
                         Bukkit.getPluginManager().callEvent(new PlayerShieldBreakEvent(p));
                     }
                 }
-                playerStats.setShield(p,0);
+                playerStats.setShield(p,shield);
+                if(bar != null){
+                    if(shield == 0){
+                        bar.removeAll();
+                        playerBar.remove(p.getName());
+                    }else {
+                        bar.setProgress(shield / 20.0);
+                    }
+                }
             }
         }
         damageEvent.setDamage(damage);
     }
-
-
+    @EventHandler
+    public void playerEquipArmor(ArmorEquipEvent equipEvent) {
+        Player p = equipEvent.getPlayer();
+        double shield = playerStats.getShield(p);
+        ItemStack newPiece = equipEvent.getNewArmorPiece();
+        BossBar bar = playerBar.getOrDefault(p.getName(), null);
+        if (newPiece.getType() == Material.AIR) {
+            if (playerStats.isShieldOn(p)) {
+                playerStats.closeShield(p);
+            }
+            if (bar != null) {
+                bar.removeAll();
+                playerBar.remove(p.getName());
+            }
+        } else {
+            if (shield == -1 || !playerStats.isShieldOn(p)) {
+                if(shield == 0)return;
+                if (shield == -1) {
+                    playerStats.setShield(p, 20);
+                }
+                if (!playerStats.isShieldOn(p)) {
+                    playerStats.openShield(p);
+                }
+                if (bar == null) {
+                    bar = Bukkit.createBossBar(ChatColor.AQUA + "护盾", BarColor.BLUE, BarStyle.SEGMENTED_20);
+                    bar.addPlayer(p);
+                    playerBar.put(p.getName(), bar);
+                }
+                bar.setProgress(Math.min(20, shield / 20.0));
+            }
+        }
+    }
 }

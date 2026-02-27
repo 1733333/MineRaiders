@@ -1064,7 +1064,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石头盔");
-        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会获得伤害吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会回复一定量的护盾");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -1085,7 +1085,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石胸甲");
-        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会获得伤害吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会回复一定量的护盾");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -1106,7 +1106,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SILENCE));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石护腿");
-        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会获得伤害吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会回复一定量的护盾");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
@@ -1127,7 +1127,7 @@ public enum ArmorPool {
         ((ArmorMeta)itemMeta).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.SHAPER));
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "绿宝石靴子");
-        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会获得伤害吸收效果");
+        lore.add(ChatColor.WHITE + "套装奖励：当护盾破碎时，会回复一定量的护盾");
         lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);

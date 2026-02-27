@@ -41,6 +41,7 @@ public class GadgetListener implements Listener {
     LootPool lp = LootPool.INSTANCE;
     Recipes rp = Recipes.INSTANCE;
     WeaponPool wp = WeaponPool.INSTANCE;
+    PlayerStats playerStats = PlayerStats.INSTANCE;
     HashSet<Player>isPlaying = new HashSet<>();
     HashMap<String,BukkitRunnable> playerTask = new HashMap<>();
     int[]musicScore1 = new int[]{
@@ -238,6 +239,21 @@ public class GadgetListener implements Listener {
                 p.damage(5, DamageSource.builder(DamageType.TRIDENT).build());
                 p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 400, 1));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 1));
+                break;
+            case "§f铜质电池":
+
+                break;
+            case "§f铁质电池":
+
+                break;
+            case "§f黄金电池":
+
+                break;
+            case "§f钻石电池":
+
+                break;
+            case "§f下界电池":
+                playerStats.setShield(p,20);
                 break;
         }
     }
@@ -495,10 +511,6 @@ public class GadgetListener implements Listener {
         Material material = hand.getType();
         if (p.getCooldown(material) == 0) {
             p.setCooldown(material, 20);
-            if (p.getGameMode() != GameMode.CREATIVE) {
-                int amount = hand.getAmount();
-                hand.setAmount(amount - 1);
-            }
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
@@ -1144,7 +1156,7 @@ public class GadgetListener implements Listener {
                                                         count += 1;
                                                     }
                                                 }
-                                                nearest.damage(count * 30,p);
+                                                nearest.damage(count * 30);
                                                 w.playSound(a.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 2, 1);
                                                 w.spawnParticle(Particle.EXPLOSION_EMITTER, a.getLocation(), 1);
                                             }

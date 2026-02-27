@@ -62,48 +62,34 @@ public class WeaponListener implements Listener {
                     switch (tag){
                         case "§f大骨棒" ->{
                             w.playSound(l.getLocation(), Sound.BLOCK_ANVIL_PLACE,1,1);
-                            w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_BREAK,1,1);
-                            w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_BREAK,1,1);
-                            w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_BREAK,1,1);
-                            l.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,60,0),false);
-                            l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,40,4),false);
+                            w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_PLACE,1,1);
+                            w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_PLACE,1,1);
+                            w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_PLACE,1,1);
+                            l.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,60,0,false));
+                            l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,40,4,false));
                         }
-                        case "§f战锤" ->{
-                            EntityEquipment e = l.getEquipment();
+                        case "§f战锤" -> {
                             double newDamage = damage;
-                            if(e != null) {
-                                if (e.getHelmet() != null) {
-                                    damage += 2;
-                                }
-                                if (e.getChestplate() != null) {
-                                    damage += 2;
-                                }
-                                if (e.getLeggings() != null) {
-                                    damage += 2;
-                                }
-                                if (e.getBoots() != null) {
-                                    damage += 2;
-                                }
-                                damageEvent.setDamage(newDamage);
-                                if(damage < newDamage){
-                                    w.playSound(l.getLocation(),Sound.ENTITY_ITEM_BREAK,1,1);
-                                    w.playSound(l.getLocation(),Sound.ENTITY_ITEM_BREAK,1,1);
-                                    w.playSound(l.getLocation(),Sound.ITEM_SHIELD_BREAK,1,1);
-                                }
+                            double armor = l.getAttribute(Attribute.ARMOR).getBaseValue();
+                            newDamage += armor / 2;
+                            damageEvent.setDamage(newDamage);
+                            if (damage < newDamage) {
+                                w.playSound(l.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+                                w.playSound(l.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
                             }
                         }
                         case "§f竹叶青" ->{
                             w.playSound(l.getLocation(),Sound.BLOCK_BAMBOO_BREAK,1,1);
                             w.playSound(l.getLocation(),Sound.BLOCK_BAMBOO_BREAK,1,1);
-                            l.addPotionEffect(new PotionEffect(PotionEffectType.POISON,300,0),false);
+                            l.addPotionEffect(new PotionEffect(PotionEffectType.POISON,300,0,false));
                         }
                         case "§f紫水晶刺剑" ->{
                             w.playSound(l.getLocation(),Sound.BLOCK_AMETHYST_BLOCK_BREAK,1,1);
                             w.playSound(l.getLocation(),Sound.BLOCK_AMETHYST_BLOCK_BREAK,1,1);
                             w.playSound(l.getLocation(),Sound.BLOCK_AMETHYST_BLOCK_BREAK,1,1);
-                            l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,20,0),false);
+                            l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,20,0,false));
                             if(!(l instanceof Shulker)) {
-                                l.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 200, 0), false);
+                                l.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 200, 0,false));
                             }
                         }
                     }

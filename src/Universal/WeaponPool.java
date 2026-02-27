@@ -119,7 +119,7 @@ public enum WeaponPool {
         itemMeta.setDisplayName(ChatColor.RED + "大骨棒");
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
-        AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-3.25, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-3.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);

@@ -50,6 +50,7 @@ public class ArmorListener implements Listener {
         int index2 = name2.indexOf("胸甲");
         int index3 = name3.indexOf("护腿");
         int index4 = name4.indexOf("靴子");
+        if(index1 < 0 || index2 < 0 || index3 < 0 || index4 < 0)return false;
         String sub1 = name1.substring(0, index1);
         String sub2 = name2.substring(0, index2);
         String sub3 = name3.substring(0, index3);
@@ -97,12 +98,6 @@ public class ArmorListener implements Listener {
             if (p.getNoDamageTicks() > p.getMaximumNoDamageTicks()) {
                 damageEvent.setCancelled(true);
                 return;
-            }
-            if (playerStats.hasShield(p)) {
-                Particle.DustOptions dust = new Particle.DustOptions(Color.AQUA,1);
-                w.spawnParticle(Particle.DUST,p.getLocation().add(0,1,0),
-                        50,0,1,0,dust);
-                damage *= 0.9;
             }
             EntityEquipment e = p.getEquipment();
             ItemStack chest = e.getChestplate();

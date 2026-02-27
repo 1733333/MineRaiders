@@ -129,6 +129,11 @@ public class MonsterListener implements Listener {
                 }
             }
             if (dName.equals("§7堡垒底盘") || dName.equals("§7堡垒炮塔")) {
+                if (damaged instanceof Mob m) {
+                    if (a instanceof LivingEntity l) {
+                        m.setTarget(l);
+                    }
+                }
                 if(!damaged.getPassengers().isEmpty()){
                     for(Entity e : damaged.getPassengers()){
                         if(e instanceof LivingEntity l){
