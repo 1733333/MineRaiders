@@ -260,9 +260,6 @@ public enum WeaponPool {
         lore.add(ChatColor.WHITE + "回响战斧");
         lore.add(ChatColor.WHITE + "蕴含远古力量");
         lore.add(ChatColor.WHITE + "攻击会附带挖掘疲劳效果");
-        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
-                + ChatColor.WHITE + "让自己获得黑暗和急迫效果");
-        lore.add(ChatColor.WHITE + "并且让周围的生物获得发光效果");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -471,7 +468,7 @@ public enum WeaponPool {
         lore.add(ChatColor.WHITE + "拥有海神之力的重锤");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "向前踏步，并释放范围攻击");
-        lore.add(ChatColor.WHITE + "范围攻击命中怪物后，自身获得抗性提升效果");
+        lore.add(ChatColor.WHITE + "范围攻击命中后，自身获得抗性提升效果");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

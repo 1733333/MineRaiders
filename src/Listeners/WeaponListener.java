@@ -4,6 +4,7 @@ import Universal.Kit;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
@@ -18,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -52,7 +54,24 @@ public class WeaponListener implements Listener {
                     if (shootBowEvent.getForce() > 0.5) {
                         Vector v = pr.getVelocity();
                         pr.setVelocity(v.multiply(1.3));
+                        pr.setTicksLived(1200);
                         w.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1, 1);
+                        BukkitRunnable hit = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                if(pr.isDead()){
+                                    w.playSound(pr.getLocation(),Sound.ENTITY_BREEZE_SHOOT,2,1);
+                                    double radius = 3;
+                                    for(Entity e : pr.getNearbyEntities(radius,radius,radius)){
+                                        if(e instanceof Mob){
+                                            k.knockBack(e,pr.getLocation(),-1);
+                                        }
+                                    }
+                                    this.cancel();
+                                }
+                            }
+                        };
+                        hit.runTaskTimer(plugin,0L,2L);
                     }
                 }
                 case "§f回响长弓" -> {
@@ -97,6 +116,7 @@ public class WeaponListener implements Listener {
     public void playerInteract(PlayerInteractEvent interactEvent) {
         Action action = interactEvent.getAction();
         Player p = interactEvent.getPlayer();
+        World w = p.getWorld();
         if (p.getGameMode() == GameMode.SPECTATOR) return;
         ItemStack hand = p.getInventory().getItemInMainHand();
         ItemStack offHand = p.getInventory().getItemInOffHand();
@@ -106,8 +126,30 @@ public class WeaponListener implements Listener {
             String tag = k.getLore(hand);
             if (rightClick) {
                 switch (tag){
-                    case "§f回响战斧" ->{
+                    case "§f金胡萝卜神的赐福" ->{
+                        interactEvent.setCancelled(true);
+                        if(p.getFoodLevel() > 0) {
+                            if (p.getCooldown(hand.getType()) == 0) {
+                                p.setCooldown(hand.getType(), 20);
+                                Location shootLoc = p.getEyeLocation();
+                                Vector shootVec = shootLoc.getDirection();
+                                Arrow a = w.spawnArrow(shootLoc, shootVec, 1.5F, 5);
+                                a.setDamage(2);
+                                a.setShooter(p);
+                                a.setTicksLived(1200);
+                                a.addCustomEffect(new PotionEffect(PotionEffectType.GLOWING, 200, 0), false);
+                                int food = p.getFoodLevel();
+                                p.setFoodLevel(Math.max(food - 1, 0));
+                                w.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                            }
+                        }
+                    }
+                    case "§f绿宝石权杖" ->{
 
+                    }
+                    case "§f海神重锤" ->{
+                        smashGround(p,hand);
+                        interactEvent.setCancelled(true);
                     }
 
                 }
@@ -173,6 +215,68 @@ public class WeaponListener implements Listener {
                     }
                 }
             }
+        }
+    }public void smashGround(Player p,ItemStack hand){
+        World w = p.getWorld();
+        if(p.getCooldown(hand.getType()) == 0) {
+            double radius = 3;
+            p.setCooldown(hand.getType(), 120);
+            Location eyeLoc = p.getLocation();
+            Vector eyeVec = eyeLoc.getDirection();
+            Vector dash = new Vector(eyeVec.getX(),0,eyeVec.getZ());
+            p.setVelocity(dash.multiply(0.8));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,15,10));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE,15,0));
+            w.playSound(p.getLocation(),Sound.ENTITY_PLAYER_BIG_FALL,1,1);
+            w.playSound(p.getLocation(),Sound.ENTITY_PLAYER_BIG_FALL,1,1);
+            w.spawnParticle(Particle.BUBBLE_COLUMN_UP,p.getLocation(), 100,1.5,0,1.5,0.1);
+            BukkitRunnable slam = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if(p.getGameMode() == GameMode.SPECTATOR)return;
+                    w.playSound(p.getLocation(),Sound.ENTITY_PLAYER_ATTACK_SWEEP,1,0.7f);
+                    w.playSound(p.getLocation(),Sound.BLOCK_GRAVEL_BREAK,1,1);
+                    Vector stabVec = p.getEyeLocation().getDirection();
+                    Vector forward = new Vector(stabVec.getX(),0,stabVec.getZ());
+                    Location center = p.getLocation().clone().add(forward.multiply(radius));
+                    w.spawnParticle(Particle.BUBBLE_COLUMN_UP,center, 100
+                            ,radius/2
+                            ,radius/2
+                            ,radius/2
+                            ,0.1);
+                    Location pLoc = center.clone();
+                    double padX = pLoc.getX();
+                    double padY = pLoc.getY();
+                    double padZ = pLoc.getZ();
+                    double i = Math.PI;
+                    for (int j = 0; j <= 100; j++) {
+                        double x = padX + (radius * Math.sin(radius* i + 0.5 * j));
+                        double z = padZ + (radius * Math.cos(radius * i + 0.5 * j));
+                        Location areaP = new Location(w, x, padY, z);
+                        BlockData data = Bukkit.createBlockData(Material.SEA_LANTERN);
+                        w.spawnParticle(Particle.DUST_PILLAR,areaP,1,data);
+                    }
+                    boolean hit = false;
+                    for(Entity e : w.getNearbyEntities(center,radius,radius,radius)){
+                        if(k.locDistance(center,e.getLocation()) > radius)continue;
+                        if(e instanceof LivingEntity l) {
+                            if(e instanceof Player p1){
+                                if(p1.getGameMode() == GameMode.SPECTATOR)continue;
+                                if(p1 == p)continue;
+                            }
+                            l.damage(13,p);
+                            w.spawnParticle(Particle.BUBBLE_COLUMN_UP,l.getLocation(), 50,0.5,1.5,0.5,0.1);
+                            w.playSound(l.getEyeLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1, 1);
+                            w.playSound(l.getEyeLocation(), Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1, 1);
+                            hit = true;
+                        }
+                    }
+                    if(hit){
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE,120,1,false));
+                    }
+                }
+            };
+            slam.runTaskLater(plugin,15L);
         }
     }
 }

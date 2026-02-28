@@ -152,7 +152,6 @@ public enum LootPool {
             i81(),
             i82(),
             i109(),
-            i110(),
     };
     ItemStack[] legendaryItem = {
             i83(),
@@ -172,6 +171,8 @@ public enum LootPool {
             i93(),
             i94(),
             i95(),
+            wolfPack(),
+            deadLine(),
     };
     ItemStack[] mysticItem = {
             i96(),
@@ -1749,16 +1750,33 @@ public enum LootPool {
         i.setItemMeta(meta);
         return i.clone();
     }
-    public ItemStack i110(){
+    public ItemStack wolfPack(){
         ItemStack item = new ItemStack(Material.WOLF_SPAWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】狼群");
+        itemMeta.setDisplayName(ChatColor.GOLD + "【珍奇】狼群");
         itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "狼群");
         lore.add(ChatColor.WHITE + "扔到空中后一段时间后");
         lore.add(ChatColor.WHITE + "会分裂成若干威力巨大的追踪弹药");
         lore.add(ChatColor.WHITE + "追踪范围内的怪物");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack deadLine(){
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "stick[consumable={consume_seconds:2,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"lodestone\"]"
+        );
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.GOLD + "【珍奇】死线");
+        itemMeta.setMaxStackSize(1);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "死线");
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
+                + ChatColor.WHITE + "部署");
+        lore.add(ChatColor.WHITE + "部署一个极高威力的磁吸地雷");
+        lore.add(ChatColor.WHITE + "可以自动吸附到附近的怪物身上");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

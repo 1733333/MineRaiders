@@ -1281,13 +1281,17 @@ public class GadgetListener implements Listener {
                     this.cancel();
                     return;
                 }
-                if(count == 16){
+                if(count == 14){
+                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.7f);
                     w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.7f);
                     w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.65f);
-                }else if(count == 14){
+                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.65f);
+                }else if(count == 13){
+                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.6f);
                     w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.6f);
                     w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.55f);
-                } else if(count < 14) {
+                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.55f);
+                } else if(count < 13) {
                     w.playSound(g.getLocation(), Sound.UI_BUTTON_CLICK, 2, 0.5f + count * 0.05f);
                 }
                 w.spawnParticle(Particle.NOTE, g.getEyeLocation(), 1);

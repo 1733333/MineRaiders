@@ -19,6 +19,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -52,19 +53,38 @@ public class PlayerListener implements Listener {
     public void playerDamageListener(EntityDamageEvent damageEvent){
         Entity damaged = damageEvent.getEntity();
         double damage = damageEvent.getFinalDamage();
+        double aDamage = damageEvent.getOriginalDamage(EntityDamageEvent.DamageModifier.ABSORPTION);
         if(damaged instanceof Player p){
-            if (p.getNoDamageTicks() > p.getMaximumNoDamageTicks()) {
+            if (p.getNoDamageTicks() > 10) {
                 damageEvent.setCancelled(true);
                 return;
             }
             if(playerStats.isShieldOn(p)) {
                 if (playerStats.hasShield(p)) {
+                    Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,-damage));
                     damage *= 0.75;
                 }
             }
 
         }
+        damage += aDamage;
         damageEvent.setDamage(damage);
+    }
+    @EventHandler
+    public void playerInteractArmorStand(PlayerArmorStandManipulateEvent event){
+        ArmorStand a = event.getRightClicked();
+        if(a.getCustomName() != null){
+            event.setCancelled(true);
+        }
+    }
+    @EventHandler
+    public void armorStandDamage(EntityDamageEvent damageEvent){
+        Entity e = damageEvent.getEntity();
+        if(e instanceof ArmorStand a){
+            if(a.getCustomName() != null){
+                damageEvent.setCancelled(true);
+            }
+        }
     }
     @EventHandler
     public void playerItemDamage(PlayerItemDamageEvent damageEvent){
@@ -113,7 +133,7 @@ public class PlayerListener implements Listener {
         };
         crawling.runTaskTimer(plugin,0L,1L);
     }
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void playerDeath(EntityDamageEvent damageEvent) {
         if (damageEvent.isCancelled())return;
         double damage = damageEvent.getFinalDamage();
@@ -289,8 +309,8 @@ public class PlayerListener implements Listener {
         }
         return progress.toString();
     }
-    @EventHandler(priority = EventPriority.HIGHEST) //high -> highest --grater
-    public void playerShieldListener(EntityDamageEvent damageEvent) {
+    @EventHandler(priority = EventPriority.HIGH) //high -> highest --grater
+    public void playerShieldEffect(EntityDamageEvent damageEvent) {
         if (damageEvent.isCancelled()) return;
         Entity e = damageEvent.getEntity();
         World w = e.getWorld();
@@ -304,9 +324,7 @@ public class PlayerListener implements Listener {
                 w.spawnParticle(Particle.DUST, p.getLocation().add(0, 1, 0),
                         100, 0.4, 0.8, 0.4, dust);
             }
-            Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, -damage));
             if (shield - damage <= 0 && shield > 0) {
-                playerStats.setShield(p, 0);
                 if (k.isArmored(p)) {
                     w.spawnParticle(Particle.SONIC_BOOM, p.getLocation().add(0, 1, 0), 1);
                     w.playSound(p.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 1.0F, 1.0F);
@@ -322,10 +340,11 @@ public class PlayerListener implements Listener {
         Player p = equipEvent.getPlayer();
         EntityEquipment e = p.getEquipment();
         double shield = playerStats.getShield(p);
+        int maxShield = playerStats.getMaxShield();
         ItemStack newPiece = equipEvent.getNewArmorPiece();
         BossBar bar = playerBar.getOrDefault(p.getName(), null);
         if (newPiece == null || newPiece.getType() == Material.AIR) {
-            if(e.getArmorContents().length == 0) {
+            if(!k.isArmored(p)) {
                 if (playerStats.isShieldOn(p)) {
                     playerStats.closeShield(p);
                 }
@@ -337,17 +356,19 @@ public class PlayerListener implements Listener {
         } else {
             if (shield == -1 || !playerStats.isShieldOn(p)) {
                 if (shield == -1) {
-                    playerStats.setShield(p, 20);
+                    playerStats.setShield(p, maxShield);
                 }
                 if (!playerStats.isShieldOn(p)) {
                     playerStats.openShield(p);
                 }
                 if (bar == null) {
-                    bar = Bukkit.createBossBar(ChatColor.AQUA + "护盾", BarColor.BLUE, BarStyle.SEGMENTED_20);
+                    bar = Bukkit.createBossBar(
+                            ChatColor.AQUA+ "" + ChatColor.BOLD + "护盾丨剩余电量：" + String.format("%.2f",maxShield * 1.0),
+                            BarColor.BLUE, BarStyle.SEGMENTED_20);
                     bar.addPlayer(p);
                     playerBar.put(p.getName(), bar);
                 }
-                double progress = shield / 20.0;
+                double progress = shield / maxShield;
                 if(progress < 0){
                     progress = 0;
                 }
@@ -355,26 +376,30 @@ public class PlayerListener implements Listener {
             }
         }
     }
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.LOW)
     public void PlayerShieldDamage(PlayerShieldAmountChangeEvent changeEvent){
         Player p = changeEvent.getPlayer();
         double amount = changeEvent.getAmount();
         double shield = playerStats.getShield(p);
+        int maxShield = playerStats.getMaxShield();
         if(shield != -1){
             double newShield = shield + amount;
             if(amount < 0) {
                 playerStats.setShield(p, Math.max(0, newShield));
             }else {
-                playerStats.setShield(p, Math.min(20, newShield));
+                playerStats.setShield(p, Math.min(maxShield, newShield));
             }
         }
         BossBar bar = playerBar.getOrDefault(p.getName(),null);
         if(bar != null) {
-            double progress = shield / 20.0;
+            double progress = shield / maxShield;
             if(progress < 0){
                 progress = 0;
+            }else if(progress > 1){
+                progress = 1;
             }
-            bar.setProgress(Math.min(20, progress));
+            bar.setProgress(progress);
+            bar.setTitle(ChatColor.AQUA+ "" + ChatColor.BOLD + "护盾丨剩余电量：" + String.format("%.2f",shield));
         }
     }
 }

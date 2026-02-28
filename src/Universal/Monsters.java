@@ -559,7 +559,11 @@ public enum Monsters {
                     return;
                 }
                 if(count < 5){
-                    w.playSound(l.getLocation(),Sound.ENTITY_ENDER_DRAGON_FLAP,1,1);
+                    if(count == 0) {
+                        w.playSound(l.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
+                        w.playSound(l.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
+                        w.playSound(l.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
+                    }
                     Particle.DustOptions dust = new Particle.DustOptions(Color.YELLOW,1);
                     w.spawnParticle(Particle.DUST,l.getLocation(),count * 10,
                             (count+1)/2.0,(count+1)/2.0,(count+1)/2.0,dust);
@@ -633,7 +637,7 @@ public enum Monsters {
         b.setHealth(max);
         b.setCustomName(ChatColor.GRAY + "堡垒底盘");
         b.setSilent(true);
-        b.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 1));
+        b.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 2));
         b.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 10));
         p.getAttribute(Attribute.SCALE).setBaseValue(scale);
         p.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max);
@@ -681,7 +685,7 @@ public enum Monsters {
                             if (p.isDead() || count > 30) {
                                 this.cancel();
                             }
-                            w.playSound(p.getLocation(), Sound.BLOCK_BAMBOO_WOOD_TRAPDOOR_OPEN, 1, 1);
+                            w.playSound(p.getLocation(), Sound.ENTITY_CREAKING_ACTIVATE, 1, 1.5f);
                             Location shootLoc = p.getEyeLocation();
                             Vector shootVec = shootLoc.getDirection();
                             if (p.getTarget() != null) {
@@ -690,11 +694,10 @@ public enum Monsters {
                                 Vector sVec = shootLoc.toVector();
                                 shootVec = (lVec.subtract(sVec)).normalize();
                             }
-                            Arrow a = w.spawnArrow(shootLoc, shootVec, 2, 5);
+                            Arrow a = w.spawnArrow(shootLoc, shootVec, 5, 5);
                             a.setTicksLived(1100);
-                            a.setDamage(3);
+                            a.setDamage(1);
                             a.setCritical(true);
-                            a.setGravity(false);
                             a.setShooter(p);
                             count += 1;
                         }

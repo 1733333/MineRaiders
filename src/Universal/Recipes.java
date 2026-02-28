@@ -1078,7 +1078,7 @@ public enum Recipes {
     }
     public void r108() {
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, lp.i110());
+        ShapedRecipe r = new ShapedRecipe(w, lp.wolfPack());
         r.shape("ABA", "ACA", "ADA");
         r.setIngredient('A', Material.AMETHYST_SHARD);
         r.setIngredient('B', Material.END_CRYSTAL);

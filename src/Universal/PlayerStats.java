@@ -7,6 +7,7 @@ import java.util.HashSet;
 
 public enum PlayerStats {
     INSTANCE;
+    public final int maxShield = 20;
     public static HashMap<String,MenuStatus>playerMenuStatus = new HashMap<>();
     public static HashMap<String,Double>playerShield = new HashMap<>();
     public enum MenuStatus{
@@ -19,6 +20,7 @@ public enum PlayerStats {
     }
     HashSet<Player> isDying = new HashSet<>();
     HashSet<Player> isShieldOn = new HashSet<>();
+    public int getMaxShield() {return maxShield;}
     public boolean isDying(Player p){return isDying.contains(p);}
     public void setDying(Player p){isDying.add(p);}
     public void stopDying(Player p){isDying.remove(p);}
