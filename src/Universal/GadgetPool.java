@@ -44,6 +44,7 @@ public enum GadgetPool {
             goldenBattery(),
             diamondBattery(),
             netherBattery(),
+            deadLine(),
     };
 
     public ItemStack[] getGadgets() {
@@ -412,8 +413,8 @@ public enum GadgetPool {
                 "copper_nautilus_armor[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
         );
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.AQUA + "铜质电池");
-        itemMeta.setMaxStackSize(4);
+        itemMeta.setDisplayName(ChatColor.GRAY + "铜质电池");
+        itemMeta.setMaxStackSize(8);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "铜质电池");
         lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
@@ -428,8 +429,8 @@ public enum GadgetPool {
                 "iron_nautilus_armor[consumable={consume_seconds:1.5,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
         );
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.AQUA + "铁质电池");
-        itemMeta.setMaxStackSize(4);
+        itemMeta.setDisplayName(ChatColor.GREEN + "铁质电池");
+        itemMeta.setMaxStackSize(8);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "铁质电池");
         lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
@@ -445,7 +446,7 @@ public enum GadgetPool {
         );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "黄金电池");
-        itemMeta.setMaxStackSize(4);
+        itemMeta.setMaxStackSize(8);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "黄金电池");
         lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
@@ -460,8 +461,8 @@ public enum GadgetPool {
                 "diamond_nautilus_armor[consumable={consume_seconds:2,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
         );
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.AQUA + "钻石电池");
-        itemMeta.setMaxStackSize(4);
+        itemMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "钻石电池");
+        itemMeta.setMaxStackSize(8);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "钻石电池");
         lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
@@ -476,13 +477,30 @@ public enum GadgetPool {
                 "netherite_nautilus_armor[consumable={consume_seconds:3,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
         );
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.AQUA + "下界电池");
-        itemMeta.setMaxStackSize(4);
+        itemMeta.setDisplayName(ChatColor.RED + "下界电池");
+        itemMeta.setMaxStackSize(8);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "下界电池");
         lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "使用");
         lore.add(ChatColor.WHITE + "使用后立刻补满护盾");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack deadLine(){
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "stick[consumable={consume_seconds:2,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"lodestone\"]"
+        );
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "死线");
+        itemMeta.setMaxStackSize(1);
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "死线");
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
+                + ChatColor.WHITE + "部署");
+        lore.add(ChatColor.WHITE + "部署一个极高威力的磁吸地雷");
+        lore.add(ChatColor.WHITE + "可以自动吸附到附近的怪物身上");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

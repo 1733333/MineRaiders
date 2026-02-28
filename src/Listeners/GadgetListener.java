@@ -1,5 +1,6 @@
 package Listeners;
 
+import Events.PlayerShieldAmountChangeEvent;
 import Universal.*;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -7,6 +8,7 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
@@ -92,6 +94,9 @@ public class GadgetListener implements Listener {
         Player p = interactEvent.getPlayer();
         if (p.getGameMode() == GameMode.SPECTATOR) return;
         ItemStack hand = p.getInventory().getItemInMainHand();
+        if(hand.getType() == Material.NAME_TAG){
+            interactEvent.setCancelled(true);
+        }
         ItemStack offHand = p.getInventory().getItemInOffHand();
         boolean rightClick = action.equals(Action.RIGHT_CLICK_AIR)
                 || action.equals(Action.RIGHT_CLICK_BLOCK);
@@ -241,19 +246,22 @@ public class GadgetListener implements Listener {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 1));
                 break;
             case "§f铜质电池":
-
+                battery(p,8,8);
                 break;
             case "§f铁质电池":
-
+                battery(p,4,8);
                 break;
             case "§f黄金电池":
-
+                battery(p,6,12);
                 break;
             case "§f钻石电池":
-
+                battery(p,4,16);
                 break;
             case "§f下界电池":
-                playerStats.setShield(p,20);
+                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,20));
+                break;
+            case "§f死线":
+                deadline(p);
                 break;
         }
     }
@@ -1191,5 +1199,117 @@ public class GadgetListener implements Listener {
             };
             land.runTaskTimer(plugin, 0L, 1L);
         }
+    }
+    public void battery(Player p,int seconds,double shield){
+        BukkitRunnable recover = new BukkitRunnable() {
+            int count = 0;
+            int step = seconds * 4;
+            @Override
+            public void run() {
+                if(count > step){
+                    this.cancel();
+                    return;
+                }
+                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,shield / step));
+                count += 1;
+            }
+        };
+        recover.runTaskTimer(plugin,0L,5L);
+    }
+    public void deadline(Player p) {
+        World w = p.getWorld();
+        ArmorStand g = (ArmorStand) w.spawnEntity(p.getLocation(), EntityType.ARMOR_STAND);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        g.setCustomName(ChatColor.AQUA + p.getName() + "的死线");
+        g.setSmall(true);
+        g.getEquipment().setHelmet(new ItemStack(Material.LODESTONE));
+        g.getEquipment().setChestplate(ap.mobChest(Color.GRAY));
+        g.getEquipment().setLeggings(ap.mobLeg(Color.GRAY));
+        g.getEquipment().setBoots(ap.mobBoot(Color.GRAY));
+        g.setBasePlate(false);
+        BukkitRunnable trigger = new BukkitRunnable() {
+            int count = 0;
+
+            @Override
+            public void run() {
+                if (count >= 20 || g.isDead()) {
+                    if(count >= 20){
+                        g.remove();
+                        Location pLoc = g.getLocation();
+                        BukkitRunnable sweep = new BukkitRunnable() {
+                            int count = 0;
+                            @Override
+                            public void run() {
+                                if(count > 3){
+                                    this.cancel();
+                                    return;
+                                }
+                                double padX = pLoc.getX();
+                                double padY = pLoc.getY();
+                                double padZ = pLoc.getZ();
+                                double i = Math.PI;
+                                for (int j = 0; j <= 100; j++) {
+                                    double x = padX + ((3 + count * 2) * Math.sin((3 + count * 2) * i + 0.5 * j));
+                                    double z = padZ + ((3 + count * 2) * Math.cos((3 + count * 2) * i + 0.5 * j));
+                                    Location areaP = new Location(w, x, padY, z);
+                                    BlockData data = Bukkit.createBlockData(Material.YELLOW_CONCRETE);
+                                    w.spawnParticle(Particle.DUST_PILLAR,areaP,1,data);
+                                    w.spawnParticle(Particle.EXPLOSION,areaP,1);
+                                }
+                                count += 1;
+                            }
+                        };
+                        w.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE,g.getLocation(),100,0,0,0,0.2);
+                        sweep.runTaskTimer(plugin,0L,2L);
+                        w.playSound(g.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,3,1);
+                        w.spawnParticle(Particle.EXPLOSION_EMITTER,g.getLocation(),1);
+                        double radius = 10;
+                        for(Entity e : g.getNearbyEntities(radius,radius,radius)){
+                            if(e instanceof LivingEntity l){
+                                Location shooterLoc = g.getEyeLocation();
+                                Location targetLoc = l.getEyeLocation();
+                                Vector sV = shooterLoc.toVector();
+                                Vector tV = targetLoc.toVector();
+                                RayTraceResult result = w.rayTraceBlocks(shooterLoc, tV.subtract(sV), k.distance(g, e));
+                                if (result != null) continue;
+                                l.damage(250);
+                            }
+                        }
+                    }
+                    this.cancel();
+                    return;
+                }
+                if(count == 16){
+                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.7f);
+                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.65f);
+                }else if(count == 14){
+                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.6f);
+                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.55f);
+                } else if(count < 14) {
+                    w.playSound(g.getLocation(), Sound.UI_BUTTON_CLICK, 2, 0.5f + count * 0.05f);
+                }
+                w.spawnParticle(Particle.NOTE, g.getEyeLocation(), 1);
+                Entity nearest = null;
+                double nearestDistanceSquared = Double.MAX_VALUE;
+                for (Entity e : g.getNearbyEntities(5, 5, 5)) {
+                    if (e instanceof Mob l) {
+                        if (l.isInvisible() && l.getType() == EntityType.SHULKER) continue;
+                        if (!l.getPassengers().isEmpty()) continue;
+                        double distanceSquared = k.distance(g, l);
+                        if (distanceSquared < nearestDistanceSquared) {
+                            nearest = l;
+                            nearestDistanceSquared = distanceSquared;
+                        }
+                    }
+                    if (nearest != null) {
+                        nearest.addPassenger(g);
+                    }
+                }
+                count += 1;
+            }
+        };
+        trigger.runTaskTimer(plugin,20L,8L);
     }
 }

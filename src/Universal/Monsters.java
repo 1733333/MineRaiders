@@ -610,8 +610,8 @@ public enum Monsters {
                     w.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE,l.getLocation(),200,0,0,0,0.1);
                     sweep.runTaskTimer(plugin,0L,2L);
                     w.playSound(l.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,3,1);
-                    w.spawnParticle(Particle.FLASH,l.getLocation(),1,Color.YELLOW);
                     w.spawnParticle(Particle.EXPLOSION_EMITTER,l.getLocation(),1);
+                    w.spawnParticle(Particle.FLASH,l.getLocation(),1,Color.YELLOW);
                     l.removePotionEffect(PotionEffectType.SLOWNESS);
                 }
                 count += 1;
@@ -690,10 +690,11 @@ public enum Monsters {
                                 Vector sVec = shootLoc.toVector();
                                 shootVec = (lVec.subtract(sVec)).normalize();
                             }
-                            Arrow a = w.spawnArrow(shootLoc, shootVec, 4, 5);
+                            Arrow a = w.spawnArrow(shootLoc, shootVec, 2, 5);
                             a.setTicksLived(1100);
-                            a.setDamage(1);
+                            a.setDamage(3);
                             a.setCritical(true);
+                            a.setGravity(false);
                             a.setShooter(p);
                             count += 1;
                         }

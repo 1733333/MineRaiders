@@ -104,14 +104,45 @@ public enum WeaponPool {
             broom(),
             emeraldWand(),
     };
+    public ItemStack[] pluginWeapons = {
+            boneStick(),
+            glassSword(),
+            warHammer(),
+            flameBow(),
+            bambooSpear(),
+            crystalSword(),
+            echoAxe(),
+            cactusSword(),
+            flintSword(),
+            quartzSword(),
+            netherSword(),
+            goldenCarrot(),
+            echoSword(),
+            broom(),
+            fireSword(),
+            emeraldWand(),
+            windBow(),
+            masterStick(),
+            seaHammer(),
+            echoBow(),
+            ferro(),
+    };
 
     public ItemStack[] getRecipeWeapons() {
         return recipeWeapons.clone();
     }
 
-    public ItemStack[] getContainerWeapons() {return containerWeapons.clone();}
+    public ItemStack[] getContainerWeapons() {
+        return containerWeapons.clone();
+    }
 
-    public ItemStack[] getBoxWeapons() {return boxWeapons.clone();}
+    public ItemStack[] getBoxWeapons() {
+        return boxWeapons.clone();
+    }
+
+    public ItemStack[] getPluginWeapons() {
+        return pluginWeapons.clone();
+    }
 
     public ItemStack boneStick(){
         ItemStack item = new ItemStack(Material.IRON_AXE);
@@ -453,6 +484,19 @@ public enum WeaponPool {
         lore.add(ChatColor.WHITE + "回响长弓");
         lore.add(ChatColor.WHITE + "蕴含远古的力量");
         lore.add(ChatColor.WHITE + "拉满弓射击时，会释放音爆");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack ferro(){
+        ItemStack item = new ItemStack(Material.CROSSBOW);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.YELLOW + "费洛");
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "费洛");
+        lore.add(ChatColor.WHITE + "单发装填步枪");
+        lore.add(ChatColor.WHITE + "看起来很像弩");
+        lore.add(ChatColor.WHITE + "发射可以穿透怪物的强力弹药");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

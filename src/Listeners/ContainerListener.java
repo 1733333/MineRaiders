@@ -5,6 +5,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.type.Door;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
@@ -177,15 +178,21 @@ public class ContainerListener implements Listener {
                         w.playSound(b.getLocation(),Sound.BLOCK_HEAVY_CORE_BREAK,1,1);
                         w.playSound(b.getLocation(),Sound.BLOCK_HEAVY_CORE_BREAK,1,1);
                         w.playSound(b.getLocation(),Sound.BLOCK_HEAVY_CORE_BREAK,1,1);
+                        w.playSound(b.getLocation(),Sound.BLOCK_IRON_DOOR_OPEN,1,1);
                         w.spawnParticle(Particle.BLOCK,b.getLocation(),20,0.5,0.5,0.5,0.1,
                                 Bukkit.createBlockData(Material.IRON_DOOR));
-                        b.breakNaturally();
-                        for(Entity e : w.getNearbyEntities(b.getLocation(),1,1,1)){
-                            if(e instanceof Item i){
-                                if(i.getItemStack().getType() == Material.IRON_DOOR){
-                                    i.remove();
-                                }
-                            }
+                        Door door = (Door) b.getBlockData();
+                        door.setOpen(true);
+                        b.setBlockData(door);
+                        if(b1.getType() == Material.IRON_DOOR){
+                            Door door1 = (Door) b1.getBlockData();
+                            door1.setOpen(true);
+                            b1.setBlockData(door1);
+                        }
+                        if(b2.getType() == Material.IRON_DOOR){
+                            Door door2 = (Door) b2.getBlockData();
+                            door2.setOpen(true);
+                            b2.setBlockData(door2);
                         }
                     }else {
                         int damage = 1;

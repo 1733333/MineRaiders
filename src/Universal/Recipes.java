@@ -79,16 +79,16 @@ public enum Recipes {
 
     public void registerRecipe() {
         try {
-            r0();r10();r20();r30();r40();r50();r60();r70();r80();r90();r100();
-            r1();r11();r21();r31();r41();r51();r61();r71();r81();r91();r101();
-            r2();r12();r22();r32();r42();r52();r62();r72();r82();r92();r102();
-            r3();r13();r23();r33();r43();r53();r63();r73();r83();r93();r103();
-            r4();r14();r24();r34();r44();r54();r64();r74();r84();r94();r104();
+            r0();r10();r20();r30();r40();r50();r60();r70();r80();r90();r100();r110();
+            r1();r11();r21();r31();r41();r51();r61();r71();r81();r91();r101();r111();
+            r2();r12();r22();r32();r42();r52();r62();r72();r82();r92();r102();r112();
+            r3();r13();r23();r33();r43();r53();r63();r73();r83();r93();r103();r113();
+            r4();r14();r24();r34();r44();r54();r64();r74();r84();r94();r104();r114();
             r5();r15();r25();r35();r45();r55();r65();r75();r85();r95();r105();
             r6();r16();r26();r36();r46();r56();r66();r76();r86();r96();r106();
             r7();r17();r27();r37();r47();r57();r67();r77();r87();r97();r107();
             r8();r18();r28();r38();r48();r58();r68();r78();r88();r98();r108();
-            r9();r19();r29();r39();r49();r59();r69();r79();r89();r99();
+            r9();r19();r29();r39();r49();r59();r69();r79();r89();r99();r109();
         } catch (Exception ignored) {
         }
     }
@@ -1084,6 +1084,66 @@ public enum Recipes {
         r.setIngredient('B', Material.END_CRYSTAL);
         r.setIngredient('C', Material.FIREWORK_ROCKET);
         r.setIngredient('D', Material.TNT);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r109() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, gp.copperBattery());
+        r.shape("AB ", "BB ", "   ");
+        r.setIngredient('A', Material.EGG);
+        r.setIngredient('B', Material.COPPER_NUGGET);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r110() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, gp.ironBattery());
+        r.shape("AB ", "BB ", "   ");
+        r.setIngredient('A', Material.EGG);
+        r.setIngredient('B', Material.IRON_NUGGET);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r111() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, gp.goldenBattery());
+        r.shape("AB ", "BB ", "   ");
+        r.setIngredient('A', Material.EGG);
+        r.setIngredient('B', Material.GOLD_NUGGET);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r112() {
+        ItemStack i = gp.netherBattery().clone();
+        i.setAmount(4);
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, i);
+        r.shape(" A ", "ABA", " A ");
+        r.setIngredient('A', Material.EGG);
+        r.setIngredient('B', Material.DIAMOND);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r113() {
+        ItemStack i = gp.netherBattery().clone();
+        i.setAmount(8);
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, i);
+        r.shape("AAA", "ABA", "AAA");
+        r.setIngredient('A', Material.EGG);
+        r.setIngredient('B', Material.NETHERITE_SCRAP);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r114() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, wp.ferro());
+        r.shape("ADA", "BCB", " A ");
+        r.setIngredient('A', Material.BONE);
+        r.setIngredient('B', Material.STRING);
+        r.setIngredient('C', Material.TRIPWIRE_HOOK);
+        r.setIngredient('D', Material.COPPER_INGOT);
         Bukkit.addRecipe(r);
         key += 1;
     }

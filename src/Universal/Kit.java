@@ -369,4 +369,25 @@ public enum Kit {
         }
         return true;
     }
+    public boolean isFullSet(Player p) {
+        EntityEquipment e = p.getEquipment();
+        ItemStack i1 = e.getHelmet();
+        ItemStack i2 = e.getChestplate();
+        ItemStack i3 = e.getLeggings();
+        ItemStack i4 = e.getBoots();
+        String name1 = getLore(i1);
+        String name2 = getLore(i2);
+        String name3 = getLore(i3);
+        String name4 = getLore(i4);
+        int index1 = name1.indexOf("头盔");
+        int index2 = name2.indexOf("胸甲");
+        int index3 = name3.indexOf("护腿");
+        int index4 = name4.indexOf("靴子");
+        if(index1 < 0 || index2 < 0 || index3 < 0 || index4 < 0)return false;
+        String sub1 = name1.substring(0, index1);
+        String sub2 = name2.substring(0, index2);
+        String sub3 = name3.substring(0, index3);
+        String sub4 = name4.substring(0, index4);
+        return sub1.equals(sub2) && sub2.equals(sub3) && sub3.equals(sub4);
+    }
 }

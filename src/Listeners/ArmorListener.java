@@ -1,5 +1,6 @@
 package Listeners;
 
+import Events.PlayerShieldAmountChangeEvent;
 import Events.PlayerShieldBreakEvent;
 import Universal.Kit;
 import Universal.PlayerStats;
@@ -36,27 +37,6 @@ public class ArmorListener implements Listener {
         this.plugin = plugin;
     }
 
-    public boolean isFullSet(Player p) {
-        EntityEquipment e = p.getEquipment();
-        ItemStack i1 = e.getHelmet();
-        ItemStack i2 = e.getChestplate();
-        ItemStack i3 = e.getLeggings();
-        ItemStack i4 = e.getBoots();
-        String name1 = k.getLore(i1);
-        String name2 = k.getLore(i2);
-        String name3 = k.getLore(i3);
-        String name4 = k.getLore(i4);
-        int index1 = name1.indexOf("头盔");
-        int index2 = name2.indexOf("胸甲");
-        int index3 = name3.indexOf("护腿");
-        int index4 = name4.indexOf("靴子");
-        if(index1 < 0 || index2 < 0 || index3 < 0 || index4 < 0)return false;
-        String sub1 = name1.substring(0, index1);
-        String sub2 = name2.substring(0, index2);
-        String sub3 = name3.substring(0, index3);
-        String sub4 = name4.substring(0, index4);
-        return sub1.equals(sub2) && sub2.equals(sub3) && sub3.equals(sub4);
-    }
 
     public int hasArmor(Player p, String name) {
         EntityEquipment e = p.getEquipment();
@@ -90,22 +70,17 @@ public class ArmorListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void playerDamaged(EntityDamageEvent damageEvent) {
+        if (damageEvent.isCancelled())return;
         Entity damaged = damageEvent.getEntity();
         World w = damaged.getWorld();
         if (damaged instanceof Player p) {
             double health = p.getHealth();
-            double damage = damageEvent.getFinalDamage();
-            if (p.getNoDamageTicks() > p.getMaximumNoDamageTicks()) {
-                damageEvent.setCancelled(true);
-                return;
-            }
             EntityEquipment e = p.getEquipment();
             ItemStack chest = e.getChestplate();
             String cName = k.getLore(chest);
-            if (isFullSet(p)) {
+            if (k.isFullSet(p)) {
                 if (health > 19) {
                     if (cName.contains("黑曜石")) {
-                        damage *= 0.2;
                         w.playSound(p.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 1);
                         w.playSound(p.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 1);
                         w.playSound(p.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 1);
@@ -120,23 +95,19 @@ public class ArmorListener implements Listener {
                 int hunger = p.getFoodLevel();
                 p.setFoodLevel(Math.min(20, hunger + amount));
             }
-            damageEvent.setDamage(damage);
         }
     }
 
     @EventHandler(priority = EventPriority.LOW)
     public void playerDamagedByEntity(EntityDamageByEntityEvent damageEvent) {
+        if (damageEvent.isCancelled())return;
         Entity damaged = damageEvent.getEntity();
         Entity attacker = damageEvent.getDamager();
         World w = damaged.getWorld();
         if (damaged instanceof Player p) {
-            if (p.getNoDamageTicks() > p.getMaximumNoDamageTicks()) {
-                damageEvent.setCancelled(true);
-                return;
-            }
             double damage = damageEvent.getFinalDamage();
             EntityEquipment e = p.getEquipment();
-            if (isFullSet(p)) {
+            if (k.isFullSet(p)) {
                 ItemStack chest = e.getChestplate();
                 String cName = k.getLore(chest);
                 if (attacker instanceof Player) {
@@ -163,7 +134,7 @@ public class ArmorListener implements Listener {
         ItemStack chest = e.getChestplate();
         String cName = k.getLore(chest);
         if (!playerStats.isDying(p)) {
-            if (isFullSet(p)) {
+            if (k.isFullSet(p)) {
                 switch (cName) {
                     case "§f幻翼胸甲" -> {
                         if (p.getCooldown(Material.PHANTOM_MEMBRANE) == 0) {
@@ -173,8 +144,8 @@ public class ArmorListener implements Listener {
                     }
                     case "§f绿宝石胸甲" -> {
                         if (p.getCooldown(Material.EMERALD) == 0) {
+                            Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,8));
                             p.setCooldown(Material.EMERALD, 600);
-                            p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 600, 1));
                         }
                     }
                     case "§f紫水晶胸甲" -> {
