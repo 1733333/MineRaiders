@@ -1237,7 +1237,7 @@ public class GadgetListener implements Listener {
                 if (count >= 20 || g.isDead()) {
                     if(count >= 20){
                         g.remove();
-                        Location pLoc = g.getLocation();
+                        Location pLoc = g.getLocation().clone();
                         BukkitRunnable sweep = new BukkitRunnable() {
                             int count = 0;
                             @Override
