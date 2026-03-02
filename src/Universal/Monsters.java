@@ -677,32 +677,37 @@ public enum Monsters {
                 Color c = Color.AQUA;
                 if (p.getTarget() != null) {
                     c = Color.RED;
-                    BukkitRunnable shoot = new BukkitRunnable() {
-                        int count = 0;
+                    if (!p.hasPotionEffect(PotionEffectType.LUCK)) {
+                        BukkitRunnable shoot = new BukkitRunnable() {
+                            int count = 0;
 
-                        @Override
-                        public void run() {
-                            if (p.isDead() || count > 30) {
-                                this.cancel();
+                            @Override
+                            public void run() {
+                                if (p.isDead() || count > 50) {
+                                    if (count > 50) {
+                                        p.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 80, 0));
+                                    }
+                                    this.cancel();
+                                }
+                                w.playSound(p.getLocation(), Sound.ENTITY_CREAKING_ACTIVATE, 1, 1.5f);
+                                Location shootLoc = p.getEyeLocation();
+                                Vector shootVec = shootLoc.getDirection();
+                                if (p.getTarget() != null) {
+                                    LivingEntity target = p.getTarget();
+                                    Vector lVec = target.getEyeLocation().toVector();
+                                    Vector sVec = shootLoc.toVector();
+                                    shootVec = (lVec.subtract(sVec)).normalize();
+                                }
+                                Arrow a = w.spawnArrow(shootLoc, shootVec, 2.5f, 5);
+                                a.setTicksLived(1200);
+                                a.setDamage(0.75);
+                                a.setCritical(true);
+                                a.setShooter(p);
+                                count += 1;
                             }
-                            w.playSound(p.getLocation(), Sound.ENTITY_CREAKING_ACTIVATE, 1, 1.5f);
-                            Location shootLoc = p.getEyeLocation();
-                            Vector shootVec = shootLoc.getDirection();
-                            if (p.getTarget() != null) {
-                                LivingEntity target = p.getTarget();
-                                Vector lVec = target.getEyeLocation().toVector();
-                                Vector sVec = shootLoc.toVector();
-                                shootVec = (lVec.subtract(sVec)).normalize();
-                            }
-                            Arrow a = w.spawnArrow(shootLoc, shootVec, 5, 5);
-                            a.setTicksLived(1100);
-                            a.setDamage(1);
-                            a.setCritical(true);
-                            a.setShooter(p);
-                            count += 1;
-                        }
-                    };
-                    shoot.runTaskTimer(plugin, 0L, 1L);
+                        };
+                        shoot.runTaskTimer(plugin, 0L, 1L);
+                    }
                 }
                 Location subLoc = p.getEyeLocation();
                 Vector subVec = p.getEyeLocation().getDirection();

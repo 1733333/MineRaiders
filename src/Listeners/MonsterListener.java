@@ -65,7 +65,7 @@ public class MonsterListener implements Listener {
             }
         }
     }
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void mobMeleeAttack(EntityDamageByEntityEvent damageEvent) {
         DamageType damageType = damageEvent.getDamageSource().getDamageType();
         World w = damageEvent.getDamager().getWorld();
@@ -196,8 +196,20 @@ public class MonsterListener implements Listener {
     }
     @EventHandler
     public void mobDeathSound(EntityDeathEvent deathEvent) {
-        final LivingEntity mob = deathEvent.getEntity();
+        LivingEntity mob = deathEvent.getEntity();
         World w = mob.getWorld();
+        String dName = mob.getName();
+        switch (dName){
+            case "§7堡垒底盘":
+            case "§7堡垒炮塔":
+            case "§7跳跃者":
+            case "§6火球":
+            case "§c粉碎者":
+            case "§a跳蚤":
+            case "§a爆爆":
+                w.playSound(mob.getLocation(),Sound.ENTITY_BREEZE_DEATH,2,0.75f);
+                w.playSound(mob.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,1.5f);
+        }
     }
     @EventHandler
     public void damageSoundEffect(EntityDamageEvent damageEvent) {

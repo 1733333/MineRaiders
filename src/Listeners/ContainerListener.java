@@ -21,6 +21,8 @@ import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -160,7 +162,22 @@ public class ContainerListener implements Listener {
                 interactEvent.setCancelled(true);
                 if(p.getCooldown(Material.COMMAND_BLOCK_MINECART) == 0) {
                     p.setCooldown(Material.COMMAND_BLOCK_MINECART,10);
-                    openContainer(p, b);
+                    boolean isUsing = false;
+                    ItemStack hand = p.getEquipment().getItemInMainHand();
+                    if(k.getLore(hand).equals("§f奇袭者工具")) {
+                        isUsing = true;
+                        Damageable d = (Damageable) hand.getItemMeta();
+                        int damage = d.getDamage();
+                        d.setDamage(damage + 1);
+                        hand.setItemMeta(d);
+                        if(damage + 1 > d.getMaxDamage()){
+                            hand = null;
+                            p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1F);
+                        }
+                        p.getEquipment().setItemInMainHand(hand);
+                        p.playSound(p.getLocation(), Sound.BLOCK_IRON_TRAPDOOR_OPEN, 1, 1F);
+                    }
+                    openContainer(p, b,isUsing);
                 }
             }
             if(b.getType() == Material.IRON_DOOR){
@@ -212,7 +229,7 @@ public class ContainerListener implements Listener {
             }
         }
     }
-    public void openContainer(Player p,Block container){
+    public void openContainer(Player p,Block container,boolean isUsingCrowbar){
         World w = p.getWorld();
         Player searcher = blockSearcherMap.getOrDefault(container,null);
         int rarity = getContainerRarity(container);
@@ -253,7 +270,7 @@ public class ContainerListener implements Listener {
                     w.playSound(container.getLocation(),s,1,1);
                     blockSearcherMap.put(container, p);
                     p.setCooldown(container.getType(), 10);
-                    checkContainer(p, container);
+                    checkContainer(p, container,isUsingCrowbar);
                 }
             }
         }else {
@@ -265,7 +282,7 @@ public class ContainerListener implements Listener {
         }
     }
 
-    public void checkContainer(Player p,Block container){
+    public void checkContainer(Player p,Block container,boolean isUsingCrowbar){
         World w = p.getWorld();
         ItemStack[]content = blockContent.getOrDefault(container,new ItemStack[0]);
         if(content.length == 0) {
@@ -311,9 +328,13 @@ public class ContainerListener implements Listener {
                 int rarity = lp.getRarity(item);
                 int bound = 5 + Math.abs(rarity);
                 if(p.hasPotionEffect(PotionEffectType.HASTE)){
+                    p.playSound(p.getLocation(),Sound.ENTITY_PUFFER_FISH_BLOW_UP,1,1);
                     PotionEffect effect = p.getPotionEffect(PotionEffectType.HASTE);
                     int amp = effect.getAmplifier() + 1;
                     bound = Math.max(bound - amp, 1);
+                }
+                if(isUsingCrowbar){
+                    bound = Math.max(bound - 1, 1);
                 }
                 if(p.hasPotionEffect(PotionEffectType.LUCK)){
                     if(r.nextInt(4) == 0){
@@ -362,7 +383,7 @@ public class ContainerListener implements Listener {
                     ItemStack[] newContent = new ItemStack[content.length - 1];
                     System.arraycopy(content, 1, newContent, 0, newContent.length);
                     blockContent.put(container, newContent);
-                    checkContainer(p, container);
+                    checkContainer(p, container,isUsingCrowbar);
                     this.cancel();
                 }
                 step += 1;

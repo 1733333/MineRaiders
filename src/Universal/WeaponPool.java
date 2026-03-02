@@ -1,5 +1,6 @@
 package Universal;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -27,11 +28,12 @@ public enum WeaponPool {
             goldenCarrot(),
             echoSword(),
             fireSword(),
-            emeraldWand(),
+            raiderTool(),
             windBow(),
             masterStick(),
             seaHammer(),
             echoBow(),
+            echoCrossBow(),
     };
     public ItemStack[] containerWeapons = {
         new ItemStack(Material.WOODEN_SWORD),
@@ -59,7 +61,7 @@ public enum WeaponPool {
             goldenCarrot(),
             fireSword(),
             broom(),
-            emeraldWand(),
+            raiderTool(),
     };
     public ItemStack[] boxWeapons = {
         new ItemStack(Material.WOODEN_SWORD),
@@ -102,7 +104,7 @@ public enum WeaponPool {
             goldenCarrot(),
             fireSword(),
             broom(),
-            emeraldWand(),
+            raiderTool(),
     };
     public ItemStack[] pluginWeapons = {
             boneStick(),
@@ -118,14 +120,15 @@ public enum WeaponPool {
             netherSword(),
             goldenCarrot(),
             echoSword(),
+            ferro(),
             broom(),
             fireSword(),
-            emeraldWand(),
+            raiderTool(),
             windBow(),
             masterStick(),
             seaHammer(),
             echoBow(),
-            ferro(),
+            echoCrossBow(),
     };
 
     public ItemStack[] getRecipeWeapons() {
@@ -151,7 +154,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-3.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -171,7 +174,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),8, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),7, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -188,7 +191,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-3.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),9, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),8, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -217,7 +220,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-3.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -235,7 +238,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-1.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),6, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -253,7 +256,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-3.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),10, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),9, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -272,7 +275,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-2.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),6, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -291,7 +294,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-2.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -308,7 +311,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-2.4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),6, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -325,7 +328,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-2.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),10, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),9, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -338,7 +341,9 @@ public enum WeaponPool {
         return item;
     }
     public ItemStack goldenCarrot(){
-        ItemStack item = new ItemStack(Material.GOLDEN_CARROT);
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "stick[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"entity.experience_orb.pickup\"}]},item_model=\"minecraft:golden_carrot\"]"
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "金胡萝卜神的赐福");
         itemMeta.addEnchant(Enchantment.DENSITY,5,true);
@@ -359,7 +364,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-2.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),8, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),7, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -379,7 +384,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -397,7 +402,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),3, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -407,14 +412,21 @@ public enum WeaponPool {
         item.setItemMeta(itemMeta);
         return item;
     }
-    public ItemStack emeraldWand(){
-        ItemStack item = new ItemStack(Material.OXIDIZED_LIGHTNING_ROD);
+    public ItemStack raiderTool(){
+        ItemStack item = new ItemStack(Material.IRON_HOE);
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.YELLOW + "绿宝石权杖");
+        ((Damageable)itemMeta).setMaxDamage(20);
+        itemMeta.setDisplayName(ChatColor.YELLOW + "奇袭者工具");
+        Attribute attribute1 = Attribute.ATTACK_SPEED;
+        Attribute attribute2 = Attribute.ATTACK_DAMAGE;
+        AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),3, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        itemMeta.addAttributeModifier(attribute1,modifier1);
+        itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
-        lore.add(ChatColor.WHITE + "绿宝石权杖");
-        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
-                + ChatColor.WHITE + "释放治疗魔法");
+        lore.add(ChatColor.WHITE + "奇袭者工具");
+        lore.add(ChatColor.WHITE + "使用此工具搜索容器");
+        lore.add(ChatColor.WHITE + "可以加快搜索容器的速度");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -442,7 +454,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-1.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),3, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -460,7 +472,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-3.25, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),10, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),9, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -480,7 +492,19 @@ public enum WeaponPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "回响长弓");
         lore.add(ChatColor.WHITE + "蕴含远古的力量");
-        lore.add(ChatColor.WHITE + "拉满弓射击时，会释放音爆");
+        lore.add(ChatColor.WHITE + "拉满弓射击时，会射出一支带有爆炸尾迹的箭矢");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack echoCrossBow(){
+        ItemStack item = new ItemStack(Material.CROSSBOW);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.YELLOW + "深渊十字弩");
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "深渊十字弩");
+        lore.add(ChatColor.WHITE + "蕴含远古的力量");
+        lore.add(ChatColor.WHITE + "射出一道音波");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

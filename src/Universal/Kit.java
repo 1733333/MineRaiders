@@ -390,4 +390,28 @@ public enum Kit {
         String sub4 = name4.substring(0, index4);
         return sub1.equals(sub2) && sub2.equals(sub3) && sub3.equals(sub4);
     }
+    public boolean bounce(Entity e, double amp) {
+        World w = e.getWorld();
+        Location eLoc = e.getLocation();
+        Location loc = w.getBlockAt(eLoc).getLocation();
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    if (x * x + y * y + z * z <= 1) {
+                        Block nearbyBlock = w.getBlockAt(loc.clone().add(x, y, z));
+                        if (isFullBlock(nearbyBlock)) {
+                            Location blockLoc = nearbyBlock.getLocation();
+                            Vector locVec = loc.toVector();
+                            Vector blockVec = blockLoc.toVector();
+                            Vector bounceVec = (locVec.subtract(blockVec)).clone();
+                            Vector eVec = e.getVelocity();
+                            e.setVelocity((bounceVec.add(eVec)).multiply(amp));
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }

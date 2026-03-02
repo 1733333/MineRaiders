@@ -978,7 +978,6 @@ public enum ArmorPool {
         lore.add(ChatColor.WHITE + "紫水晶头盔");
         lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
         lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次破片");
-        lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1000,7 +999,6 @@ public enum ArmorPool {
         lore.add(ChatColor.WHITE + "紫水晶胸甲");
         lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
         lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次破片");
-        lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1022,7 +1020,6 @@ public enum ArmorPool {
         lore.add(ChatColor.WHITE + "紫水晶护腿");
         lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
         lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次破片");
-        lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -1044,7 +1041,6 @@ public enum ArmorPool {
         lore.add(ChatColor.WHITE + "紫水晶靴子");
         lore.add(ChatColor.WHITE + "套装奖励：来自玩家的伤害减少25%");
         lore.add(ChatColor.WHITE + "当护盾破碎时，会释放一次破片");
-        lore.add(ChatColor.WHITE + "冷却时间30秒");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

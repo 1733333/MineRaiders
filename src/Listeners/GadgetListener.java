@@ -246,18 +246,23 @@ public class GadgetListener implements Listener {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 1));
                 break;
             case "§f铜质电池":
+                p.setCooldown(item,160);
                 battery(p,8,8);
                 break;
             case "§f铁质电池":
+                p.setCooldown(item,80);
                 battery(p,4,8);
                 break;
             case "§f黄金电池":
+                p.setCooldown(item,120);
                 battery(p,6,12);
                 break;
             case "§f钻石电池":
+                p.setCooldown(item,80);
                 battery(p,4,16);
                 break;
             case "§f下界电池":
+                p.setCooldown(item,80);
                 Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,20));
                 break;
             case "§f死线":
@@ -1206,7 +1211,7 @@ public class GadgetListener implements Listener {
             int step = seconds * 4;
             @Override
             public void run() {
-                if(count > step){
+                if(count > step - 1){
                     this.cancel();
                     return;
                 }
@@ -1254,10 +1259,11 @@ public class GadgetListener implements Listener {
                                     double x = padX + ((3 + count * 2) * Math.sin((3 + count * 2) * i + 0.5 * j));
                                     double z = padZ + ((3 + count * 2) * Math.cos((3 + count * 2) * i + 0.5 * j));
                                     Location areaP = new Location(w, x, padY, z);
-                                    BlockData data = Bukkit.createBlockData(Material.YELLOW_CONCRETE);
+                                    BlockData data = Bukkit.createBlockData(Material.GRAVEL);
                                     w.spawnParticle(Particle.DUST_PILLAR,areaP,1,data);
                                     w.spawnParticle(Particle.EXPLOSION,areaP,1);
                                 }
+                                w.spawnParticle(Particle.FLASH,g.getLocation(),1,Color.YELLOW);
                                 count += 1;
                             }
                         };
@@ -1281,20 +1287,24 @@ public class GadgetListener implements Listener {
                     this.cancel();
                     return;
                 }
+                Color c = Color.RED;
                 if(count == 14){
                     w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.7f);
-                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.7f);
-                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.65f);
                     w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.65f);
                 }else if(count == 13){
                     w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.6f);
-                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.6f);
-                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.55f);
                     w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.55f);
                 } else if(count < 13) {
+                    c = Color.YELLOW;
                     w.playSound(g.getLocation(), Sound.UI_BUTTON_CLICK, 2, 0.5f + count * 0.05f);
+                    w.playSound(g.getLocation(), Sound.BLOCK_COPPER_BULB_TURN_OFF, 2, 0.5f + count * 0.05f);
+                    w.playSound(g.getLocation(), Sound.BLOCK_COPPER_BULB_TURN_OFF, 2, 0.5f + count * 0.05f);
+                    w.playSound(g.getLocation(), Sound.BLOCK_COPPER_BULB_TURN_OFF, 2, 0.5f + count * 0.05f);
                 }
-                w.spawnParticle(Particle.NOTE, g.getEyeLocation(), 1);
+                double y = 1 + count / 10.0;
+                Particle.DustOptions dust = new Particle.DustOptions(c,1.5f);
+                w.spawnParticle(Particle.DUST,g.getLocation().add(0,y,0)
+                        ,50,0,y / 2,0,dust);
                 Entity nearest = null;
                 double nearestDistanceSquared = Double.MAX_VALUE;
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {

@@ -84,8 +84,8 @@ public enum Recipes {
             r2();r12();r22();r32();r42();r52();r62();r72();r82();r92();r102();r112();
             r3();r13();r23();r33();r43();r53();r63();r73();r83();r93();r103();r113();
             r4();r14();r24();r34();r44();r54();r64();r74();r84();r94();r104();r114();
-            r5();r15();r25();r35();r45();r55();r65();r75();r85();r95();r105();
-            r6();r16();r26();r36();r46();r56();r66();r76();r86();r96();r106();
+            r5();r15();r25();r35();r45();r55();r65();r75();r85();r95();r105();r115();
+            r6();r16();r26();r36();r46();r56();r66();r76();r86();r96();r106();r116();
             r7();r17();r27();r37();r47();r57();r67();r77();r87();r97();r107();
             r8();r18();r28();r38();r48();r58();r68();r78();r88();r98();r108();
             r9();r19();r29();r39();r49();r59();r69();r79();r89();r99();r109();
@@ -254,9 +254,9 @@ public enum Recipes {
 
     public void r16() {
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.emeraldWand());
-        r.shape(" A ", " B ", " B ");
-        r.setIngredient('A', Material.EMERALD);
+        ShapedRecipe r = new ShapedRecipe(w, wp.raiderTool());
+        r.shape(" AA", " B ", " B ");
+        r.setIngredient('A', Material.IRON_INGOT);
         r.setIngredient('B', Material.BONE);
         Bukkit.addRecipe(r);
         key += 1;
@@ -1144,6 +1144,28 @@ public enum Recipes {
         r.setIngredient('B', Material.STRING);
         r.setIngredient('C', Material.TRIPWIRE_HOOK);
         r.setIngredient('D', Material.COPPER_INGOT);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r115() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, lp.deadLine());
+        r.shape("ACA", "BDB", "ACA");
+        r.setIngredient('A', Material.DIAMOND);
+        r.setIngredient('B', Material.LODESTONE);
+        r.setIngredient('C', Material.TNT);
+        r.setIngredient('D', Material.END_CRYSTAL);
+        Bukkit.addRecipe(r);
+        key += 1;
+    }
+    public void r116() {
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, wp.echoCrossBow());
+        r.shape("ADA", "BCB", " A ");
+        r.setIngredient('A', Material.BREEZE_ROD);
+        r.setIngredient('B', Material.IRON_CHAIN);
+        r.setIngredient('C', Material.ANCIENT_DEBRIS);
+        r.setIngredient('D', Material.ECHO_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
     }
