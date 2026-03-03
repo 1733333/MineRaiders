@@ -2,8 +2,6 @@ package Listeners;
 
 import Events.PlayerShieldAmountChangeEvent;
 import Universal.*;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -16,7 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
@@ -340,7 +337,7 @@ public class GadgetListener implements Listener {
                 loots = lp.getKeys();
                 break;
             case "§f配方":
-                loots = rp.getRecipes();
+                loots = rp.getBoxRecipes();
                 break;
             default:
                 return;
