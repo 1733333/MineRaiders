@@ -74,20 +74,28 @@ public class MonsterListener implements Listener {
         double damage = damageEvent.getFinalDamage();
         if (a instanceof LivingEntity attacker) {
             String aName = attacker.getName();
-            if (aName.equals("§c粉碎者") &
-                    !damageType.equals(DamageType.ARROW))
+            if (aName.equals("§c粉碎者") &&
+                    !damageType.equals(DamageType.ARROW)) {
                 damageEvent.setCancelled(true);
+                damageEvent.setDamage(0);
+            }
             if (aName.equals("§6火球") &&
-                    !damageType.equals(DamageType.IN_FIRE))
+                    !damageType.equals(DamageType.IN_FIRE)) {
                 damageEvent.setCancelled(true);
+                damageEvent.setDamage(0);
+            }
             if (aName.equals("§7跳跃者") &&
-                    !damageType.equals(DamageType.EXPLOSION))
+                    !damageType.equals(DamageType.EXPLOSION)) {
                 damageEvent.setCancelled(true);
-            if(aName.equals("§7堡垒底盘")){
+                damageEvent.setDamage(0);
+            }
+            if (aName.equals("§7堡垒底盘")) {
                 damageEvent.setCancelled(true);
+                damageEvent.setDamage(0);
             }
             if (aName.equals("§a跳蚤")) {
                 damageEvent.setCancelled(true);
+                damageEvent.setDamage(0);
                 Entity entity1 = damageEvent.getEntity();
                 if (entity1 instanceof Player p) {
                     if (!attacker.hasPotionEffect(PotionEffectType.LUCK)) {
@@ -105,9 +113,9 @@ public class MonsterListener implements Listener {
                     }
                 }
             }
-            if(damageEvent.getEntity() instanceof Player p){
-                if(playerStats.isDying(p)){
-                    if(attacker instanceof Mob m){
+            if (damageEvent.getEntity() instanceof Player p) {
+                if (playerStats.isDying(p)) {
+                    if (attacker instanceof Mob m) {
                         m.setTarget(null);
                     }
                 }
@@ -134,16 +142,16 @@ public class MonsterListener implements Listener {
                         m.setTarget(l);
                     }
                 }
-                if(!damaged.getPassengers().isEmpty()){
-                    for(Entity e : damaged.getPassengers()){
-                        if(e instanceof LivingEntity l){
+                if (!damaged.getPassengers().isEmpty()) {
+                    for (Entity e : damaged.getPassengers()) {
+                        if (e instanceof LivingEntity l) {
                             l.damage(damage);
                         }
                     }
                 }
-                if(damaged.getVehicle() != null){
+                if (damaged.getVehicle() != null) {
                     Entity v = damaged.getVehicle();
-                    if(v instanceof LivingEntity l){
+                    if (v instanceof LivingEntity l) {
                         l.damage(damage);
                     }
                 }

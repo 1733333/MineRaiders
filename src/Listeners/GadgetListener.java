@@ -204,6 +204,7 @@ public class GadgetListener implements Listener {
         Player p = consumeEvent.getPlayer();
         ItemStack item = consumeEvent.getItem();
         String tag = k.getLore(item);
+        double shield = playerStats.getShield(p);
         switch (tag) {
             case "§f霜雪图腾":
                 snowGolem(p);
@@ -246,24 +247,44 @@ public class GadgetListener implements Listener {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 1));
                 break;
             case "§f铜质电池":
-                p.setCooldown(item,160);
-                battery(p,8,8);
+                if(shield == -1 || shield == 20){
+                    consumeEvent.setCancelled(true);
+                }else {
+                    p.setCooldown(item, 160);
+                    battery(p, 8, 8);
+                }
                 break;
             case "§f铁质电池":
-                p.setCooldown(item,80);
-                battery(p,4,8);
+                if(shield == -1 || shield == 20){
+                    consumeEvent.setCancelled(true);
+                }else {
+                    p.setCooldown(item, 80);
+                    battery(p, 4, 8);
+                }
                 break;
             case "§f黄金电池":
-                p.setCooldown(item,120);
-                battery(p,6,12);
+                if(shield == -1 || shield == 20){
+                    consumeEvent.setCancelled(true);
+                }else {
+                    p.setCooldown(item, 120);
+                    battery(p, 6, 12);
+                }
                 break;
             case "§f钻石电池":
-                p.setCooldown(item,80);
-                battery(p,4,16);
+                if(shield == -1 || shield == 20){
+                    consumeEvent.setCancelled(true);
+                }else {
+                    p.setCooldown(item, 80);
+                    battery(p, 4, 16);
+                }
                 break;
             case "§f下界电池":
-                p.setCooldown(item,80);
-                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,20));
+                if(shield == 20){
+                    consumeEvent.setCancelled(true);
+                }else {
+                    p.setCooldown(item, 80);
+                    Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, 20));
+                }
                 break;
             case "§f死线":
                 deadline(p);
@@ -1205,17 +1226,18 @@ public class GadgetListener implements Listener {
             land.runTaskTimer(plugin, 0L, 1L);
         }
     }
-    public void battery(Player p,int seconds,double shield){
+    public void battery(Player p,int seconds,double shieldAmount){
         BukkitRunnable recover = new BukkitRunnable() {
             int count = 0;
             int step = seconds * 4;
             @Override
             public void run() {
-                if(count > step - 1){
+                double shield = playerStats.getShield(p);
+                if(count > step - 1 || shield == 20){
                     this.cancel();
                     return;
                 }
-                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,shield / step));
+                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,shieldAmount / step));
                 count += 1;
             }
         };

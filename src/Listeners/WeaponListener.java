@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -53,34 +54,32 @@ public class WeaponListener implements Listener {
                     }
                 }
                 case "§f风之弓" -> {
-                    if (shootBowEvent.getForce() > 0.5) {
-                        Vector v = pr.getVelocity();
-                        pr.setVelocity(v.multiply(1.3));
-                        pr.setTicksLived(1200);
-                        w.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1, 1);
-                        BukkitRunnable hit = new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                if (pr.isDead()) {
-                                    w.playSound(pr.getLocation(), Sound.ENTITY_BREEZE_SHOOT, 2, 1);
-                                    w.spawnParticle(Particle.GUST, pr.getLocation(), 1);
-                                    double radius = 3;
-                                    for (Entity e : pr.getNearbyEntities(radius, radius, radius)) {
-                                        k.knockBack(e, pr.getLocation(), -1);
-                                    }
-                                    this.cancel();
+                    Vector v = pr.getVelocity();
+                    pr.setVelocity(v.multiply(1.3));
+                    pr.setTicksLived(1200);
+                    w.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1, 1);
+                    BukkitRunnable hit = new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (pr.isDead()) {
+                                w.playSound(pr.getLocation(), Sound.ENTITY_BREEZE_SHOOT, 2, 1);
+                                w.spawnParticle(Particle.GUST, pr.getLocation(), 1);
+                                double radius = 3;
+                                for (Entity e : pr.getNearbyEntities(radius, radius, radius)) {
+                                    k.knockBack(e, pr.getLocation(), -1 * (shootBowEvent.getForce() / 3));
                                 }
+                                this.cancel();
                             }
-                        };
-                        hit.runTaskTimer(plugin, 0L, 2L);
-                    }
+                        }
+                    };
+                    hit.runTaskTimer(plugin, 0L, 2L);
                 }
                 case "§f回响长弓" -> {
                     if (shootBowEvent.getForce() >= 2.9) {
                         p.setCooldown(bow.getType(), 30);
                         Arrow a = w.spawnArrow(shootLoc.add(shootVec), shootVec, 3, 2);
                         a.setColor(Color.AQUA);
-                        a.setDamage(1);
+                        a.setDamage(3);
                         a.setGlowing(true);
                         a.setTicksLived(1200);
                         a.setPierceLevel(100);
@@ -92,42 +91,41 @@ public class WeaponListener implements Listener {
                             @Override
                             public void run() {
                                 if (a.isDead()) {
+                                    BukkitRunnable explode = new BukkitRunnable() {
+                                        int count = locs.size() - 1;
+                                        @Override
+                                        public void run() {
+                                            if (count < 0) {
+                                                this.cancel();
+                                                return;
+                                            }
+                                            Location pLoc = locs.get(count);
+                                            w.spawnParticle(Particle.FLASH, pLoc, 1, Color.AQUA);
+                                            w.spawnParticle(Particle.SONIC_BOOM, pLoc, 1);
+                                            w.playSound(pLoc, Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST_FAR, 2, 1);
+                                            for (Entity entity : w.getNearbyEntities(pLoc, 2, 2, 2)) {
+                                                if (entity instanceof LivingEntity l) {
+                                                    if (l instanceof Player p1) {
+                                                        if (p == p1) continue;
+                                                    }
+                                                    if (damaged.contains(l)) continue;
+                                                    double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+                                                    l.damage(max * 0.05, DamageSource.builder(DamageType.SONIC_BOOM)
+                                                            .withDirectEntity(p).build());
+                                                    damaged.add(l);
+                                                }
+                                            }
+                                            count -= 1;
+                                        }
+                                    };
+                                    explode.runTaskTimer(plugin, 20L, 2L);
                                     this.cancel();
                                 }
                                 locs.add(a.getLocation());
                                 w.spawnParticle(Particle.TRIAL_OMEN, a.getLocation(), 5, 0.1, 0.1, 0.1, 0.1);
                             }
                         };
-                        BukkitRunnable explode = new BukkitRunnable() {
-                            int count = 0;
-
-                            @Override
-                            public void run() {
-                                if (count >= locs.size()) {
-                                    this.cancel();
-                                    return;
-                                }
-                                Location pLoc = locs.get(count);
-                                w.spawnParticle(Particle.FLASH, pLoc, 1, Color.AQUA);
-                                w.spawnParticle(Particle.SONIC_BOOM, pLoc, 1);
-                                w.playSound(pLoc, Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST_FAR, 2, 1);
-                                for (Entity entity : w.getNearbyEntities(pLoc, 2, 2, 2)) {
-                                    if (entity instanceof LivingEntity l) {
-                                        if (l instanceof Player p1) {
-                                            if (p == p1) continue;
-                                        }
-                                        if (damaged.contains(l)) continue;
-                                        double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
-                                        l.damage(max * 0.05, DamageSource.builder(DamageType.SONIC_BOOM)
-                                                .withDirectEntity(p).build());
-                                        damaged.add(l);
-                                    }
-                                }
-                                count += 1;
-                            }
-                        };
                         record.runTaskTimer(plugin, 0L, 1L);
-                        explode.runTaskTimer(plugin, 20L, 2L);
                     }
                 }
                 case "§f深渊十字弩" -> {
@@ -197,25 +195,23 @@ public class WeaponListener implements Listener {
     public void playerMeleeAttack(EntityDamageByEntityEvent damageEvent){
         Entity attacker = damageEvent.getDamager();
         Entity damaged = damageEvent.getEntity();
-        double damage = damageEvent.getDamage();
+        double damage = damageEvent.getFinalDamage();
         World w = attacker.getWorld();
         if(attacker instanceof Player p){
-            double aDamage = p.getAttribute(Attribute.ATTACK_DAMAGE).getBaseValue();
-            if(damage < aDamage * 0.9)return;
+            ItemStack hand = p.getInventory().getItemInMainHand();
+            double aDamage = p.getAttribute(Attribute.ATTACK_DAMAGE).getValue();
+            if(damage < aDamage * 0.8)return;
             if(damaged instanceof LivingEntity l){
-                ItemStack hand = p.getInventory().getItemInMainHand();
                 if (hand.getType() != Material.AIR) {
                     String tag = k.getLore(hand);
                     switch (tag){
                         case "§f大骨棒" -> {
-                            if (r.nextBoolean()) {
-                                w.playSound(l.getLocation(), Sound.BLOCK_ANVIL_PLACE, 1, 1);
-                                w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_PLACE, 1, 1);
-                                w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_PLACE, 1, 1);
-                                w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_PLACE, 1, 1);
-                                l.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0, false));
-                                l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 4, false));
-                            }
+                            w.playSound(l.getLocation(), Sound.BLOCK_ANVIL_PLACE, 1, 1);
+                            w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_PLACE, 1, 1);
+                            w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_PLACE, 1, 1);
+                            w.playSound(l.getLocation(), Sound.BLOCK_BONE_BLOCK_PLACE, 1, 1);
+                            l.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0, false));
+                            l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 4, false));
                         }
                         case "§f战锤" -> {
                             double newDamage = damage;

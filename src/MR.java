@@ -62,6 +62,7 @@ public class MR extends JavaPlugin {
 
         recipes.registerStack();
         recipes.registerRecipe();
+        recipes.registerShapedRecipe();
         boxPool.registerBooks();
         boxPool.registerHorns();
         boxPool.registerPotions();

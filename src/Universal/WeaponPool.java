@@ -439,7 +439,7 @@ public enum WeaponPool {
         lore.add(ChatColor.WHITE + "风之弓");
         lore.add(ChatColor.WHITE + "略微增加射出箭矢的速度");
         lore.add(ChatColor.WHITE + "箭矢命中的位置会产生风暴");
-        lore.add(ChatColor.WHITE + "风暴会拉近附近的敌人");
+        lore.add(ChatColor.WHITE + "风暴会牵引附近的敌人");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

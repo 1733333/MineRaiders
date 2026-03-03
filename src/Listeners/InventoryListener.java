@@ -51,6 +51,7 @@ public class InventoryListener implements Listener {
                     case WEAPON_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "武器列表";
                     case ARMOR_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "盔甲列表";
                     case GADGET_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "道具列表";
+                    case RECIPE_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "配方列表";
                     default -> "";
                 };
                 clickEvent.setCancelled(true);

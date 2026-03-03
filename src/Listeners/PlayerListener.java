@@ -340,7 +340,6 @@ public class PlayerListener implements Listener {
         } else {
             BossBar bar = playerBar.getOrDefault(p.getName(), null);
             if (shield == -1 || !playerStats.isShieldOn(p)) {
-                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,0));
                 if (shield == -1) {
                     playerStats.setShield(p, maxShield);
                     Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,20));
@@ -360,6 +359,13 @@ public class PlayerListener implements Listener {
                     progress = 0;
                 }
                 bar.setProgress(Math.min(1, progress));
+                BukkitRunnable later = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,0));
+                    }
+                };
+                later.runTaskLater(plugin,1L);
             }
         }
     }

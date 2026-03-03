@@ -45,10 +45,38 @@ public enum GadgetPool {
             diamondBattery(),
             netherBattery(),
     };
-
+    public ItemStack[]recipeGadgets = new ItemStack[]{
+            snowGolem(),
+            ironGolem(),
+            wolfGolem(),
+            zombieGolem(),
+            speedNeedle(),
+            healNeedle(),
+            soup(),
+            meat(),
+            baitNade(),
+            fragNade(),
+            gasNade(),
+            pyroNade(),
+            smokeNade(),
+            glitchNade(),
+            fireCamp(),
+            glowCamp(),
+            explodeMine(),
+            pyroMine(),
+            gasMine(),
+            slowMine(),
+            diamondBattery(),
+            netherBattery(),
+    };
     public ItemStack[] getGadgets() {
         return gadgets.clone();
     }
+
+    public ItemStack[] getRecipeGadgets() {
+        return recipeGadgets.clone();
+    }
+
     public ItemStack snowGolem(){
         ItemStack item = Bukkit.getItemFactory().createItemStack(
                 "flower_banner_pattern[consumable={animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "

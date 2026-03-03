@@ -171,8 +171,9 @@ public class ContainerListener implements Listener {
                         d.setDamage(damage + 1);
                         hand.setItemMeta(d);
                         if(damage + 1 > d.getMaxDamage()){
-                            hand = null;
                             p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1F);
+                            w.spawnParticle(Particle.ITEM,p.getLocation(),50,hand);
+                            hand = null;
                         }
                         p.getEquipment().setItemInMainHand(hand);
                         p.playSound(p.getLocation(), Sound.BLOCK_IRON_TRAPDOOR_OPEN, 1, 1F);

@@ -16,6 +16,7 @@ public enum PlayerStats {
         GADGET_MENU,
         ARMOR_MENU,
         WEAPON_MENU,
+        RECIPE_MENU,
         DEV_MENU,
     }
     HashSet<Player> isDying = new HashSet<>();
