@@ -52,7 +52,6 @@ public enum Recipes {
                     + ChatColor.WHITE + "的配方");
             lore.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
             bookMeta.setLore(lore);
-            ((BookMeta)bookMeta).addPage("你能看到这个，说明你能看到这个");
             book.setItemMeta(bookMeta);
             recipeMap.put(i, book);
             weaponRecipes.add(book);
@@ -71,7 +70,6 @@ public enum Recipes {
                     + ChatColor.WHITE + "的配方");
             lore.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
             bookMeta.setLore(lore);
-            ((BookMeta)bookMeta).addPage("你能看到这个，说明你能看到这个");
             book.setItemMeta(bookMeta);
             recipeMap.put(i, book);
             gadgetRecipes.add(book);

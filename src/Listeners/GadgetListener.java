@@ -109,6 +109,10 @@ public class GadgetListener implements Listener {
                         fireGrenade(p, hand);
                         interactEvent.setCancelled(true);
                         break;
+                    case "§f火球燃烧炉":
+                        smallFireGrenade(p, hand);
+                        interactEvent.setCancelled(true);
+                        break;
                     case "§f毒气手雷":
                         gasGrenade(p, hand);
                         interactEvent.setCancelled(true);
@@ -183,6 +187,10 @@ public class GadgetListener implements Listener {
                         break;
                     case "§f狼群":
                         wolfPack(p,hand);
+                        interactEvent.setCancelled(true);
+                        break;
+                    case "§f跳跃者脉冲单元":
+                        leaperUnit(p,hand);
                         interactEvent.setCancelled(true);
                         break;
                 }
@@ -678,6 +686,39 @@ public class GadgetListener implements Listener {
                         w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
                         w.spawnParticle(Particle.EXPLOSION,nade.getLocation(),1);
                         k.fire(p, nade, 7,2,2);
+                    }
+                }
+            };
+            land.runTaskTimer(plugin, 0L, 1L);
+        }
+    }
+    public void smallFireGrenade(Player p, ItemStack hand) {
+        World w = p.getWorld();
+        Material material = hand.getType();
+        if (p.getCooldown(material) == 0) {
+            p.setCooldown(material, 20);
+            if (p.getGameMode() != GameMode.CREATIVE) {
+                int amount = hand.getAmount();
+                hand.setAmount(amount - 1);
+            }
+            Location shootLoc = p.getEyeLocation();
+            Vector shootVec = shootLoc.getDirection();
+            Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
+            nade.setVelocity(shootVec.multiply(2));
+            nade.setItem(hand);
+            nade.setShooter(p);
+            nade.setGlowing(true);
+            w.playSound(shootLoc, Sound.ENTITY_EGG_THROW, 1, 1);
+            BukkitRunnable land = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    w.spawnParticle(Particle.FLAME, nade.getLocation(), 0);
+                    if (nade.isDead()) {
+                        this.cancel();
+                        w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
+                        w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
+                        w.spawnParticle(Particle.EXPLOSION,nade.getLocation(),1);
+                        k.fire(p, nade, 5,1,2);
                     }
                 }
             };
@@ -1344,5 +1385,73 @@ public class GadgetListener implements Listener {
             }
         };
         trigger.runTaskTimer(plugin,20L,8L);
+    }
+    public void leaperUnit(Player p,ItemStack hand) {
+        World w = p.getWorld();
+        Material material = hand.getType();
+        if (p.getCooldown(material) == 0) {
+            p.setCooldown(material, 20);
+            if (p.getGameMode() != GameMode.CREATIVE) {
+                int amount = hand.getAmount();
+                hand.setAmount(amount - 1);
+            }
+            Location shootLoc = p.getEyeLocation();
+            Vector shootVec = shootLoc.getDirection();
+            Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
+            nade.setVelocity(shootVec.multiply(2));
+            nade.setItem(hand);
+            nade.setShooter(p);
+            nade.setGlowing(true);
+            w.playSound(shootLoc, Sound.ENTITY_EGG_THROW, 1, 1);
+            BukkitRunnable land = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    w.spawnParticle(Particle.END_ROD, nade.getLocation(), 0);
+                    if (nade.isDead()) {
+                        this.cancel();
+                        nade.remove();
+
+                        BukkitRunnable boom = new BukkitRunnable() {
+                            int count = 0;
+
+                            @Override
+                            public void run() {
+                                if (count > 4) {
+                                    this.cancel();
+                                    return;
+                                }
+                                if (count == 0) {
+                                    w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
+                                    w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
+                                    w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
+                                }
+                                Particle.DustOptions dust = new Particle.DustOptions(Color.YELLOW, 1);
+                                w.spawnParticle(Particle.DUST, nade.getLocation(), count * 10,
+                                        (count + 1) / 2.0, (count + 1) / 2.0, (count + 1) / 2.0, dust);
+                                for (Entity e : nade.getNearbyEntities(10, 10, 10)) {
+                                    if (e instanceof LivingEntity l1) {
+                                        if (e instanceof Monster) continue;
+                                        if (e instanceof Player p) {
+                                            if (playerStats.isDying(p)) continue;
+                                            if (p.getGameMode() != GameMode.SURVIVAL) continue;
+                                        }
+                                        Location shooterLoc = nade.getLocation();
+                                        Location targetLoc = l1.getEyeLocation();
+                                        Vector sV = shooterLoc.toVector();
+                                        Vector tV = targetLoc.toVector();
+                                        RayTraceResult result = w.rayTraceBlocks(shooterLoc, tV.subtract(sV), k.distance(nade, l1));
+                                        if (result != null) continue;
+                                        k.knockBack(l1, nade.getLocation(), -0.25);
+                                    }
+                                }
+                                count += 1;
+                            }
+                        };
+                        boom.runTaskTimer(plugin, 0L, 10L);
+                    }
+                }
+            };
+            land.runTaskTimer(plugin, 0L, 1L);
+        }
     }
 }

@@ -23,6 +23,8 @@ public class InventoryListener implements Listener {
     WeaponPool wp = WeaponPool.INSTANCE;
     GadgetPool gp = GadgetPool.INSTANCE;
     ArmorPool ap = ArmorPool.INSTANCE;
+    Recipes re = Recipes.INSTANCE;
+    DropPool dp = DropPool.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
     HashMap<String, Integer> playerPage = new HashMap<>();
     @EventHandler
@@ -34,16 +36,15 @@ public class InventoryListener implements Listener {
         int slot = clickEvent.getRawSlot();
         ItemStack item = clickEvent.getCurrentItem();
         if (item == null) return;
-        if (status == PlayerStats.MenuStatus.LOOT_MENU ||
-                status == PlayerStats.MenuStatus.WEAPON_MENU ||
-                status == PlayerStats.MenuStatus.ARMOR_MENU ||
-                status == PlayerStats.MenuStatus.GADGET_MENU) {
+        if (status != PlayerStats.MenuStatus.NOT_MENU) {
             if (slot < 54) {
                 ItemStack[] stack = switch (status) {
                     case LOOT_MENU -> lp.getAllLoots();
                     case WEAPON_MENU -> wp.getPluginWeapons();
                     case ARMOR_MENU -> ap.getRecipeArmors();
                     case GADGET_MENU -> gp.getGadgets();
+                    case RECIPE_MENU -> re.getRecipes();
+                    case DROP_MENU -> dp.getAllDrops();
                     default -> new ItemStack[0];
                 };
                 String invName = switch (status){
@@ -52,6 +53,7 @@ public class InventoryListener implements Listener {
                     case ARMOR_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "盔甲列表";
                     case GADGET_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "道具列表";
                     case RECIPE_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "配方列表";
+                    case DROP_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "掉落物列表";
                     default -> "";
                 };
                 clickEvent.setCancelled(true);
@@ -60,9 +62,15 @@ public class InventoryListener implements Listener {
                 } else if (slot == 53) {
                     changePage(p, stack, false, invName,status);
                 }
-                if (p.isOp() && slot < 52) {
-                    Item i = w.dropItem(p.getLocation(), item);
-                    i.setPickupDelay(0);
+                if (slot < 52) {
+                    if(status != PlayerStats.MenuStatus.RECIPE_MENU) {
+                        if(p.isOp()) {
+                            Item i = w.dropItem(p.getLocation(), item);
+                            i.setPickupDelay(0);
+                        }
+                    }else {
+
+                    }
                 }
             }
         }

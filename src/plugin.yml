@@ -22,3 +22,9 @@ commands:
   getarmors:
     description: get all armors
     usage: /getarmors
+  getrecipes:
+    description: get all recipes
+    usage: /getrecipes
+  getdrops:
+    description: get all drops
+    usage: /getdrops
