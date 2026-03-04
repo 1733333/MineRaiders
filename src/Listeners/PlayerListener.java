@@ -401,7 +401,7 @@ public class PlayerListener implements Listener {
                     int count = 0;
                     @Override
                     public void run() {
-                        if(count > 14){
+                        if(count > 17){
                             this.cancel();
                         }
                         if(count < 7){
@@ -414,7 +414,9 @@ public class PlayerListener implements Listener {
                             }
                             w.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO,1,2 - (0.1f * count));
                         }else if(count > 10){
-                            w.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO,1,1.8f);
+                            if(count % 2 == 1) {
+                                w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1, 1.8f);
+                            }
                         }
                         count += 1;
                     }

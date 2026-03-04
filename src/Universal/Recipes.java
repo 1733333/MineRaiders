@@ -44,13 +44,13 @@ public enum Recipes {
         this.plugin = plugin;
     }
     public void registerFreeRecipe(){
-        int index = 0;
+        List<String> stringList = new ArrayList<>();
         for(ItemStack i : freeRecipeItems){
             String lore = k.getLore(i);
             if(lore.isEmpty())continue;
-            freeRecipes[index] = lore;
-            index ++;
+            stringList.add(lore);
         }
+        freeRecipes = stringList.toArray(new String[0]);
     }
 
     public void registerStack() {

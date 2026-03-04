@@ -72,9 +72,7 @@ public class InventoryListener implements Listener {
                         HashMap<String, ShapedRecipe> map = re.getShapedRecipeMap();
                         ShapedRecipe s = map.getOrDefault(k.getLore(item), null);
                         if (s != null) {
-                            for (String string : s.getShape()) {
-                                Bukkit.broadcastMessage(string);
-                            }
+                            Bukkit.broadcastMessage("" + s.getShape());
                         }
                     } else {
                         if (p.isOp()) {

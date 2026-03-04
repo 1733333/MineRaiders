@@ -240,7 +240,7 @@ public class WeaponListener implements Listener {
                             }
                         }
                         case "§f回响战斧" ->{
-                            l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 60, 0,false));
+                            l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 100, 1,false));
                         }
                         case "§f回响之刃" ->{
                             l.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0,false));
