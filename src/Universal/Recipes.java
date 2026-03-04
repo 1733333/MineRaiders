@@ -6,9 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.WritableBookMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -25,7 +23,7 @@ public enum Recipes {
     LootPool lp = LootPool.INSTANCE;
     Kit k = Kit.INSTANCE;
     ItemStack[] boxRecipes = new ItemStack[0];
-    ItemStack[] recipes = new ItemStack[0];
+    ItemStack[] recipeBooks = new ItemStack[0];
     ItemStack[] menuItems = new ItemStack[0];
     HashMap<ItemStack, ItemStack> recipeMap = new HashMap<>();
     HashMap<String, ShapedRecipe> shapedRecipeMap = new HashMap<>();
@@ -109,13 +107,13 @@ public enum Recipes {
         List<ItemStack> recipeList = new ArrayList<>(weaponRecipes);
         List<ItemStack> boxRecipeList = new ArrayList<>(weaponRecipes);
         recipeList.addAll(gadgetRecipes);
-        menuItemsList.addAll(weaponRecipes);
-        menuItemsList.addAll(gadgetRecipes);
+        menuItemsList.addAll(List.of(weapons));
+        menuItemsList.addAll(List.of(gadgets));
         for (int j = 0; j < 5; j++) {
             boxRecipeList.addAll(gadgetRecipes);
         }
         boxRecipes = boxRecipeList.toArray(new ItemStack[0]);
-        recipes = recipeList.toArray(new ItemStack[0]);
+        recipeBooks = recipeList.toArray(new ItemStack[0]);
         menuItems = menuItemsList.toArray(new ItemStack[0]);
     }
 
@@ -123,12 +121,16 @@ public enum Recipes {
         return boxRecipes.clone();
     }
 
-    public ItemStack[] getRecipes() {
-        return recipes.clone();
+    public ItemStack[] getRecipeBooks() {
+        return recipeBooks.clone();
     }
 
     public ItemStack[] getMenuItems() {
         return menuItems.clone();
+    }
+
+    public ItemStack[] getFreeRecipeItems() {
+        return freeRecipeItems.clone();
     }
 
     public HashMap<String, ShapedRecipe> getShapedRecipeMap() {

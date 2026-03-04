@@ -46,6 +46,7 @@ public class InventoryListener implements Listener {
                     case ARMOR_MENU -> ap.getRecipeArmors();
                     case GADGET_MENU -> gp.getGadgets();
                     case RECIPE_MENU -> re.getMenuItems();
+                    case FREE_RECIPE_MENU -> re.getFreeRecipeItems();
                     case DROP_MENU -> dp.getAllDrops();
                     default -> new ItemStack[0];
                 };
@@ -54,7 +55,8 @@ public class InventoryListener implements Listener {
                     case WEAPON_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "武器列表";
                     case ARMOR_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "盔甲列表";
                     case GADGET_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "道具列表";
-                    case RECIPE_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "配方列表";
+                    case RECIPE_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "配方列表|点击物品即可查询配方";
+                    case FREE_RECIPE_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "免费配方列表|点击物品即可查询配方";
                     case DROP_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "掉落物列表";
                     default -> "";
                 };
@@ -65,18 +67,19 @@ public class InventoryListener implements Listener {
                     changePage(p, stack, false, invName,status);
                 }
                 if (slot < 52) {
-                    if(status != PlayerStats.MenuStatus.RECIPE_MENU) {
-                        if(p.isOp()) {
-                            Item i = w.dropItem(p.getLocation(), item);
-                            i.setPickupDelay(0);
-                        }
-                    }else {
-                        HashMap<String,ShapedRecipe>map = re.getShapedRecipeMap();
-                        ShapedRecipe s = map.getOrDefault(k.getLore(item),null);
-                        if(s != null){
-                            for(String string : s.getShape()){
+                    if (status == PlayerStats.MenuStatus.RECIPE_MENU ||
+                            status == PlayerStats.MenuStatus.FREE_RECIPE_MENU) {
+                        HashMap<String, ShapedRecipe> map = re.getShapedRecipeMap();
+                        ShapedRecipe s = map.getOrDefault(k.getLore(item), null);
+                        if (s != null) {
+                            for (String string : s.getShape()) {
                                 Bukkit.broadcastMessage(string);
                             }
+                        }
+                    } else {
+                        if (p.isOp()) {
+                            Item i = w.dropItem(p.getLocation(), item);
+                            i.setPickupDelay(0);
                         }
                     }
                 }

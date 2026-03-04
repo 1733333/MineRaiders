@@ -416,7 +416,7 @@ public enum WeaponPool {
     public ItemStack raiderTool(){
         ItemStack item = new ItemStack(Material.IRON_HOE);
         ItemMeta itemMeta = item.getItemMeta();
-        ((Damageable)itemMeta).setMaxDamage(20);
+        ((Damageable)itemMeta).setMaxDamage(15);
         itemMeta.setDisplayName(ChatColor.YELLOW + "奇袭者工具");
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;

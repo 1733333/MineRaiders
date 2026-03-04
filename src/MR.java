@@ -28,6 +28,7 @@ public class MR extends JavaPlugin {
         ArmorCommand armorCommand = new ArmorCommand();
         RecipeCommand recipeCommand = new RecipeCommand();
         DropCommand dropCommand = new DropCommand();
+        FreeRecipeCommand freeRecipeCommand = new FreeRecipeCommand();
         ContainerListener containerListener = new ContainerListener();
         GadgetListener gadgetListener = new GadgetListener();
         MonsterListener monsterListener = new MonsterListener();
@@ -52,6 +53,7 @@ public class MR extends JavaPlugin {
         this.getCommand("getweapons").setExecutor(weaponCommand);
         this.getCommand("getarmors").setExecutor(armorCommand);
         this.getCommand("getrecipes").setExecutor(recipeCommand);
+        this.getCommand("getfreerecipes").setExecutor(freeRecipeCommand);
         this.getCommand("getdrops").setExecutor(dropCommand);
 
         containerListener.setPlugin(this);

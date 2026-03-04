@@ -17,6 +17,7 @@ public enum PlayerStats {
         ARMOR_MENU,
         WEAPON_MENU,
         RECIPE_MENU,
+        FREE_RECIPE_MENU,
         DROP_MENU,
         DEV_MENU,
     }

@@ -25,6 +25,9 @@ commands:
   getrecipes:
     description: get all recipes
     usage: /getrecipes
+  getfreerecipes:
+    description: get all free recipes
+    usage: /getfreerecipes
   getdrops:
     description: get all drops
     usage: /getdrops
