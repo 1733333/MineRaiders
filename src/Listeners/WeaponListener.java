@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -195,12 +196,13 @@ public class WeaponListener implements Listener {
     public void playerMeleeAttack(EntityDamageByEntityEvent damageEvent){
         Entity attacker = damageEvent.getDamager();
         Entity damaged = damageEvent.getEntity();
-        double damage = damageEvent.getFinalDamage();
+        double damage = damageEvent.getDamage();
         World w = attacker.getWorld();
         if(attacker instanceof Player p){
             ItemStack hand = p.getInventory().getItemInMainHand();
             double aDamage = p.getAttribute(Attribute.ATTACK_DAMAGE).getValue();
             if(damage < aDamage * 0.8)return;
+            damage -= damageEvent.getOriginalDamage(EntityDamageEvent.DamageModifier.ARMOR);
             if(damaged instanceof LivingEntity l){
                 if (hand.getType() != Material.AIR) {
                     String tag = k.getLore(hand);

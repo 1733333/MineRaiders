@@ -34,6 +34,7 @@ public enum WeaponPool {
             seaHammer(),
             echoBow(),
             echoCrossBow(),
+            trident(),
     };
     public ItemStack[] containerWeapons = {
         new ItemStack(Material.WOODEN_SWORD),
@@ -518,6 +519,17 @@ public enum WeaponPool {
         lore.add(ChatColor.WHITE + "单发装填步枪");
         lore.add(ChatColor.WHITE + "看起来很像弩");
         lore.add(ChatColor.WHITE + "发射可以穿透怪物的强力弹药");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack trident(){
+        ItemStack item = new ItemStack(Material.TRIDENT);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.YELLOW + "三叉戟");
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "三叉戟");
+        lore.add(ChatColor.WHITE + "可以合成的三叉戟");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

@@ -64,8 +64,8 @@ public class MR extends JavaPlugin {
         weaponListener.setPlugin(this);
         k.setPlugin(this);
 
+        recipes.registerFreeRecipe();
         recipes.registerRecipe();
-        recipes.registerShapedRecipe();
         recipes.registerStack();
         boxPool.registerBooks();
         boxPool.registerHorns();

@@ -162,23 +162,7 @@ public class ContainerListener implements Listener {
                 interactEvent.setCancelled(true);
                 if(p.getCooldown(Material.COMMAND_BLOCK_MINECART) == 0) {
                     p.setCooldown(Material.COMMAND_BLOCK_MINECART,10);
-                    boolean isUsing = false;
-                    ItemStack hand = p.getEquipment().getItemInMainHand();
-                    if(k.getLore(hand).equals("§f奇袭者工具")) {
-                        isUsing = true;
-                        Damageable d = (Damageable) hand.getItemMeta();
-                        int damage = d.getDamage();
-                        d.setDamage(damage + 1);
-                        hand.setItemMeta(d);
-                        if(damage + 1 > d.getMaxDamage()){
-                            p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1F);
-                            w.spawnParticle(Particle.ITEM,p.getLocation(),50,hand);
-                            hand = null;
-                        }
-                        p.getEquipment().setItemInMainHand(hand);
-                        p.playSound(p.getLocation(), Sound.BLOCK_IRON_TRAPDOOR_OPEN, 1, 1F);
-                    }
-                    openContainer(p, b,isUsing);
+                    openContainer(p, b);
                 }
             }
             if(b.getType() == Material.IRON_DOOR){
@@ -230,55 +214,68 @@ public class ContainerListener implements Listener {
             }
         }
     }
-    public void openContainer(Player p,Block container,boolean isUsingCrowbar){
+    public void openContainer(Player p,Block container) {
         World w = p.getWorld();
-        Player searcher = blockSearcherMap.getOrDefault(container,null);
+        Player searcher = blockSearcherMap.getOrDefault(container, null);
         int rarity = getContainerRarity(container);
-        if(searcher == null) {
-            if (p.getCooldown(container.getType()) == 0) {
-                if(rarity != -1) {
-                    ItemStack[] content = blockContent.getOrDefault(container,new ItemStack[0]);
-                    if(content.length == 0) {
-                        if (rarity >= 0) {
-                            float[] weights = getContainerValue(container);
-                            int count = getContainerCount(container);
-                            content = lp.getContent(count, weights);
-                        } else {
-                            switch (rarity) {
-                                case -2 -> {
-                                    content = smithContent();
-                                }
-                                case -3 -> {
-                                    content = arrowContent();
-                                }
-                                case -4 -> {
-                                    content = loomContent();
-                                }
-                                case -5 -> {
-                                    content = potionContent();
-                                }
+        if (searcher == null) {
+            if (rarity != -1) {
+                ItemStack[] content = blockContent.getOrDefault(container, new ItemStack[0]);
+                if (content.length == 0) {
+                    if (rarity >= 0) {
+                        float[] weights = getContainerValue(container);
+                        int count = getContainerCount(container);
+                        content = lp.getContent(count, weights);
+                    } else {
+                        switch (rarity) {
+                            case -2 -> {
+                                content = smithContent();
+                            }
+                            case -3 -> {
+                                content = arrowContent();
+                            }
+                            case -4 -> {
+                                content = loomContent();
+                            }
+                            case -5 -> {
+                                content = potionContent();
                             }
                         }
-                        hasContent.add(container);
-                        blockContent.put(container, content);
                     }
-                    Sound s = switch (rarity){
-                        case 0 -> Sound.BLOCK_CHEST_OPEN;
-                        case 1 -> Sound.BLOCK_BARREL_OPEN;
-                        case 2 -> Sound.BLOCK_ENDER_CHEST_OPEN;
-                        default -> Sound.BLOCK_COPPER_CHEST_OPEN;
-                    };
-                    w.playSound(container.getLocation(),s,1,1);
-                    blockSearcherMap.put(container, p);
-                    p.setCooldown(container.getType(), 10);
-                    checkContainer(p, container,isUsingCrowbar);
+                    hasContent.add(container);
+                    blockContent.put(container, content);
                 }
+                Sound s = switch (rarity) {
+                    case 0 -> Sound.BLOCK_CHEST_OPEN;
+                    case 1 -> Sound.BLOCK_BARREL_OPEN;
+                    case 2 -> Sound.BLOCK_ENDER_CHEST_OPEN;
+                    default -> Sound.BLOCK_COPPER_CHEST_OPEN;
+                };
+                w.playSound(container.getLocation(), s, 1, 1);
+                blockSearcherMap.put(container, p);
+                boolean isUsing = false;
+                ItemStack hand = p.getEquipment().getItemInMainHand();
+                if (k.getLore(hand).equals("§f奇袭者工具")) {
+                    isUsing = true;
+                    p.playSound(p.getLocation(), Sound.BLOCK_IRON_TRAPDOOR_OPEN, 1, 1F);
+                    Damageable d = (Damageable) hand.getItemMeta();
+                    int damage = d.getDamage();
+                    d.setDamage(damage + 1);
+                    hand.setItemMeta(d);
+                    if (damage + 1 > d.getMaxDamage()) {
+                        p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1F);
+                        w.spawnParticle(Particle.ITEM, p.getEyeLocation(), 50, 0.1, 0.1, 0.1, 0.1, hand);
+                        hand = null;
+                    }
+                    p.getEquipment().setItemInMainHand(hand);
+                }
+                checkContainer(p, container, isUsing);
             }
-        }else {
-            if(searcher.equals(p)){
-                p.sendTitle("",ChatColor.AQUA + "正在搜索该容器",10,10,10);
-            }else {
-                p.sendTitle("",ChatColor.AQUA + "其他人正在搜索该容器",10,10,10);
+        } else {
+            if (searcher.equals(p)) {
+                p.sendTitle("", ChatColor.AQUA + "正在搜索该容器", 10, 10, 10);
+            } else {
+                p.sendTitle("", ChatColor.AQUA + "其他人正在搜索该容器", 10, 10, 10);
             }
         }
     }
@@ -334,9 +331,6 @@ public class ContainerListener implements Listener {
                     int amp = effect.getAmplifier() + 1;
                     bound = Math.max(bound - amp, 1);
                 }
-                if(isUsingCrowbar){
-                    bound = Math.max(bound - 1, 1);
-                }
                 if(p.hasPotionEffect(PotionEffectType.LUCK)){
                     if(r.nextInt(4) == 0){
                         ItemStack[]items2 = lp.getContent(1,getContainerValue(container));
@@ -390,7 +384,11 @@ public class ContainerListener implements Listener {
                 step += 1;
             }
         };
-        check.runTaskTimer(plugin,0L,4L);
+        long timer = 4L;
+        if(isUsingCrowbar){
+            timer = 3L;
+        }
+        check.runTaskTimer(plugin,0L,timer);
     }
     @EventHandler
     public void itemParticle(ItemSpawnEvent spawnEvent) {

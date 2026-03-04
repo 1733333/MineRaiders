@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
 
 import java.util.HashMap;
 
@@ -25,6 +26,7 @@ public class InventoryListener implements Listener {
     ArmorPool ap = ArmorPool.INSTANCE;
     Recipes re = Recipes.INSTANCE;
     DropPool dp = DropPool.INSTANCE;
+    Kit k = Kit.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
     HashMap<String, Integer> playerPage = new HashMap<>();
     @EventHandler
@@ -43,7 +45,7 @@ public class InventoryListener implements Listener {
                     case WEAPON_MENU -> wp.getPluginWeapons();
                     case ARMOR_MENU -> ap.getRecipeArmors();
                     case GADGET_MENU -> gp.getGadgets();
-                    case RECIPE_MENU -> re.getRecipes();
+                    case RECIPE_MENU -> re.getMenuItems();
                     case DROP_MENU -> dp.getAllDrops();
                     default -> new ItemStack[0];
                 };
@@ -69,7 +71,13 @@ public class InventoryListener implements Listener {
                             i.setPickupDelay(0);
                         }
                     }else {
-
+                        HashMap<String,ShapedRecipe>map = re.getShapedRecipeMap();
+                        ShapedRecipe s = map.getOrDefault(k.getLore(item),null);
+                        if(s != null){
+                            for(String string : s.getShape()){
+                                Bukkit.broadcastMessage(string);
+                            }
+                        }
                     }
                 }
             }

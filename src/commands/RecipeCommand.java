@@ -21,7 +21,7 @@ public class RecipeCommand implements CommandExecutor {
         if(commandSender instanceof Player p) {
             Inventory inv = Bukkit.createInventory(p, 54,
                     ChatColor.RED + "" + ChatColor.BOLD + "配方列表");
-            ItemStack[] weapons = re.getRecipes();
+            ItemStack[] weapons = re.getMenuItems();
             for (int i = 0; i < 52; i++) {
                 if (i >= weapons.length) break;
                 inv.setItem(i,weapons[i]);

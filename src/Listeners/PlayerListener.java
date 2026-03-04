@@ -397,9 +397,29 @@ public class PlayerListener implements Listener {
             //play crack effect
             if (k.isArmored(p)) {
                 w.spawnParticle(Particle.SONIC_BOOM, p.getLocation().add(0, 1, 0), 1);
-                w.playSound(p.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 1.0F, 1.0F);
-                w.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0F, 1.0F);
-                w.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1.0F, 1.0F);
+                BukkitRunnable sound = new BukkitRunnable() {
+                    int count = 0;
+                    @Override
+                    public void run() {
+                        if(count > 14){
+                            this.cancel();
+                        }
+                        if(count < 7){
+                            if(count == 0){
+                                w.playSound(p.getLocation(),Sound.ITEM_TRIDENT_HIT_GROUND,1,0.5f);
+                                w.playSound(p.getLocation(),Sound.BLOCK_BEACON_DEACTIVATE,1,0.5f);
+                                w.playSound(p.getLocation(),Sound.ENTITY_FIREWORK_ROCKET_TWINKLE_FAR,1,0.8f);
+                                w.playSound(p.getLocation(),Sound.ITEM_TRIDENT_RIPTIDE_3,1,0.7f);
+                                w.playSound(p.getLocation(),Sound.ITEM_TRIDENT_THUNDER,0.3f,1);
+                            }
+                            w.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO,1,2 - (0.1f * count));
+                        }else if(count > 10){
+                            w.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO,1,1.8f);
+                        }
+                        count += 1;
+                    }
+                };
+                sound.runTaskTimer(plugin,0L,2L);
                 Bukkit.getPluginManager().callEvent(new PlayerShieldBreakEvent(p));
             }
         }

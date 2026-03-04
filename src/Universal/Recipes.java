@@ -12,6 +12,7 @@ import org.bukkit.inventory.meta.WritableBookMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,15 +23,36 @@ public enum Recipes {
     ArmorPool ap = ArmorPool.INSTANCE;
     GadgetPool gp = GadgetPool.INSTANCE;
     LootPool lp = LootPool.INSTANCE;
+    Kit k = Kit.INSTANCE;
     ItemStack[] boxRecipes = new ItemStack[0];
     ItemStack[] recipes = new ItemStack[0];
-    ShapedRecipe[] shapedRecipes = new ShapedRecipe[0];
+    ItemStack[] menuItems = new ItemStack[0];
     HashMap<ItemStack, ItemStack> recipeMap = new HashMap<>();
-    ArrayList<ShapedRecipe> shapedRecipeList = new ArrayList<>();
+    HashMap<String, ShapedRecipe> shapedRecipeMap = new HashMap<>();
+    public String[]freeRecipes = new String[0];
+    ItemStack[]freeRecipeItems = new ItemStack[]{
+            wp.boneStick(),
+            wp.glassSword(),
+            wp.cactusSword(),
+            wp.flintSword(),
+            wp.broom(),
+            wp.ferro(),
+            gp.copperBattery(),
+            gp.ironBattery(),
+            gp.goldenBattery(),
+    };
     int key = 0;
-
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
+    }
+    public void registerFreeRecipe(){
+        int index = 0;
+        for(ItemStack i : freeRecipeItems){
+            String lore = k.getLore(i);
+            if(lore.isEmpty())continue;
+            freeRecipes[index] = lore;
+            index ++;
+        }
     }
 
     public void registerStack() {
@@ -38,7 +60,13 @@ public enum Recipes {
         ItemStack[] gadgets = gp.getRecipeGadgets();
         List<ItemStack> weaponRecipes = new ArrayList<>();
         List<ItemStack> gadgetRecipes = new ArrayList<>();
+        List<ItemStack> menuItemsList = new ArrayList<>();
+        List<String>freeRecipeString = Arrays.stream(freeRecipes).toList();
         for (ItemStack i : weapons) {
+            String lore = k.getLore(i);
+            if(!lore.isEmpty()) {
+                if (freeRecipeString.contains(lore))continue;
+            }
             ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
             ItemMeta itemMeta = i.getItemMeta();
             ItemMeta bookMeta = book.getItemMeta();
@@ -46,17 +74,21 @@ public enum Recipes {
             if (!itemMeta.hasDisplayName()) continue;
             bookMeta.setDisplayName(itemMeta.getDisplayName()
                     + ChatColor.GOLD + "配方");
-            ArrayList<String> lore = new ArrayList<>();
-            lore.add(ChatColor.WHITE + "一本古老的书");
-            lore.add(ChatColor.WHITE + "记载着合成" + itemMeta.getDisplayName()
+            ArrayList<String> lores = new ArrayList<>();
+            lores.add(ChatColor.WHITE + "一本古老的书");
+            lores.add(ChatColor.WHITE + "记载着合成" + itemMeta.getDisplayName()
                     + ChatColor.WHITE + "的配方");
-            lore.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
-            bookMeta.setLore(lore);
+            lores.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
+            bookMeta.setLore(lores);
             book.setItemMeta(bookMeta);
             recipeMap.put(i, book);
             weaponRecipes.add(book);
         }
         for (ItemStack i : gadgets) {
+            String lore = k.getLore(i);
+            if(!lore.isEmpty()) {
+                if (freeRecipeString.contains(lore))continue;
+            }
             ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
             ItemMeta itemMeta = i.getItemMeta();
             ItemMeta bookMeta = book.getItemMeta();
@@ -64,12 +96,12 @@ public enum Recipes {
             if (!itemMeta.hasDisplayName()) continue;
             bookMeta.setDisplayName(itemMeta.getDisplayName()
                     + ChatColor.GOLD + "配方");
-            ArrayList<String> lore = new ArrayList<>();
-            lore.add(ChatColor.WHITE + "一本古老的书");
-            lore.add(ChatColor.WHITE + "记载着合成" + itemMeta.getDisplayName()
+            ArrayList<String> lores = new ArrayList<>();
+            lores.add(ChatColor.WHITE + "一本古老的书");
+            lores.add(ChatColor.WHITE + "记载着合成" + itemMeta.getDisplayName()
                     + ChatColor.WHITE + "的配方");
-            lore.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
-            bookMeta.setLore(lore);
+            lores.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
+            bookMeta.setLore(lores);
             book.setItemMeta(bookMeta);
             recipeMap.put(i, book);
             gadgetRecipes.add(book);
@@ -77,14 +109,14 @@ public enum Recipes {
         List<ItemStack> recipeList = new ArrayList<>(weaponRecipes);
         List<ItemStack> boxRecipeList = new ArrayList<>(weaponRecipes);
         recipeList.addAll(gadgetRecipes);
+        menuItemsList.addAll(weaponRecipes);
+        menuItemsList.addAll(gadgetRecipes);
         for (int j = 0; j < 5; j++) {
             boxRecipeList.addAll(gadgetRecipes);
         }
         boxRecipes = boxRecipeList.toArray(new ItemStack[0]);
         recipes = recipeList.toArray(new ItemStack[0]);
-    }
-    public void registerShapedRecipe(){
-        shapedRecipes = shapedRecipeList.toArray(new ShapedRecipe[0]);
+        menuItems = menuItemsList.toArray(new ItemStack[0]);
     }
 
     public ItemStack[] getBoxRecipes() {
@@ -95,8 +127,12 @@ public enum Recipes {
         return recipes.clone();
     }
 
-    public ShapedRecipe[] getShapedRecipes() {
-        return shapedRecipes.clone();
+    public ItemStack[] getMenuItems() {
+        return menuItems.clone();
+    }
+
+    public HashMap<String, ShapedRecipe> getShapedRecipeMap() {
+        return shapedRecipeMap;
     }
 
     public void registerRecipe() {
@@ -111,292 +147,394 @@ public enum Recipes {
             r7();r17();r27();r37();r47();r57();r67();r77();r87();r97();r107();
             r8();r18();r28();r38();r48();r58();r68();r78();r88();r98();r108();
             r9();r19();r29();r39();r49();r59();r69();r79();r89();r99();r109();
-        } catch (Exception ignored) {
+        }
+        catch (Exception ignored) {
         }
     }
 
     public void r0() {
+        ItemStack i = wp.boneStick();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.boneStick());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" B ", " B ", " S ");
         r.setIngredient('B', Material.BONE_BLOCK);
         r.setIngredient('S', Material.BONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r1() {
+        ItemStack i = wp.glassSword();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.glassSword());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", " A ", " B ");
         r.setIngredient('A', Material.GLASS);
         r.setIngredient('B', Material.STICK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r2() {
+        ItemStack i = wp.warHammer();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.warHammer());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", " B ", " B ");
         r.setIngredient('A', Material.COPPER_BLOCK);
         r.setIngredient('B', Material.STICK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r3() {
+        ItemStack i = wp.flameBow();
         NamespacedKey w3 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w3, wp.flameBow());
+        ShapedRecipe r = new ShapedRecipe(w3, i);
         r.shape(" AB", "A B", " AB");
         r.setIngredient('A', Material.BLAZE_ROD);
         r.setIngredient('B', Material.COPPER_CHAIN);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r4() {
+        ItemStack i = wp.bambooSpear();
         NamespacedKey w4 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w4, wp.bambooSpear());
+        ShapedRecipe r = new ShapedRecipe(w4, i);
         r.shape(" A ", " A ", " A ");
         r.setIngredient('A', Material.BAMBOO);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r5() {
+        ItemStack i = wp.crystalSword();
         NamespacedKey w5 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w5, wp.crystalSword());
+        ShapedRecipe r = new ShapedRecipe(w5, i);
         r.shape(" A ", " A ", " B ");
         r.setIngredient('A', Material.AMETHYST_SHARD);
         r.setIngredient('B', Material.END_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r6() {
+        ItemStack i = wp.echoAxe();
         NamespacedKey w6 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w6, wp.echoAxe());
+        ShapedRecipe r = new ShapedRecipe(w6, i);
         r.shape("AA ", "AB ", " B ");
         r.setIngredient('A', Material.ECHO_SHARD);
         r.setIngredient('B', Material.BREEZE_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r7() {
+        ItemStack i = wp.cactusSword();
         NamespacedKey w7 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w7, wp.cactusSword());
+        ShapedRecipe r = new ShapedRecipe(w7, i);
         r.shape(" A ", " A ", " B ");
         r.setIngredient('A', Material.CACTUS);
         r.setIngredient('B', Material.BAMBOO);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r8() {
+        ItemStack i = wp.flintSword();
         NamespacedKey w8 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w8, wp.flintSword());
+        ShapedRecipe r = new ShapedRecipe(w8, i);
         r.shape(" A ", " A ", " B ");
         r.setIngredient('A', Material.FLINT);
         r.setIngredient('B', Material.TORCH);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r9() {
+        ItemStack i = wp.quartzSword();
         NamespacedKey w9 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w9, wp.quartzSword());
+        ShapedRecipe r = new ShapedRecipe(w9, i);
         r.shape(" A ", " A ", " B ");
         r.setIngredient('A', Material.QUARTZ);
         r.setIngredient('B', Material.STICK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r10() {
+        ItemStack i = wp.netherSword();
         NamespacedKey w10 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w10, wp.netherSword());
+        ShapedRecipe r = new ShapedRecipe(w10, i);
         r.shape(" A ", " A ", " B ");
         r.setIngredient('A', Material.NETHERITE_INGOT);
         r.setIngredient('B', Material.END_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r11() {
+        ItemStack i = wp.goldenCarrot();
         NamespacedKey w11 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w11, wp.goldenCarrot());
+        ShapedRecipe r = new ShapedRecipe(w11, i);
         r.shape("AAA", "ABA", "AAA");
         r.setIngredient('A', Material.GOLD_INGOT);
         r.setIngredient('B', Material.GOLDEN_CARROT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r12() {
+        ItemStack i = new ItemStack(Material.TRIDENT);
         NamespacedKey w12 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w12, new ItemStack(Material.TRIDENT));
+        ShapedRecipe r = new ShapedRecipe(w12, i);
         r.shape(" AA", " BA", "B  ");
         r.setIngredient('A', Material.END_ROD);
         r.setIngredient('B', Material.BREEZE_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r13() {
+        ItemStack i = wp.echoSword();
         NamespacedKey w13 = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w13, wp.echoSword());
+        ShapedRecipe r = new ShapedRecipe(w13, i);
         r.shape(" A ", " A ", " B ");
         r.setIngredient('A', Material.ECHO_SHARD);
         r.setIngredient('B', Material.BREEZE_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r14() {
+        ItemStack i = wp.fireSword();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.fireSword());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" B ", " B ", " S ");
         r.setIngredient('B', Material.RESIN_BRICK);
         r.setIngredient('S', Material.BLAZE_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r15() {
+        ItemStack i = wp.broom();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.broom());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", " B ", " B ");
         r.setIngredient('A', Material.WHEAT);
         r.setIngredient('B', Material.STICK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r16() {
+        ItemStack i = wp.raiderTool();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.raiderTool());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" AA", " B ", " B ");
         r.setIngredient('A', Material.IRON_INGOT);
         r.setIngredient('B', Material.BONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r17() {
+        ItemStack i = wp.windBow();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.windBow());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" AB", "A B", " AB");
         r.setIngredient('A', Material.BREEZE_ROD);
         r.setIngredient('B', Material.IRON_CHAIN);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r18() {
+        ItemStack i = wp.masterStick();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.masterStick());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", " B ", " C ");
         r.setIngredient('A', Material.BLAZE_ROD);
         r.setIngredient('B', Material.BREEZE_ROD);
         r.setIngredient('C', Material.BONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r19() {
+        ItemStack i = wp.seaHammer();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.seaHammer());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", " B ", " B ");
         r.setIngredient('A', Material.HEART_OF_THE_SEA);
         r.setIngredient('B', Material.BREEZE_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r20() {
+        ItemStack i = wp.echoBow();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.echoBow());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" AB", "A B", " AB");
         r.setIngredient('A', Material.ECHO_SHARD);
         r.setIngredient('B', Material.BREEZE_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r21() {
+        ItemStack i = gp.snowGolem();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.snowGolem());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ABA", "BCB", "ABA");
         r.setIngredient('A', Material.SNOW_BLOCK);
         r.setIngredient('B', Material.ICE);
         r.setIngredient('C', Material.JACK_O_LANTERN);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r22() {
+        ItemStack i = gp.ironGolem();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.ironGolem());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.IRON_INGOT);
         r.setIngredient('B', Material.POPPY);
         r.setIngredient('C', Material.JACK_O_LANTERN);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r23() {
+        ItemStack i = gp.wolfGolem();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.wolfGolem());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ABA", "BCB", "ABA");
         r.setIngredient('A', Material.LEATHER);
         r.setIngredient('B', Material.BONE);
         r.setIngredient('C', Material.EGG);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r24() {
+        ItemStack i = gp.zombieGolem();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.zombieGolem());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.COPPER_INGOT);
         r.setIngredient('B', Material.ROTTEN_FLESH);
         r.setIngredient('C', Material.BEETROOT_SOUP);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r25() {
+        ItemStack i = gp.speedNeedle();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.speedNeedle());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" AA", "BCA", "DB ");
         r.setIngredient('A', Material.SUGAR);
         r.setIngredient('B', Material.GLOW_INK_SAC);
@@ -404,12 +542,16 @@ public enum Recipes {
         r.setIngredient('D', Material.BREEZE_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r26() {
+        ItemStack i = gp.healNeedle();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.healNeedle());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" AA", "BCA", "DB ");
         r.setIngredient('A', Material.RESIN_CLUMP);
         r.setIngredient('B', Material.GHAST_TEAR);
@@ -417,12 +559,16 @@ public enum Recipes {
         r.setIngredient('D', Material.BLAZE_ROD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r27() {
+        ItemStack i = gp.soup();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.soup());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ACA", "BDB", "AEA");
         r.setIngredient('A', Material.GOLDEN_CARROT);
         r.setIngredient('B', Material.DANDELION);
@@ -431,149 +577,200 @@ public enum Recipes {
         r.setIngredient('E', Material.BROWN_MUSHROOM);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r28() {
+        ItemStack i = gp.fragNade();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.fragNade());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", "BCB", " A ");
         r.setIngredient('A', Material.GUNPOWDER);
         r.setIngredient('B', Material.COPPER_INGOT);
         r.setIngredient('C', Material.HONEYCOMB);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r29() {
+        ItemStack i = gp.pyroNade();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.pyroNade());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", "BCB", " A ");
         r.setIngredient('A', Material.BLAZE_POWDER);
         r.setIngredient('B', Material.FLINT);
         r.setIngredient('C', Material.HONEYCOMB);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r30() {
+        ItemStack i = gp.gasNade();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.gasNade());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", "BCB", " A ");
         r.setIngredient('A', Material.SLIME_BALL);
         r.setIngredient('B', Material.PUFFERFISH);
         r.setIngredient('C', Material.HONEYCOMB);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r31() {
+        ItemStack i = gp.smokeNade();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.smokeNade());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", "BCB", " A ");
         r.setIngredient('A', Material.BONE);
         r.setIngredient('B', Material.QUARTZ);
         r.setIngredient('C', Material.HONEYCOMB);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r32() {
+        ItemStack i = gp.glitchNade();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.glitchNade());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", "BCB", " A ");
         r.setIngredient('A', Material.PRISMARINE_CRYSTALS);
         r.setIngredient('B', Material.POPPED_CHORUS_FRUIT);
         r.setIngredient('C', Material.HONEYCOMB);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r33() {
+        ItemStack i = gp.baitNade();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.baitNade());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape(" A ", "BCB", " A ");
         r.setIngredient('A', Material.PRISMARINE_SHARD);
         r.setIngredient('B', Material.EMERALD);
         r.setIngredient('C', Material.HONEYCOMB);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r34() {
+        ItemStack i = gp.glowCamp();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.glowCamp());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "ABA", "AAA");
         r.setIngredient('A', Material.IRON_INGOT);
         r.setIngredient('B', Material.JUKEBOX);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r35() {
+        ItemStack i = gp.fireCamp();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.fireCamp());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "ABA", "AAA");
         r.setIngredient('A', Material.GOLD_INGOT);
         r.setIngredient('B', Material.JUKEBOX);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r36() {
+        ItemStack i = gp.explodeMine();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.explodeMine());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.GUNPOWDER);
         r.setIngredient('B', Material.LAPIS_LAZULI);
         r.setIngredient('C', Material.ARMOR_STAND);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r37() {
+        ItemStack i = gp.gasMine();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.gasMine());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.ROTTEN_FLESH);
         r.setIngredient('B', Material.LAPIS_LAZULI);
         r.setIngredient('C', Material.ARMOR_STAND);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r38() {
+        ItemStack i = gp.pyroMine();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.pyroMine());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.GOLD_NUGGET);
         r.setIngredient('B', Material.LAPIS_LAZULI);
         r.setIngredient('C', Material.ARMOR_STAND);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r39() {
+        ItemStack i = gp.slowMine();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.slowMine());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.COAL);
         r.setIngredient('B', Material.LAPIS_LAZULI);
         r.setIngredient('C', Material.ARMOR_STAND);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r40() {
@@ -587,12 +784,16 @@ public enum Recipes {
         r.setIngredient('C', Material.WATER_BUCKET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(item);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r41() {
+        ItemStack i = gp.meat();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.meat());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ABA", "CDE", "AFA");
         r.setIngredient('A', Material.ROTTEN_FLESH);
         r.setIngredient('B', Material.COOKED_PORKCHOP);
@@ -602,7 +803,10 @@ public enum Recipes {
         r.setIngredient('F', Material.COOKED_BEEF);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r42() {
@@ -612,7 +816,6 @@ public enum Recipes {
         r.setIngredient('A', Material.DIRT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r43() {
@@ -622,7 +825,6 @@ public enum Recipes {
         r.setIngredient('A', Material.DIRT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r44() {
@@ -632,7 +834,6 @@ public enum Recipes {
         r.setIngredient('A', Material.DIRT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r45() {
@@ -642,7 +843,6 @@ public enum Recipes {
         r.setIngredient('A', Material.DIRT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r46() {
@@ -652,7 +852,6 @@ public enum Recipes {
         r.setIngredient('A', Material.BIRCH_PLANKS);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r47() {
@@ -662,7 +861,6 @@ public enum Recipes {
         r.setIngredient('A', Material.BIRCH_PLANKS);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r48() {
@@ -672,7 +870,6 @@ public enum Recipes {
         r.setIngredient('A', Material.BIRCH_PLANKS);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r49() {
@@ -682,7 +879,6 @@ public enum Recipes {
         r.setIngredient('A', Material.BIRCH_PLANKS);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r50() {
@@ -692,7 +888,6 @@ public enum Recipes {
         r.setIngredient('A', Material.FEATHER);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r51() {
@@ -702,7 +897,6 @@ public enum Recipes {
         r.setIngredient('A', Material.FEATHER);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r52() {
@@ -712,7 +906,6 @@ public enum Recipes {
         r.setIngredient('A', Material.FEATHER);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r53() {
@@ -722,7 +915,6 @@ public enum Recipes {
         r.setIngredient('A', Material.FEATHER);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r54() {
@@ -732,7 +924,6 @@ public enum Recipes {
         r.setIngredient('A', Material.BONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r55() {
@@ -742,7 +933,6 @@ public enum Recipes {
         r.setIngredient('A', Material.BONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r56() {
@@ -752,7 +942,6 @@ public enum Recipes {
         r.setIngredient('A', Material.BONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r57() {
@@ -762,7 +951,6 @@ public enum Recipes {
         r.setIngredient('A', Material.BONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r58() {
@@ -772,7 +960,6 @@ public enum Recipes {
         r.setIngredient('A', Material.CACTUS);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r59() {
@@ -782,7 +969,6 @@ public enum Recipes {
         r.setIngredient('A', Material.CACTUS);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r60() {
@@ -792,7 +978,6 @@ public enum Recipes {
         r.setIngredient('A', Material.CACTUS);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r61() {
@@ -802,7 +987,6 @@ public enum Recipes {
         r.setIngredient('A', Material.CACTUS);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r62() {
@@ -812,7 +996,6 @@ public enum Recipes {
         r.setIngredient('A', Material.FLINT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r63() {
@@ -822,7 +1005,6 @@ public enum Recipes {
         r.setIngredient('A', Material.FLINT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r64() {
@@ -832,7 +1014,6 @@ public enum Recipes {
         r.setIngredient('A', Material.FLINT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r65() {
@@ -842,7 +1023,6 @@ public enum Recipes {
         r.setIngredient('A', Material.FLINT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r66() {
@@ -852,7 +1032,6 @@ public enum Recipes {
         r.setIngredient('A', Material.RESIN_BRICK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r67() {
@@ -862,7 +1041,6 @@ public enum Recipes {
         r.setIngredient('A', Material.RESIN_BRICK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r68() {
@@ -872,7 +1050,6 @@ public enum Recipes {
         r.setIngredient('A', Material.RESIN_BRICK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r69() {
@@ -882,7 +1059,6 @@ public enum Recipes {
         r.setIngredient('A', Material.RESIN_BRICK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r70() {
@@ -892,7 +1068,6 @@ public enum Recipes {
         r.setIngredient('A', Material.COBBLESTONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r71() {
@@ -902,7 +1077,6 @@ public enum Recipes {
         r.setIngredient('A', Material.COBBLESTONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r72() {
@@ -912,7 +1086,6 @@ public enum Recipes {
         r.setIngredient('A', Material.COBBLESTONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r73() {
@@ -922,7 +1095,6 @@ public enum Recipes {
         r.setIngredient('A', Material.COBBLESTONE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r74() {
@@ -932,7 +1104,6 @@ public enum Recipes {
         r.setIngredient('A', Material.QUARTZ_BLOCK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r75() {
@@ -942,7 +1113,6 @@ public enum Recipes {
         r.setIngredient('A', Material.QUARTZ_BLOCK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r76() {
@@ -952,7 +1122,6 @@ public enum Recipes {
         r.setIngredient('A', Material.QUARTZ_BLOCK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r77() {
@@ -962,7 +1131,6 @@ public enum Recipes {
         r.setIngredient('A', Material.QUARTZ_BLOCK);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r78() {
@@ -972,7 +1140,6 @@ public enum Recipes {
         r.setIngredient('A', Material.PHANTOM_MEMBRANE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r79() {
@@ -982,7 +1149,6 @@ public enum Recipes {
         r.setIngredient('A', Material.PHANTOM_MEMBRANE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r80() {
@@ -992,7 +1158,6 @@ public enum Recipes {
         r.setIngredient('A', Material.PHANTOM_MEMBRANE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r81() {
@@ -1002,7 +1167,6 @@ public enum Recipes {
         r.setIngredient('A', Material.PHANTOM_MEMBRANE);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r82() {
@@ -1012,7 +1176,6 @@ public enum Recipes {
         r.setIngredient('A', Material.AMETHYST_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r83() {
@@ -1022,7 +1185,6 @@ public enum Recipes {
         r.setIngredient('A', Material.AMETHYST_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r84() {
@@ -1032,7 +1194,6 @@ public enum Recipes {
         r.setIngredient('A', Material.AMETHYST_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r85() {
@@ -1042,7 +1203,6 @@ public enum Recipes {
         r.setIngredient('A', Material.AMETHYST_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r86() {
@@ -1052,7 +1212,6 @@ public enum Recipes {
         r.setIngredient('A', Material.EMERALD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r87() {
@@ -1062,7 +1221,6 @@ public enum Recipes {
         r.setIngredient('A', Material.EMERALD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r88() {
@@ -1072,7 +1230,6 @@ public enum Recipes {
         r.setIngredient('A', Material.EMERALD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r89() {
@@ -1082,7 +1239,6 @@ public enum Recipes {
         r.setIngredient('A', Material.EMERALD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r90() {
@@ -1092,7 +1248,6 @@ public enum Recipes {
         r.setIngredient('A', Material.OBSIDIAN);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r91() {
@@ -1102,7 +1257,6 @@ public enum Recipes {
         r.setIngredient('A', Material.OBSIDIAN);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r92() {
@@ -1112,7 +1266,6 @@ public enum Recipes {
         r.setIngredient('A', Material.OBSIDIAN);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r93() {
@@ -1122,7 +1275,6 @@ public enum Recipes {
         r.setIngredient('A', Material.OBSIDIAN);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r94() {
@@ -1132,7 +1284,6 @@ public enum Recipes {
         r.setIngredient('A', Material.ECHO_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r95() {
@@ -1142,7 +1293,6 @@ public enum Recipes {
         r.setIngredient('A', Material.ECHO_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r96() {
@@ -1152,7 +1302,6 @@ public enum Recipes {
         r.setIngredient('A', Material.ECHO_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r97() {
@@ -1162,7 +1311,6 @@ public enum Recipes {
         r.setIngredient('A', Material.ECHO_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r98() {
@@ -1172,7 +1320,6 @@ public enum Recipes {
         r.setIngredient('A', Material.IRON_NUGGET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r99() {
@@ -1182,7 +1329,6 @@ public enum Recipes {
         r.setIngredient('A', Material.IRON_NUGGET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r100() {
@@ -1192,7 +1338,6 @@ public enum Recipes {
         r.setIngredient('A', Material.IRON_NUGGET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r101() {
@@ -1202,7 +1347,6 @@ public enum Recipes {
         r.setIngredient('A', Material.IRON_NUGGET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r102() {
@@ -1212,7 +1356,6 @@ public enum Recipes {
         r.setIngredient('A', Material.WHEAT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r103() {
@@ -1222,7 +1365,6 @@ public enum Recipes {
         r.setIngredient('A', Material.WHEAT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r104() {
@@ -1232,7 +1374,6 @@ public enum Recipes {
         r.setIngredient('A', Material.WHEAT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r105() {
@@ -1242,7 +1383,6 @@ public enum Recipes {
         r.setIngredient('A', Material.WHEAT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
     }
 
     public void r106() {
@@ -1256,7 +1396,10 @@ public enum Recipes {
         r.setIngredient('C', Material.WATER_BUCKET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(item);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r107() {
@@ -1270,12 +1413,16 @@ public enum Recipes {
         r.setIngredient('C', Material.WATER_BUCKET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(item);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r108() {
+        ItemStack i = lp.wolfPack();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, lp.wolfPack());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ABA", "ACA", "ADA");
         r.setIngredient('A', Material.AMETHYST_SHARD);
         r.setIngredient('B', Material.END_CRYSTAL);
@@ -1283,40 +1430,55 @@ public enum Recipes {
         r.setIngredient('D', Material.TNT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r109() {
+        ItemStack i = gp.copperBattery();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.copperBattery());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AB ", "BB ", "   ");
         r.setIngredient('A', Material.EGG);
         r.setIngredient('B', Material.COPPER_NUGGET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r110() {
+        ItemStack i = gp.ironBattery();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.ironBattery());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AB ", "BB ", "   ");
         r.setIngredient('A', Material.EGG);
         r.setIngredient('B', Material.IRON_NUGGET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r111() {
+        ItemStack i = gp.goldenBattery();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, gp.goldenBattery());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AB ", "BB ", "   ");
         r.setIngredient('A', Material.EGG);
         r.setIngredient('B', Material.GOLD_NUGGET);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r112() {
@@ -1329,7 +1491,10 @@ public enum Recipes {
         r.setIngredient('B', Material.DIAMOND);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r113() {
@@ -1342,12 +1507,16 @@ public enum Recipes {
         r.setIngredient('B', Material.NETHERITE_SCRAP);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r114() {
+        ItemStack i = wp.ferro();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.ferro());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ADA", "BCB", " A ");
         r.setIngredient('A', Material.BONE);
         r.setIngredient('B', Material.STRING);
@@ -1355,12 +1524,16 @@ public enum Recipes {
         r.setIngredient('D', Material.COPPER_INGOT);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r115() {
+        ItemStack i = lp.deadLine();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, lp.deadLine());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ACA", "BDB", "ACA");
         r.setIngredient('A', Material.DIAMOND);
         r.setIngredient('B', Material.LODESTONE);
@@ -1368,12 +1541,16 @@ public enum Recipes {
         r.setIngredient('D', Material.END_CRYSTAL);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 
     public void r116() {
+        ItemStack i = wp.echoCrossBow();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
-        ShapedRecipe r = new ShapedRecipe(w, wp.echoCrossBow());
+        ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ADA", "BCB", " A ");
         r.setIngredient('A', Material.BREEZE_ROD);
         r.setIngredient('B', Material.IRON_CHAIN);
@@ -1381,6 +1558,9 @@ public enum Recipes {
         r.setIngredient('D', Material.ECHO_SHARD);
         Bukkit.addRecipe(r);
         key += 1;
-        shapedRecipeList.add(r);
+        String lore = k.getLore(i);
+        if(!lore.isEmpty()){
+            shapedRecipeMap.put(lore,r);
+        }
     }
 }

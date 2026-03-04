@@ -1386,7 +1386,7 @@ public class GadgetListener implements Listener {
         };
         trigger.runTaskTimer(plugin,20L,8L);
     }
-    public void leaperUnit(Player p,ItemStack hand) {
+    public void leaperUnit(Player p,ItemStack hand){
         World w = p.getWorld();
         Material material = hand.getType();
         if (p.getCooldown(material) == 0) {
@@ -1407,51 +1407,78 @@ public class GadgetListener implements Listener {
                 @Override
                 public void run() {
                     w.spawnParticle(Particle.END_ROD, nade.getLocation(), 0);
-                    if (nade.isDead()) {
+                    if (nade.isDead() || k.hitBallBlock(nade)) {
                         this.cancel();
                         nade.remove();
-
                         BukkitRunnable boom = new BukkitRunnable() {
                             int count = 0;
-
                             @Override
                             public void run() {
-                                if (count > 4) {
+                                if(count > 5){
                                     this.cancel();
                                     return;
                                 }
-                                if (count == 0) {
-                                    w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
-                                    w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
-                                    w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
-                                }
-                                Particle.DustOptions dust = new Particle.DustOptions(Color.YELLOW, 1);
-                                w.spawnParticle(Particle.DUST, nade.getLocation(), count * 10,
-                                        (count + 1) / 2.0, (count + 1) / 2.0, (count + 1) / 2.0, dust);
-                                for (Entity e : nade.getNearbyEntities(10, 10, 10)) {
-                                    if (e instanceof LivingEntity l1) {
-                                        if (e instanceof Monster) continue;
-                                        if (e instanceof Player p) {
-                                            if (playerStats.isDying(p)) continue;
-                                            if (p.getGameMode() != GameMode.SURVIVAL) continue;
-                                        }
-                                        Location shooterLoc = nade.getLocation();
-                                        Location targetLoc = l1.getEyeLocation();
-                                        Vector sV = shooterLoc.toVector();
-                                        Vector tV = targetLoc.toVector();
-                                        RayTraceResult result = w.rayTraceBlocks(shooterLoc, tV.subtract(sV), k.distance(nade, l1));
-                                        if (result != null) continue;
-                                        k.knockBack(l1, nade.getLocation(), -0.25);
+                                if(count < 5){
+                                    if(count == 0) {
+                                        w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
+                                        w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
+                                        w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
                                     }
+                                    Particle.DustOptions dust = new Particle.DustOptions(Color.YELLOW,1);
+                                    w.spawnParticle(Particle.DUST,nade.getLocation(),count * 10,
+                                            (count+1)/2.0,(count+1)/2.0,(count+1)/2.0,dust);
+                                    for(Entity e : nade.getNearbyEntities(5,5,5)) {
+                                        if (e instanceof LivingEntity l1) {
+                                            if(e instanceof Monster)continue;
+                                            if (e instanceof Player p) {
+                                                if(playerStats.isDying(p))continue;
+                                                if (p.getGameMode() != GameMode.SURVIVAL) continue;
+                                            }
+                                            k.knockBack(l1, nade.getLocation(), -0.25);
+                                        }
+                                    }
+                                }else {
+                                    Location pLoc = nade.getLocation();
+                                    k.explode(p,nade,22,1,5,0);
+                                    BukkitRunnable sweep = new BukkitRunnable() {
+                                        int count = 0;
+                                        @Override
+                                        public void run() {
+                                            if(count > 5){
+                                                this.cancel();
+                                                return;
+                                            }
+                                            double padX = pLoc.getX();
+                                            double padY = pLoc.getY();
+                                            double padZ = pLoc.getZ();
+                                            double i = Math.PI;
+                                            for (int j = 0; j <= 100; j++) {
+                                                double x = padX + ((1 + count) * Math.sin((1 + count) * i + 0.5 * j));
+                                                double z = padZ + ((1 + count) * Math.cos((1 + count) * i + 0.5 * j));
+                                                Location areaP = new Location(w, x, padY, z);
+                                                BlockData data = Bukkit.createBlockData(Material.YELLOW_CONCRETE);
+                                                w.spawnParticle(Particle.DUST_PILLAR,areaP,1,data);
+                                                if(count == 2) {
+                                                    w.spawnParticle(Particle.FIREFLY, areaP, 1);
+                                                }
+                                            }
+                                            count += 1;
+                                        }
+                                    };
+                                    w.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE,nade.getLocation(),200,0,0,0,0.1);
+                                    sweep.runTaskTimer(plugin,0L,2L);
+                                    w.playSound(nade.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,3,1);
+                                    w.spawnParticle(Particle.EXPLOSION_EMITTER,nade.getLocation(),1);
+                                    w.spawnParticle(Particle.FLASH,nade.getLocation(),1,Color.YELLOW);
                                 }
                                 count += 1;
                             }
                         };
-                        boom.runTaskTimer(plugin, 0L, 10L);
+                        boom.runTaskTimer(plugin,0L,10L);
                     }
                 }
             };
-            land.runTaskTimer(plugin, 0L, 1L);
+            land.runTaskTimer(plugin, 3L, 1L);
         }
     }
 }
