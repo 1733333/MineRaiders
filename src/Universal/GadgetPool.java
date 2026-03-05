@@ -12,9 +12,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
-
 public enum GadgetPool {
     INSTANCE;
+    LootPool lp = LootPool.INSTANCE;
     public ItemStack[]gadgets = {
             snowGolem(),
             ironGolem(),
@@ -52,6 +52,8 @@ public enum GadgetPool {
             zombieGolem(),
             speedNeedle(),
             healNeedle(),
+            energyDrinkPro(),
+            energyDrinkProMax(),
             soup(),
             meat(),
             baitNade(),
@@ -68,6 +70,9 @@ public enum GadgetPool {
             slowMine(),
             diamondBattery(),
             netherBattery(),
+            lp.wolfPack(),
+            lp.deadLine(),
+            lp.i107(),
     };
     public ItemStack[] getGadgets() {
         return gadgets.clone();
@@ -155,7 +160,8 @@ public enum GadgetPool {
         lore.add(ChatColor.WHITE + "肾上腺素");
         lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "使用");
-        lore.add(ChatColor.WHITE + "获得速度、力量和凋零效果");
+        lore.add(ChatColor.WHITE + "损失一定生命值");
+        lore.add(ChatColor.WHITE + "获得速度和力量效果");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -272,6 +278,7 @@ public enum GadgetPool {
                 + ChatColor.WHITE + "投掷");
         lore.add(ChatColor.WHITE + "投掷后碰到障碍物引爆");
         lore.add(ChatColor.WHITE + "影响范围内生物的视角");
+        lore.add(ChatColor.WHITE + "会对玩家的护盾造成大量伤害");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -338,7 +345,9 @@ public enum GadgetPool {
         return item;
     }
     public ItemStack slowMine(){
-        ItemStack item = new ItemStack(Material.WITHER_SKELETON_SKULL);
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "stick[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"wither_skeleton_skull\"]"
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "电击地雷");
         itemMeta.setMaxStackSize(4);
@@ -353,7 +362,9 @@ public enum GadgetPool {
         return item;
     }
     public ItemStack gasMine(){
-        ItemStack item = new ItemStack(Material.ZOMBIE_HEAD);
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "stick[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"zombie_head\"]"
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "毒气地雷");
         itemMeta.setMaxStackSize(4);
@@ -368,7 +379,9 @@ public enum GadgetPool {
         return item;
     }
     public ItemStack explodeMine(){
-        ItemStack item = new ItemStack(Material.CREEPER_HEAD);
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "stick[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"creeper_head\"]"
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "爆炸地雷");
         itemMeta.setMaxStackSize(4);
@@ -383,7 +396,9 @@ public enum GadgetPool {
         return item;
     }
     public ItemStack pyroMine(){
-        ItemStack item = new ItemStack(Material.PIGLIN_HEAD);
+        ItemStack item = Bukkit.getItemFactory().createItemStack(
+                "stick[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"piglin_head\"]"
+        );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "火焰地雷");
         itemMeta.setMaxStackSize(4);

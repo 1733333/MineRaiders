@@ -1,21 +1,22 @@
 package Listeners;
 
 import Universal.*;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import static Universal.PlayerStats.playerMenuStatus;
 
@@ -29,9 +30,20 @@ public class InventoryListener implements Listener {
     Kit k = Kit.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
     HashMap<String, Integer> playerPage = new HashMap<>();
+    HashMap<String, PlayerStats.MenuStatus> playerPreviousStatus = new HashMap<>();
+    JavaPlugin plugin;
+
+    public void setPlugin(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
     @EventHandler
     public void invClick(InventoryClickEvent clickEvent) {
         Player p = (Player) clickEvent.getWhoClicked();
+        if(playerStats.isDying(p)){
+            clickEvent.setCancelled(true);
+            return;
+        }
         World w = p.getWorld();
         String name = p.getName();
         PlayerStats.MenuStatus status = playerMenuStatus.getOrDefault(name, PlayerStats.MenuStatus.NOT_MENU);
@@ -69,12 +81,26 @@ public class InventoryListener implements Listener {
                 if (slot < 52) {
                     if (status == PlayerStats.MenuStatus.RECIPE_MENU ||
                             status == PlayerStats.MenuStatus.FREE_RECIPE_MENU) {
-                        HashMap<String, ShapedRecipe> map = re.getShapedRecipeMap();
-                        ShapedRecipe s = map.getOrDefault(k.getLore(item), null);
-                        if (s != null) {
-                            Bukkit.broadcastMessage("" + s.getShape());
+                        HashMap<String,Integer>keyMap = re.getRecipeKeys();
+                        int key = keyMap.getOrDefault(item.getItemMeta().getDisplayName(),-1);
+                        if(key != -1) {
+                            NamespacedKey k = NamespacedKey.fromString("r" + key, plugin);
+                            ShapedRecipe r = (ShapedRecipe) Bukkit.getRecipe(k);
+                            Inventory inv = Bukkit.createInventory(p,InventoryType.WORKBENCH,
+                                    ChatColor.RED + "" + ChatColor.BOLD + "配方");
+                            ItemStack[]content = re.getRecipeFlat(r);
+                            inv.setItem(0,item);
+                            for(int i = 0;i < 9;i ++){
+                                if(i >= content.length)break;
+                                ItemStack itemStack = content[i];
+                                if(itemStack == null)continue;
+                                inv.setItem(i+1,itemStack);
+                            }
+                            p.openInventory(inv);
+                            playerPreviousStatus.put(p.getName(),status);
+                            playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.CRAFTING_MENU);
                         }
-                    } else {
+                    } else if(status != PlayerStats.MenuStatus.CRAFTING_MENU) {
                         if (p.isOp()) {
                             Item i = w.dropItem(p.getLocation(), item);
                             i.setPickupDelay(0);
@@ -88,6 +114,16 @@ public class InventoryListener implements Listener {
     public void invClose(InventoryCloseEvent closeEvent) {
         Player p = (Player) closeEvent.getPlayer();
         String name = p.getName();
+        PlayerStats.MenuStatus status = playerPreviousStatus.getOrDefault(name, PlayerStats.MenuStatus.NOT_MENU);
+        PlayerStats.MenuStatus pStatus = playerPreviousStatus.getOrDefault(name, PlayerStats.MenuStatus.NOT_MENU);
+        if(status == PlayerStats.MenuStatus.CRAFTING_MENU) {
+            if (pStatus == PlayerStats.MenuStatus.RECIPE_MENU) {
+                p.performCommand("getrecipes");
+            }
+            if (pStatus == PlayerStats.MenuStatus.FREE_RECIPE_MENU) {
+                p.performCommand("getfreerecipes");
+            }
+        }
         playerMenuStatus.put(name, PlayerStats.MenuStatus.NOT_MENU);
         playerPage.remove(name);
     }

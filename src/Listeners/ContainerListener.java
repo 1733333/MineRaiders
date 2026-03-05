@@ -76,6 +76,7 @@ public class ContainerListener implements Listener {
     ArmorPool ap = ArmorPool.INSTANCE;
     BoxPool bp = BoxPool.INSTANCE;
     WeaponPool wp = WeaponPool.INSTANCE;
+    PlayerStats playerStats = PlayerStats.INSTANCE;
     Random r = new Random();
     JavaPlugin plugin;
     HashSet<Block> hasContent = new HashSet<>();
@@ -154,6 +155,10 @@ public class ContainerListener implements Listener {
     @EventHandler
     public void playerInteract(PlayerInteractEvent interactEvent) {
         Player p = interactEvent.getPlayer();
+        if(playerStats.isDying(p)){
+            interactEvent.setCancelled(true);
+            return;
+        }
         World w = p.getWorld();
         Action action = interactEvent.getAction();
         if (action.equals(Action.RIGHT_CLICK_BLOCK)) {

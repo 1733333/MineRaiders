@@ -131,6 +131,10 @@ public enum LootPool {
             i67(),
             i67(),
             i108(),
+            i110(),
+            i110(),
+            i111(),
+            i111(),
     };
     ItemStack[] epicItem = {
             i68(),
@@ -1746,6 +1750,28 @@ public enum LootPool {
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】苔藓块");
         lore.add(ChatColor.WHITE + "如果有骨粉的话...");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack i110() {
+        ItemStack i = new ItemStack(Material.PRISMARINE_SHARD);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(8);
+        meta.setDisplayName(ChatColor.GREEN + "【寻常】海晶碎片");
+        lore.add(ChatColor.WHITE + "电击枪...?");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack i111() {
+        ItemStack i = new ItemStack(Material.PRISMARINE_CRYSTALS);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(8);
+        meta.setDisplayName(ChatColor.GREEN + "【寻常】海晶砂粒");
+        lore.add(ChatColor.WHITE + "漂浮手里剑...?");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();

@@ -64,6 +64,7 @@ public class MR extends JavaPlugin {
         playerListener.setPlugin(this);
         armorListener.setPlugin(this);
         weaponListener.setPlugin(this);
+        inventoryListener.setPlugin(this);
         k.setPlugin(this);
 
         recipes.registerFreeRecipe();

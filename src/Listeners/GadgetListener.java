@@ -89,6 +89,10 @@ public class GadgetListener implements Listener {
     public void playerInteract(PlayerInteractEvent interactEvent) {
         Action action = interactEvent.getAction();
         Player p = interactEvent.getPlayer();
+        if(playerStats.isDying(p)){
+            interactEvent.setCancelled(true);
+            return;
+        }
         if (p.getGameMode() == GameMode.SPECTATOR) return;
         ItemStack hand = p.getInventory().getItemInMainHand();
         if(hand.getType() == Material.NAME_TAG){
@@ -129,50 +133,6 @@ public class GadgetListener implements Listener {
                         baitGrenade(p, hand);
                         interactEvent.setCancelled(true);
                         break;
-                    case "§f爆炸地雷":
-                        if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
-                            interactEvent.setCancelled(true);
-                            Block block = interactEvent.getClickedBlock();
-                            if (block != null) {
-                                Location bLoc = block.getLocation();
-                                BlockFace face = interactEvent.getBlockFace();
-                                explodeMine(p, hand, bLoc, face);
-                            }
-                        }
-                        break;
-                    case "§f火焰地雷":
-                        if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
-                            interactEvent.setCancelled(true);
-                            Block block = interactEvent.getClickedBlock();
-                            if (block != null) {
-                                Location bLoc = block.getLocation();
-                                BlockFace face = interactEvent.getBlockFace();
-                                pyroMine(p, hand, bLoc, face);
-                            }
-                        }
-                        break;
-                    case "§f毒气地雷":
-                        if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
-                            interactEvent.setCancelled(true);
-                            Block block = interactEvent.getClickedBlock();
-                            if (block != null) {
-                                Location bLoc = block.getLocation();
-                                BlockFace face = interactEvent.getBlockFace();
-                                gasMine(p, hand, bLoc, face);
-                            }
-                        }
-                        break;
-                    case "§f电击地雷":
-                        if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
-                            interactEvent.setCancelled(true);
-                            Block block = interactEvent.getClickedBlock();
-                            if (block != null) {
-                                Location bLoc = block.getLocation();
-                                BlockFace face = interactEvent.getBlockFace();
-                                shockMine(p, hand, bLoc, face);
-                            }
-                        }
-                        break;
                     case "§f察觉之锣":
                         soulCamp(p, hand);
                         interactEvent.setCancelled(true);
@@ -207,10 +167,26 @@ public class GadgetListener implements Listener {
     @EventHandler
     public void playerConsume(PlayerItemConsumeEvent consumeEvent) {
         Player p = consumeEvent.getPlayer();
+        if(playerStats.isDying(p)){
+            consumeEvent.setCancelled(true);
+            return;
+        }
         ItemStack item = consumeEvent.getItem();
         String tag = k.getLore(item);
         double shield = playerStats.getShield(p);
         switch (tag) {
+            case "§f爆炸地雷":
+                explodeMine(p);
+                break;
+            case "§f火焰地雷":
+                pyroMine(p);
+                break;
+            case "§f毒气地雷":
+                gasMine(p);
+                break;
+            case "§f电击地雷":
+                shockMine(p);
+                break;
             case "§f霜雪图腾":
                 snowGolem(p);
                 break;
@@ -606,7 +582,7 @@ public class GadgetListener implements Listener {
                             @Override
                             public void run() {
                                 w.spawnParticle(Particle.EXPLOSION_EMITTER, nade.getLocation(), 1);
-                                k.explode(p, nade, 10, 1.5, 5,1);
+                                k.explode(p, nade, 18, 1.5, 5,1);
                                 for (int i = 0; i < 20; i++) {
                                     Vector shootVec = new Vector(r.nextDouble() - r.nextDouble(),
                                             r.nextDouble() - r.nextDouble(), r.nextDouble() - r.nextDouble());
@@ -685,7 +661,7 @@ public class GadgetListener implements Listener {
                         w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
                         w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
                         w.spawnParticle(Particle.EXPLOSION,nade.getLocation(),1);
-                        k.fire(p, nade, 7,2,2);
+                        k.fire(p, nade, 7,2,4);
                     }
                 }
             };
@@ -818,285 +794,245 @@ public class GadgetListener implements Listener {
             land.runTaskTimer(plugin, 3L, 1L);
         }
     }
-    public void explodeMine(Player p, ItemStack hand,Location loc, BlockFace face){
-        if (p.getCooldown(hand.getType()) == 0) {
-            p.setCooldown(hand.getType(), 20);
-            if (p.getGameMode() != GameMode.CREATIVE) {
-                int amount = hand.getAmount();
-                hand.setAmount(amount - 1);
-            }
-            World w = p.getWorld();
-            Location placeLoc = loc.add(face.getDirection().add(new Vector(0.5,0,0.5)));
-            for(Entity e : w.getNearbyEntities(placeLoc,0.5,0.5,0.5)){
-                if(e instanceof ArmorStand){
-                    if(e.getName().contains("地雷"))return;
+    public void explodeMine(Player p) {
+        World w = p.getWorld();
+        Location shootLoc = p.getEyeLocation();
+        Vector shootVec = shootLoc.getDirection().normalize();
+        ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
+        g.setVelocity(shootVec.multiply(0.3));
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        g.setCustomName(ChatColor.AQUA + p.getName() + "的爆炸地雷");
+        g.setSmall(true);
+        g.getEquipment().setHelmet(new ItemStack(Material.CREEPER_HEAD));
+        g.getEquipment().setChestplate(ap.mobChest(Color.LIME));
+        g.getEquipment().setLeggings(ap.mobLeg(Color.LIME));
+        g.getEquipment().setBoots(ap.mobBoot(Color.LIME));
+        BukkitRunnable trigger = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (g.isDead() || g.hasPotionEffect(PotionEffectType.LUCK)) {
+                    this.cancel();
+                    return;
                 }
-            }
-            ArmorStand g = (ArmorStand) w.spawnEntity(placeLoc,EntityType.ARMOR_STAND);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            g.setCustomName(ChatColor.AQUA + p.getName() + "的爆炸地雷");
-            g.setSmall(true);
-            g.getEquipment().setHelmet(new ItemStack(Material.CREEPER_HEAD));
-            g.getEquipment().setChestplate(ap.mobChest(Color.LIME));
-            g.getEquipment().setLeggings(ap.mobLeg(Color.LIME));
-            g.getEquipment().setBoots(ap.mobBoot(Color.LIME));
-            BukkitRunnable trigger = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (g.isDead() || g.hasPotionEffect(PotionEffectType.LUCK)) {
-                        this.cancel();
-                        return;
+                for (Entity e : g.getNearbyEntities(5, 5, 5)) {
+                    if (e instanceof Player p1) {
+                        if (p1 == p) continue;
                     }
-                    for(Entity e : g.getNearbyEntities(5,5,5)){
-                        if (e instanceof Player p1) {
-                            if (p1 == p) continue;
-                        }
-                        if (e instanceof LivingEntity l) {
-                            if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
-                            if(l instanceof ArmorStand)continue;
-                            Vector pEye = g.getEyeLocation().toVector();
-                            Vector lEye = l.getEyeLocation().toVector();
-                            Vector ray = lEye.clone().subtract(pEye);
-                            RayTraceResult result = w.rayTraceBlocks(g.getEyeLocation(), ray, k.distance(g, e));
-                            if (result == null) {
-                                w.playSound(g,Sound.BLOCK_ANVIL_PLACE,1,2);
-                                g.setVelocity(new Vector(0,0.5,0));
-                                g.addPotionEffect(new PotionEffect(PotionEffectType.LUCK,PotionEffect.INFINITE_DURATION,0));
-                                g.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,PotionEffect.INFINITE_DURATION,0));
-                                BukkitRunnable explode = new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        k.explode(p,g,10,0,5,0);
-                                        w.playSound(g.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,1,1);
-                                        w.spawnParticle(Particle.EXPLOSION_EMITTER,g.getLocation(),1);
-                                        g.remove();
-                                    }
-                                };
-                                explode.runTaskLater(plugin,10L);
-                                break;
-                            }
+                    if (e instanceof LivingEntity l) {
+                        if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
+                        if (l instanceof ArmorStand) continue;
+                        Vector pEye = g.getEyeLocation().toVector();
+                        Vector lEye = l.getEyeLocation().toVector();
+                        Vector ray = lEye.clone().subtract(pEye);
+                        RayTraceResult result = w.rayTraceBlocks(g.getEyeLocation(), ray, k.distance(g, e));
+                        if (result == null) {
+                            w.playSound(g, Sound.BLOCK_ANVIL_PLACE, 1, 2);
+                            g.setVelocity(new Vector(0, 0.5, 0));
+                            g.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, PotionEffect.INFINITE_DURATION, 0));
+                            g.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, PotionEffect.INFINITE_DURATION, 0));
+                            BukkitRunnable explode = new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    k.explode(p, g, 12, 0, 5, 0);
+                                    w.playSound(g.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
+                                    w.spawnParticle(Particle.EXPLOSION_EMITTER, g.getLocation(), 1);
+                                    g.remove();
+                                }
+                            };
+                            explode.runTaskLater(plugin, 10L);
+                            break;
                         }
                     }
                 }
-            };
-            trigger.runTaskTimer(plugin,30L,20L);
-        }
+            }
+        };
+        trigger.runTaskTimer(plugin, 30L, 20L);
     }
-    public void pyroMine(Player p, ItemStack hand, Location loc, BlockFace face){
-        if (p.getCooldown(hand.getType()) == 0) {
-            p.setCooldown(hand.getType(), 20);
-            if (p.getGameMode() != GameMode.CREATIVE) {
-                int amount = hand.getAmount();
-                hand.setAmount(amount - 1);
-            }
-            World w = p.getWorld();
-            Location placeLoc = loc.add(face.getDirection().add(new Vector(0.5,0,0.5)));
-            for(Entity e : w.getNearbyEntities(placeLoc,0.5,0.5,0.5)){
-                if(e instanceof ArmorStand){
-                    if(e.getName().contains("地雷"))return;
+    public void pyroMine(Player p) {
+        World w = p.getWorld();
+        Location shootLoc = p.getEyeLocation();
+        Vector shootVec = shootLoc.getDirection().normalize();
+        ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
+        g.setVelocity(shootVec.multiply(0.3));
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        g.setCustomName(ChatColor.AQUA + p.getName() + "的火焰地雷");
+        g.setSmall(true);
+        g.getEquipment().setHelmet(new ItemStack(Material.PIGLIN_HEAD));
+        g.getEquipment().setChestplate(ap.mobChest(Color.ORANGE));
+        g.getEquipment().setLeggings(ap.mobLeg(Color.ORANGE));
+        g.getEquipment().setBoots(ap.mobBoot(Color.ORANGE));
+        BukkitRunnable trigger = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (g.isDead() || g.hasPotionEffect(PotionEffectType.LUCK)) {
+                    this.cancel();
+                    return;
                 }
-            }
-            ArmorStand g = (ArmorStand) w.spawnEntity(placeLoc,EntityType.ARMOR_STAND);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            g.setCustomName(ChatColor.AQUA + p.getName() + "的火焰地雷");
-            g.setSmall(true);
-            g.getEquipment().setHelmet(new ItemStack(Material.PIGLIN_HEAD));
-            g.getEquipment().setChestplate(ap.mobChest(Color.ORANGE));
-            g.getEquipment().setLeggings(ap.mobLeg(Color.ORANGE));
-            g.getEquipment().setBoots(ap.mobBoot(Color.ORANGE));
-            BukkitRunnable trigger = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (g.isDead() || g.hasPotionEffect(PotionEffectType.LUCK)) {
-                        this.cancel();
-                        return;
+                for (Entity e : g.getNearbyEntities(5, 5, 5)) {
+                    if (e instanceof Player p1) {
+                        if (p1 == p) continue;
                     }
-                    for(Entity e : g.getNearbyEntities(5,5,5)){
-                        if (e instanceof Player p1) {
-                            if (p1 == p) continue;
-                        }
-                        if (e instanceof LivingEntity l) {
-                            if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
-                            if(l instanceof ArmorStand)continue;
-                            Vector pEye = g.getEyeLocation().toVector();
-                            Vector lEye = l.getEyeLocation().toVector();
-                            Vector ray = lEye.clone().subtract(pEye);
-                            RayTraceResult result = w.rayTraceBlocks(g.getEyeLocation(), ray, k.distance(g, e));
-                            if (result == null) {
-                                w.playSound(g,Sound.BLOCK_ANVIL_PLACE,1,2);
-                                g.setVelocity(new Vector(0,0.5,0));
-                                g.addPotionEffect(new PotionEffect(PotionEffectType.LUCK,PotionEffect.INFINITE_DURATION,0));
-                                g.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,PotionEffect.INFINITE_DURATION,0));
-                                BukkitRunnable explode = new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        k.explode(p,g,4,0,4,0);
-                                        k.fire(p,g,5,4,2);
-                                        w.playSound(g.getLocation(),Sound.ITEM_CROSSBOW_SHOOT,1,1);
-                                        w.playSound(g.getLocation(),Sound.ENTITY_ARMOR_STAND_BREAK,1,1);
-                                        w.spawnParticle(Particle.EXPLOSION,g.getLocation(),1);
-                                        g.remove();
-                                    }
-                                };
-                                explode.runTaskLater(plugin,10L);
-                                break;
-                            }
+                    if (e instanceof LivingEntity l) {
+                        if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
+                        if (l instanceof ArmorStand) continue;
+                        Vector pEye = g.getEyeLocation().toVector();
+                        Vector lEye = l.getEyeLocation().toVector();
+                        Vector ray = lEye.clone().subtract(pEye);
+                        RayTraceResult result = w.rayTraceBlocks(g.getEyeLocation(), ray, k.distance(g, e));
+                        if (result == null) {
+                            w.playSound(g, Sound.BLOCK_ANVIL_PLACE, 1, 2);
+                            g.setVelocity(new Vector(0, 0.5, 0));
+                            g.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, PotionEffect.INFINITE_DURATION, 0));
+                            g.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, PotionEffect.INFINITE_DURATION, 0));
+                            BukkitRunnable explode = new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    k.explode(p, g, 4, 0, 4, 0);
+                                    k.fire(p, g, 5, 4, 4);
+                                    w.playSound(g.getLocation(), Sound.ITEM_CROSSBOW_SHOOT, 1, 1);
+                                    w.playSound(g.getLocation(), Sound.ENTITY_ARMOR_STAND_BREAK, 1, 1);
+                                    w.spawnParticle(Particle.EXPLOSION, g.getLocation(), 1);
+                                    g.remove();
+                                }
+                            };
+                            explode.runTaskLater(plugin, 10L);
+                            break;
                         }
                     }
                 }
-            };
-            trigger.runTaskTimer(plugin,30L,20L);
-        }
+            }
+        };
+        trigger.runTaskTimer(plugin, 30L, 20L);
     }
-    public void gasMine(Player p, ItemStack hand,Location loc, BlockFace face){
-        if (p.getCooldown(hand.getType()) == 0) {
-            p.setCooldown(hand.getType(), 20);
-            if (p.getGameMode() != GameMode.CREATIVE) {
-                int amount = hand.getAmount();
-                hand.setAmount(amount - 1);
-            }
-            World w = p.getWorld();
-            Location placeLoc = loc.add(face.getDirection().add(new Vector(0.5,0,0.5)));
-            for(Entity e : w.getNearbyEntities(placeLoc,0.5,0.5,0.5)){
-                if(e instanceof ArmorStand){
-                    if(e.getName().contains("地雷"))return;
+    public void gasMine(Player p) {
+        World w = p.getWorld();
+        Location shootLoc = p.getEyeLocation();
+        Vector shootVec = shootLoc.getDirection().normalize();
+        ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
+        g.setVelocity(shootVec.multiply(0.3));
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        g.setCustomName(ChatColor.AQUA + p.getName() + "的毒气地雷");
+        g.setSmall(true);
+        g.getEquipment().setHelmet(new ItemStack(Material.ZOMBIE_HEAD));
+        g.getEquipment().setChestplate(ap.mobChest(Color.GREEN));
+        g.getEquipment().setLeggings(ap.mobLeg(Color.GREEN));
+        g.getEquipment().setBoots(ap.mobBoot(Color.GREEN));
+        BukkitRunnable trigger = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (g.isDead() || g.hasPotionEffect(PotionEffectType.LUCK)) {
+                    this.cancel();
+                    return;
                 }
-            }
-            ArmorStand g = (ArmorStand) w.spawnEntity(placeLoc,EntityType.ARMOR_STAND);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            g.setCustomName(ChatColor.AQUA + p.getName() + "的毒气地雷");
-            g.setSmall(true);
-            g.getEquipment().setHelmet(new ItemStack(Material.ZOMBIE_HEAD));
-            g.getEquipment().setChestplate(ap.mobChest(Color.GREEN));
-            g.getEquipment().setLeggings(ap.mobLeg(Color.GREEN));
-            g.getEquipment().setBoots(ap.mobBoot(Color.GREEN));
-            BukkitRunnable trigger = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (g.isDead() || g.hasPotionEffect(PotionEffectType.LUCK)) {
-                        this.cancel();
-                        return;
+                for (Entity e : g.getNearbyEntities(5, 5, 5)) {
+                    if (e instanceof Player p1) {
+                        if (p1 == p) continue;
                     }
-                    for(Entity e : g.getNearbyEntities(5,5,5)){
-                        if (e instanceof Player p1) {
-                            if (p1 == p) continue;
-                        }
-                        if (e instanceof LivingEntity l) {
-                            if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
-                            if(l instanceof ArmorStand)continue;
-                            Vector pEye = g.getEyeLocation().toVector();
-                            Vector lEye = l.getEyeLocation().toVector();
-                            Vector ray = lEye.clone().subtract(pEye);
-                            RayTraceResult result = w.rayTraceBlocks(g.getEyeLocation(), ray, k.distance(g, e));
-                            if (result == null) {
-                                w.playSound(g,Sound.BLOCK_ANVIL_PLACE,1,2);
-                                g.setVelocity(new Vector(0,0.5,0));
-                                g.addPotionEffect(new PotionEffect(PotionEffectType.LUCK,PotionEffect.INFINITE_DURATION,0));
-                                g.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,PotionEffect.INFINITE_DURATION,0));
-                                BukkitRunnable explode = new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        k.gas(p,g,10,4);
-                                        w.playSound(g.getLocation(),Sound.BLOCK_LANTERN_BREAK,1,1);
-                                        w.playSound(g.getLocation(),Sound.BLOCK_LANTERN_BREAK,1,1);
-                                        w.playSound(g.getLocation(),Sound.BLOCK_LANTERN_BREAK,1,1);
-                                        w.spawnParticle(Particle.EXPLOSION,g.getLocation(),1);
-                                        g.remove();
-                                    }
-                                };
-                                explode.runTaskLater(plugin,10L);
-                                break;
-                            }
+                    if (e instanceof LivingEntity l) {
+                        if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
+                        if (l instanceof ArmorStand) continue;
+                        Vector pEye = g.getEyeLocation().toVector();
+                        Vector lEye = l.getEyeLocation().toVector();
+                        Vector ray = lEye.clone().subtract(pEye);
+                        RayTraceResult result = w.rayTraceBlocks(g.getEyeLocation(), ray, k.distance(g, e));
+                        if (result == null) {
+                            w.playSound(g, Sound.BLOCK_ANVIL_PLACE, 1, 2);
+                            g.setVelocity(new Vector(0, 0.5, 0));
+                            g.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, PotionEffect.INFINITE_DURATION, 0));
+                            g.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, PotionEffect.INFINITE_DURATION, 0));
+                            BukkitRunnable explode = new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    k.gas(p, g, 10, 4);
+                                    w.playSound(g.getLocation(), Sound.BLOCK_LANTERN_BREAK, 1, 1);
+                                    w.playSound(g.getLocation(), Sound.BLOCK_LANTERN_BREAK, 1, 1);
+                                    w.playSound(g.getLocation(), Sound.BLOCK_LANTERN_BREAK, 1, 1);
+                                    w.spawnParticle(Particle.EXPLOSION, g.getLocation(), 1);
+                                    g.remove();
+                                }
+                            };
+                            explode.runTaskLater(plugin, 10L);
+                            break;
                         }
                     }
                 }
-            };
-            trigger.runTaskTimer(plugin,30L,20L);
-        }
+            }
+        };
+        trigger.runTaskTimer(plugin, 30L, 20L);
     }
-    public void shockMine(Player p, ItemStack hand,Location loc, BlockFace face){
-        if (p.getCooldown(hand.getType()) == 0) {
-            p.setCooldown(hand.getType(), 20);
-            if (p.getGameMode() != GameMode.CREATIVE) {
-                int amount = hand.getAmount();
-                hand.setAmount(amount - 1);
-            }
-            World w = p.getWorld();
-            Location placeLoc = loc.add(face.getDirection().add(new Vector(0.5,0,0.5)));
-            for(Entity e : w.getNearbyEntities(placeLoc,0.5,0.5,0.5)){
-                if(e instanceof ArmorStand){
-                    if(e.getName().contains("地雷"))return;
+    public void shockMine(Player p) {
+        World w = p.getWorld();
+        Location shootLoc = p.getEyeLocation();
+        Vector shootVec = shootLoc.getDirection().normalize();
+        ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
+        g.setVelocity(shootVec.multiply(0.3));
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
+        g.setCustomName(ChatColor.AQUA + p.getName() + "的电击地雷");
+        g.setSmall(true);
+        g.getEquipment().setHelmet(new ItemStack(Material.WITHER_SKELETON_SKULL));
+        g.getEquipment().setChestplate(ap.mobChest(Color.BLACK));
+        g.getEquipment().setLeggings(ap.mobLeg(Color.BLACK));
+        g.getEquipment().setBoots(ap.mobBoot(Color.BLACK));
+        double radius = 5;
+        BukkitRunnable trigger = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (g.isDead() || g.hasPotionEffect(PotionEffectType.LUCK)) {
+                    this.cancel();
+                    return;
                 }
-            }
-            ArmorStand g = (ArmorStand) w.spawnEntity(placeLoc,EntityType.ARMOR_STAND);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
-            g.setCustomName(ChatColor.AQUA + p.getName() + "的电击地雷");
-            g.setSmall(true);
-            g.getEquipment().setHelmet(new ItemStack(Material.WITHER_SKELETON_SKULL));
-            g.getEquipment().setChestplate(ap.mobChest(Color.BLACK));
-            g.getEquipment().setLeggings(ap.mobLeg(Color.BLACK));
-            g.getEquipment().setBoots(ap.mobBoot(Color.BLACK));
-            double radius = 5;
-            BukkitRunnable trigger = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (g.isDead() || g.hasPotionEffect(PotionEffectType.LUCK)) {
-                        this.cancel();
-                        return;
+                for (Entity e : g.getNearbyEntities(radius, radius, radius)) {
+                    if (e instanceof Player p1) {
+                        if (p1 == p) continue;
                     }
-                    for(Entity e : g.getNearbyEntities(radius,radius,radius)){
-                        if (e instanceof Player p1) {
-                            if (p1 == p) continue;
-                        }
-                        if (e instanceof LivingEntity l) {
-                            if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
-                            if(l instanceof ArmorStand)continue;
-                            Vector pEye = g.getEyeLocation().toVector();
-                            Vector lEye = l.getEyeLocation().toVector();
-                            Vector ray = lEye.clone().subtract(pEye);
-                            RayTraceResult result = w.rayTraceBlocks(g.getEyeLocation(), ray, k.distance(g, e));
-                            if (result == null) {
-                                w.playSound(g,Sound.BLOCK_ANVIL_PLACE,1,2);
-                                g.setVelocity(new Vector(0,0.5,0));
-                                g.addPotionEffect(new PotionEffect(PotionEffectType.LUCK,PotionEffect.INFINITE_DURATION,0));
-                                g.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,PotionEffect.INFINITE_DURATION,0));
-                                BukkitRunnable explode = new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        for(Entity e : g.getNearbyEntities(5,5,5)){
-                                            if(e instanceof LivingEntity l){
-                                                if(e instanceof Player p1){
-                                                    if(p != p1) {
-                                                        p1.sendTitle(" ",ChatColor.AQUA + "！被电击！",10,40,10);
-                                                    }else continue;
-                                                }
-                                                l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,100,2));
-                                                l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE,100,2));
+                    if (e instanceof LivingEntity l) {
+                        if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
+                        if (l instanceof ArmorStand) continue;
+                        Vector pEye = g.getEyeLocation().toVector();
+                        Vector lEye = l.getEyeLocation().toVector();
+                        Vector ray = lEye.clone().subtract(pEye);
+                        RayTraceResult result = w.rayTraceBlocks(g.getEyeLocation(), ray, k.distance(g, e));
+                        if (result == null) {
+                            w.playSound(g, Sound.BLOCK_ANVIL_PLACE, 1, 2);
+                            g.setVelocity(new Vector(0, 0.5, 0));
+                            g.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, PotionEffect.INFINITE_DURATION, 0));
+                            g.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, PotionEffect.INFINITE_DURATION, 0));
+                            BukkitRunnable explode = new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    for (Entity e : g.getNearbyEntities(5, 5, 5)) {
+                                        if (e instanceof LivingEntity l) {
+                                            if (e instanceof Player p1) {
+                                                if (p != p1) {
+                                                    p1.sendTitle(" ", ChatColor.AQUA + "！被电击！", 10, 40, 10);
+                                                } else continue;
                                             }
+                                            l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2));
+                                            l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 100, 2));
                                         }
-                                        w.playSound(g.getLocation(),Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE,1,1);
-                                        w.spawnParticle(Particle.EXPLOSION,g.getLocation(),1);
-                                        w.spawnParticle(Particle.ELECTRIC_SPARK,g.getLocation(),100,radius/2,radius/2,radius/2);
-                                        g.remove();
                                     }
-                                };
-                                explode.runTaskLater(plugin,10L);
-                                break;
-                            }
+                                    w.playSound(g.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1, 1);
+                                    w.spawnParticle(Particle.EXPLOSION, g.getLocation(), 1);
+                                    w.spawnParticle(Particle.ELECTRIC_SPARK, g.getLocation(), 100, radius / 2, radius / 2, radius / 2);
+                                    g.remove();
+                                }
+                            };
+                            explode.runTaskLater(plugin, 10L);
+                            break;
                         }
                     }
                 }
-            };
-            trigger.runTaskTimer(plugin,30L,20L);
-        }
+            }
+        };
+        trigger.runTaskTimer(plugin, 30L, 20L);
     }
     public void fireCamp(Player p,ItemStack hand){
         if (p.getCooldown(hand.getType()) == 0) {
@@ -1283,7 +1219,10 @@ public class GadgetListener implements Listener {
     }
     public void deadline(Player p) {
         World w = p.getWorld();
-        ArmorStand g = (ArmorStand) w.spawnEntity(p.getLocation(), EntityType.ARMOR_STAND);
+        Location shootLoc = p.getEyeLocation();
+        Vector shootVec = shootLoc.getDirection().normalize();
+        ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
+        g.setVelocity(shootVec.multiply(0.3));
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -1410,11 +1349,15 @@ public class GadgetListener implements Listener {
                     if (nade.isDead() || k.hitBallBlock(nade)) {
                         this.cancel();
                         nade.remove();
+                        EnderSignal s = (EnderSignal) w.spawnEntity(nade.getLocation(),EntityType.EYE_OF_ENDER);
+                        s.setItem(new ItemStack(Material.FIREWORK_STAR));
+                        s.setGlowing(true);
                         BukkitRunnable boom = new BukkitRunnable() {
                             int count = 0;
                             @Override
                             public void run() {
                                 if(count > 5){
+                                    s.remove();
                                     this.cancel();
                                     return;
                                 }

@@ -11,14 +11,15 @@ public enum PlayerStats {
     public static HashMap<String,MenuStatus>playerMenuStatus = new HashMap<>();
     public static HashMap<String,Double>playerShield = new HashMap<>();
     public enum MenuStatus{
-        LOOT_MENU,
         NOT_MENU,
+        LOOT_MENU,
         GADGET_MENU,
         ARMOR_MENU,
         WEAPON_MENU,
         RECIPE_MENU,
         FREE_RECIPE_MENU,
         DROP_MENU,
+        CRAFTING_MENU,
         DEV_MENU,
     }
     HashSet<Player> isDying = new HashSet<>();

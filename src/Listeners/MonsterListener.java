@@ -36,15 +36,19 @@ public class MonsterListener implements Listener {
         Entity damaged = damageEvent.getEntity();
         if (damaged instanceof LivingEntity l) {
             if (l.getName().contains("伤害测试假人")) {
-                double damage = damageEvent.getFinalDamage();
+                double damage = damageEvent.getDamage();
                 if (damage > 0) {
-                    Bukkit.broadcastMessage(ChatColor.GREEN
-                            + ""
-                            + ChatColor.BOLD
-                            + "造成伤害："
-                            + ChatColor.RED
-                            + ChatColor.BOLD
-                            + String.format("%.2f", damage));
+                    for (Entity e : l.getNearbyEntities(20, 20, 20)) {
+                        if(e instanceof Player p) {
+                            p.sendMessage(ChatColor.GREEN
+                                    + ""
+                                    + ChatColor.BOLD
+                                    + "造成伤害："
+                                    + ChatColor.RED
+                                    + ChatColor.BOLD
+                                    + String.format("%.2f", damage));
+                        }
+                    }
                 }
             }
         }
@@ -234,6 +238,9 @@ public class MonsterListener implements Listener {
                 }
                 if (dName.equals("§7跳跃者")) {
                     w.playSound(d.getLocation(), Sound.ENTITY_BLAZE_HURT, 2, 1);
+                }
+                if (dName.equals("§c粉碎者")) {
+                    w.playSound(d.getLocation(), Sound.ENTITY_WITHER_HURT, 2, 1);
                 }
                 if (dName.equals("§6火球") &&
                         d.hasPotionEffect(PotionEffectType.RESISTANCE))

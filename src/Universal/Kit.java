@@ -1,5 +1,6 @@
 package Universal;
 
+import Events.PlayerShieldAmountChangeEvent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -139,7 +140,7 @@ public enum Kit {
         World w = source.getWorld();
         Location loc = jar.getLocation();
         AreaEffectCloud cloud = (AreaEffectCloud) w.spawnEntity(loc, EntityType.AREA_EFFECT_CLOUD);
-        cloud.setDuration(duration * 30);
+        cloud.setDuration(duration * 20);
         cloud.setParticle(Particle.FLAME);
         cloud.setRadius((float) radius);
         cloud.setCustomName(source.getName() + "的火");
@@ -159,7 +160,7 @@ public enum Kit {
                             if (p1.getGameMode() == GameMode.SPECTATOR) continue;
                         }
                         int fire = l.getFireTicks();
-                        l.setFireTicks(fire + 100);
+                        l.setFireTicks(fire + 140);
                         l.damage(damage, DamageSource.builder(DamageType.ON_FIRE)
                                 .withDirectEntity(cloud).build());
                         w.playSound(l.getLocation(), Sound.ENTITY_PLAYER_HURT_ON_FIRE, 1, 1);
@@ -167,7 +168,7 @@ public enum Kit {
                 }
             }
         };
-        fireDamage.runTaskTimer(plugin, 0L, 30L);
+        fireDamage.runTaskTimer(plugin, 0L, 20L);
     }
     public boolean isArmored(Player p){
         EntityEquipment e = p.getEquipment();
@@ -274,6 +275,7 @@ public enum Kit {
                         if(player.getGameMode() == GameMode.SPECTATOR)continue;
                         player.sendTitle(" ",ChatColor.AQUA + "！被紊乱！",0,20,10);
                         w.playSound(player.getLocation(),Sound.ENTITY_ARMOR_STAND_BREAK,1,1);
+                        Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, -12));
                     }
                     if(e instanceof LivingEntity l){
                         if(l.getName().contains("滑索"))continue;

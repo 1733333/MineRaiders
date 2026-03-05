@@ -268,7 +268,7 @@ public class WeaponListener implements Listener {
                         Location shootLoc = p.getEyeLocation();
                         Vector shootVec = shootLoc.getDirection();
                         Arrow a = w.spawnArrow(shootLoc.add(shootVec), shootVec, 2, 5);
-                        a.setDamage(1.5);
+                        a.setDamage(3.5);
                         a.setShooter(p);
                         a.setTicksLived(1200);
                         a.addCustomEffect(new PotionEffect(PotionEffectType.GLOWING, 200, 0), false);
