@@ -10,6 +10,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
@@ -443,6 +444,7 @@ public class PlayerListener implements Listener {
     public void playerCheckRecipe(PlayerInteractEvent interactEvent) {
         Action action = interactEvent.getAction();
         Player p = interactEvent.getPlayer();
+        World w = p.getWorld();
         if (p.getGameMode() == GameMode.SPECTATOR) return;
         ItemStack hand = p.getInventory().getItemInMainHand();
         ItemStack offHand = p.getInventory().getItemInOffHand();
@@ -456,33 +458,43 @@ public class PlayerListener implements Listener {
                 if(index > 0){
                     String itemName = name.substring(0,index);
                     int key = re.getRecipeKeys().getOrDefault(itemName,-1);
-                    if(key > -1){
-                        NamespacedKey k = NamespacedKey.fromString("r" + key, plugin);
-                        Recipe r = Bukkit.getRecipe(k);
+                    if(key > -1) {
+                        NamespacedKey namespacedKey = NamespacedKey.fromString("r" + key, plugin);
+                        Recipe r = Bukkit.getRecipe(namespacedKey);
                         ItemStack item = r.getResult();
                         Inventory inv = Bukkit.createInventory(p, InventoryType.WORKBENCH,
                                 ChatColor.RED + "" + ChatColor.BOLD + "配方");
                         inv.setItem(0, item);
-                        if(r instanceof ShapedRecipe sr) {
-                            ItemStack[] content = re.getRecipeFlat(sr);
+                        ItemStack[] content = new ItemStack[0];
+                        if (r instanceof ShapedRecipe sr) {
+                            content = re.getRecipeFlat(sr);
+                        } else if (r instanceof ShapelessRecipe sl) {
+                            content = sl.getIngredientList().toArray(new ItemStack[0]);
+                        }
+                        if (content.length > 0) {
                             for (int i = 0; i < 9; i++) {
                                 if (i >= content.length) break;
                                 ItemStack itemStack = content[i];
                                 if (itemStack == null) continue;
                                 inv.setItem(i + 1, itemStack);
                             }
-                        }
-                        if(r instanceof ShapelessRecipe sl){
-                            List<ItemStack> content = sl.getIngredientList();
-                            for (int i = 0; i < 9; i++) {
-                                if (i >= content.size()) break;
-                                ItemStack itemStack = content.get(i);
-                                if (itemStack == null) continue;
-                                inv.setItem(i + 1, itemStack);
+                            if(action == Action.RIGHT_CLICK_BLOCK){
+                                Block clicked = interactEvent.getClickedBlock();
+                                if(clicked.getType() == Material.CRAFTING_TABLE){
+                                    if(k.checkMaterials(p,content)){
+                                        Item i = w.dropItem(p.getEyeLocation(),item);
+                                        i.setVelocity(p.getEyeLocation().getDirection().multiply(0.1));
+                                        w.playSound(p.getLocation(),Sound.BLOCK_ANVIL_USE,1,1);
+                                        w.playSound(p.getLocation(),Sound.ITEM_BOOK_PAGE_TURN,1,1);
+                                        if(p.getGameMode() != GameMode.CREATIVE){
+                                            k.removeItems(p,content);
+                                        }
+                                    }
+                                }
                             }
+                            p.openInventory(inv);
+                            playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.CRAFTING_MENU);
                         }
-                        p.openInventory(inv);
-                        playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.CRAFTING_MENU);
                     }
                 }
             }

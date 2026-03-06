@@ -232,7 +232,7 @@ public class GadgetListener implements Listener {
                 if(p.getHealth() <= 5){
                     Bukkit.broadcastMessage(ChatColor.RED + p.getName() + "飞升到了肾上腺素星球");
                 }
-                p.damage(5, DamageSource.builder(DamageType.TRIDENT).build());
+                p.damage(5, DamageSource.builder(DamageType.MAGIC).build());
                 p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 400, 1));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 1));
                 break;

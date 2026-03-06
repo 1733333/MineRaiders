@@ -25,9 +25,8 @@ public enum Recipes {
     ItemStack[] boxRecipes = new ItemStack[0];
     ItemStack[] recipeBooks = new ItemStack[0];
     ItemStack[] menuItems = new ItemStack[0];
-    HashMap<ItemStack, ItemStack> recipeMap = new HashMap<>();
     HashMap<String, Integer> recipeKeys = new HashMap<>();
-    public String[] freeRecipes = new String[0];
+    String[] freeRecipes = new String[0];
     ItemStack[] freeRecipeItems = new ItemStack[]{
             wp.boneStick(),
             wp.glassSword(),
@@ -82,7 +81,6 @@ public enum Recipes {
             lores.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
             bookMeta.setLore(lores);
             book.setItemMeta(bookMeta);
-            recipeMap.put(i, book);
             weaponRecipes.add(book);
         }
         for (ItemStack i : gadgets) {
@@ -104,7 +102,6 @@ public enum Recipes {
             lores.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
             bookMeta.setLore(lores);
             book.setItemMeta(bookMeta);
-            recipeMap.put(i, book);
             gadgetRecipes.add(book);
         }
         List<ItemStack> recipeList = new ArrayList<>(weaponRecipes);

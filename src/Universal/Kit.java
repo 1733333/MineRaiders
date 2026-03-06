@@ -417,4 +417,48 @@ public enum Kit {
         }
         return false;
     }
+    public boolean checkMaterials(Player player, ItemStack[] required) {
+        StringBuilder missing = new StringBuilder();
+        for (ItemStack req : required) {
+            if(req == null)continue;
+            int needed = req.getAmount();
+            int has = 0;
+            for (ItemStack item : player.getInventory().getContents()) {
+                if (item != null && item.getType() == req.getType()) {
+                    has += item.getAmount();
+                }
+            }
+            int diff = needed - has;
+            if (diff > 0) {
+                if (!missing.isEmpty()) missing.append(", ");
+                missing.append("缺少 ").append(req.getItemMeta().getDisplayName()).append(" x").append(diff);
+            }
+        }
+        if (missing.isEmpty()) {
+            return true;
+        }else {
+            player.sendMessage(missing.toString());
+            return false;
+        }
+    }
+    public void removeItems(Player player, ItemStack[] required) {
+        for (ItemStack req : required) {
+            if(req == null)continue;
+            int need = req.getAmount();
+            ItemStack[] contents = player.getInventory().getContents();
+            for (int i = 0; i < contents.length && need > 0; i++) {
+                ItemStack item = contents[i];
+                if (item != null && item.isSimilar(req)) {
+                    int amount = item.getAmount();
+                    if (amount <= need) {
+                        need -= amount;
+                        player.getInventory().setItem(i, null);
+                    } else {
+                        item.setAmount(amount - need);
+                        need = 0;
+                    }
+                }
+            }
+        }
+    }
 }
