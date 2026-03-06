@@ -88,8 +88,9 @@ public enum Kit {
                     damage -= reduce;
                 }
                 if (l == source) {
-                    if (selfDamage == 0) continue;
-                    damage *= selfDamage;
+                    if (selfDamage != 0) {
+                        damage *= selfDamage;
+                    }
                 }
                 if (source.getName().equals("§a爆爆")) {
                     l.damage(damage);

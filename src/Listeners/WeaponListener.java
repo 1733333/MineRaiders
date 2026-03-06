@@ -267,7 +267,7 @@ public class WeaponListener implements Listener {
                         p.setCooldown(item.getType(), 20);
                         Location shootLoc = p.getEyeLocation();
                         Vector shootVec = shootLoc.getDirection();
-                        Arrow a = w.spawnArrow(shootLoc.add(shootVec), shootVec, 2, 5);
+                        Arrow a = w.spawnArrow(shootLoc.add(shootVec), shootVec, 2, 0);
                         a.setDamage(3.5);
                         a.setShooter(p);
                         a.setTicksLived(1200);

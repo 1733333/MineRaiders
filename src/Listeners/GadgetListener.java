@@ -4,8 +4,6 @@ import Events.PlayerShieldAmountChangeEvent;
 import Universal.*;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
@@ -42,6 +40,7 @@ public class GadgetListener implements Listener {
     WeaponPool wp = WeaponPool.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
     HashSet<Player>isPlaying = new HashSet<>();
+    HashSet<Player> isChargingShield = new HashSet<>();
     HashMap<String,BukkitRunnable> playerTask = new HashMap<>();
     int[]musicScore1 = new int[]{
             8,
@@ -232,7 +231,7 @@ public class GadgetListener implements Listener {
                     consumeEvent.setCancelled(true);
                 }else {
                     p.setCooldown(item, 160);
-                    battery(p, 8, 8);
+                    battery(p, 8, 8,item);
                 }
                 break;
             case "§f铁质电池":
@@ -240,7 +239,7 @@ public class GadgetListener implements Listener {
                     consumeEvent.setCancelled(true);
                 }else {
                     p.setCooldown(item, 80);
-                    battery(p, 4, 8);
+                    battery(p, 4, 8,item);
                 }
                 break;
             case "§f黄金电池":
@@ -248,7 +247,7 @@ public class GadgetListener implements Listener {
                     consumeEvent.setCancelled(true);
                 }else {
                     p.setCooldown(item, 120);
-                    battery(p, 6, 12);
+                    battery(p, 6, 12,item);
                 }
                 break;
             case "§f钻石电池":
@@ -256,7 +255,7 @@ public class GadgetListener implements Listener {
                     consumeEvent.setCancelled(true);
                 }else {
                     p.setCooldown(item, 80);
-                    battery(p, 4, 16);
+                    battery(p, 4, 16,item);
                 }
                 break;
             case "§f下界电池":
@@ -578,6 +577,18 @@ public class GadgetListener implements Listener {
                     if (nade.isDead()) {
                         nade.remove();
                         w.spawnParticle(Particle.EXPLOSION, nade.getLocation(), 1);
+                        BukkitRunnable flash = new BukkitRunnable() {
+                            int count = 0;
+                            @Override
+                            public void run() {
+                                if(count > 5){
+                                    this.cancel();
+                                    return;
+                                }
+                                w.spawnParticle(Particle.FLASH, nade.getLocation(), 1,Color.RED);
+                                count += 1;
+                            }
+                        };
                         BukkitRunnable later = new BukkitRunnable() {
                             @Override
                             public void run() {
@@ -595,6 +606,7 @@ public class GadgetListener implements Listener {
                             }
                         };
                         later.runTaskLater(plugin, 30L);
+                        flash.runTaskTimer(plugin,0L,6L);
                         this.cancel();
                     }
                 }
@@ -661,7 +673,7 @@ public class GadgetListener implements Listener {
                         w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
                         w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
                         w.spawnParticle(Particle.EXPLOSION,nade.getLocation(),1);
-                        k.fire(p, nade, 7,2,4);
+                        k.fire(p, nade, 7,3,4);
                     }
                 }
             };
@@ -892,7 +904,7 @@ public class GadgetListener implements Listener {
                                 @Override
                                 public void run() {
                                     k.explode(p, g, 4, 0, 4, 0);
-                                    k.fire(p, g, 5, 4, 4);
+                                    k.fire(p, g, 5, 5, 4);
                                     w.playSound(g.getLocation(), Sound.ITEM_CROSSBOW_SHOOT, 1, 1);
                                     w.playSound(g.getLocation(), Sound.ENTITY_ARMOR_STAND_BREAK, 1, 1);
                                     w.spawnParticle(Particle.EXPLOSION, g.getLocation(), 1);
@@ -1011,9 +1023,7 @@ public class GadgetListener implements Listener {
                                     for (Entity e : g.getNearbyEntities(5, 5, 5)) {
                                         if (e instanceof LivingEntity l) {
                                             if (e instanceof Player p1) {
-                                                if (p != p1) {
-                                                    p1.sendTitle(" ", ChatColor.AQUA + "！被电击！", 10, 40, 10);
-                                                } else continue;
+                                                p1.sendTitle(" ", ChatColor.AQUA + "！被电击！", 10, 40, 10);
                                             }
                                             l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2));
                                             l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 100, 2));
@@ -1200,14 +1210,26 @@ public class GadgetListener implements Listener {
             land.runTaskTimer(plugin, 0L, 1L);
         }
     }
-    public void battery(Player p,int seconds,double shieldAmount){
+    @EventHandler
+    public void shieldDamageEvent(PlayerShieldAmountChangeEvent changeEvent){
+        Player p = changeEvent.getPlayer();
+        double amount = changeEvent.getAmount();
+        if(amount < 0){
+            isChargingShield.remove(p);
+        }
+    }
+    public void battery(Player p,int seconds,double shieldAmount,ItemStack item){
+        isChargingShield.add(p);
         BukkitRunnable recover = new BukkitRunnable() {
             int count = 0;
             int step = seconds * 4;
+            //add here?
             @Override
             public void run() {
                 double shield = playerStats.getShield(p);
-                if(count > step - 1 || shield == 20){
+                if(count > step - 1 || shield == 20 || !isChargingShield.contains(p)){
+                    isChargingShield.remove(p);
+                    p.setCooldown(item,0);
                     this.cancel();
                     return;
                 }
@@ -1263,6 +1285,7 @@ public class GadgetListener implements Listener {
                                     w.spawnParticle(Particle.EXPLOSION,areaP,1);
                                 }
                                 w.spawnParticle(Particle.FLASH,g.getLocation(),1,Color.YELLOW);
+                                w.spawnParticle(Particle.LAVA,g.getLocation(),10,1,1,1,0.1);
                                 count += 1;
                             }
                         };

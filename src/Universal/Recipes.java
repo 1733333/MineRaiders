@@ -1650,7 +1650,7 @@ public enum Recipes {
     }
 
     public void r108() {
-        ItemStack i = lp.wolfPack();
+        ItemStack i = gp.wolfPack();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
         ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ABA", "ACA", "ADA");
@@ -1756,7 +1756,7 @@ public enum Recipes {
     }
 
     public void r115() {
-        ItemStack i = lp.deadLine();
+        ItemStack i = gp.deadLine();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
         ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("ACA", "BDB", "ACA");
@@ -1789,7 +1789,7 @@ public enum Recipes {
         catch (Exception ignored) {}
     }
     public void r117() {
-        ItemStack i = lp.i107().clone();
+        ItemStack i = gp.mendingPowder().clone();
         i.setAmount(4);
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
         ShapelessRecipe r = new ShapelessRecipe(w,i);

@@ -85,19 +85,30 @@ public class InventoryListener implements Listener {
                         int key = keyMap.getOrDefault(item.getItemMeta().getDisplayName(),-1);
                         if(key != -1) {
                             NamespacedKey k = NamespacedKey.fromString("r" + key, plugin);
-                            ShapedRecipe r = (ShapedRecipe) Bukkit.getRecipe(k);
-                            Inventory inv = Bukkit.createInventory(p,InventoryType.WORKBENCH,
+                            Recipe r = Bukkit.getRecipe(k);
+                            Inventory inv = Bukkit.createInventory(p, InventoryType.WORKBENCH,
                                     ChatColor.RED + "" + ChatColor.BOLD + "配方");
-                            ItemStack[]content = re.getRecipeFlat(r);
-                            inv.setItem(0,item);
-                            for(int i = 0;i < 9;i ++){
-                                if(i >= content.length)break;
-                                ItemStack itemStack = content[i];
-                                if(itemStack == null)continue;
-                                inv.setItem(i+1,itemStack);
+                            inv.setItem(0, item);
+                            if(r instanceof ShapedRecipe sr) {
+                                ItemStack[] content = re.getRecipeFlat(sr);
+                                for (int i = 0; i < 9; i++) {
+                                    if (i >= content.length) break;
+                                    ItemStack itemStack = content[i];
+                                    if (itemStack == null) continue;
+                                    inv.setItem(i + 1, itemStack);
+                                }
+                            }
+                            if(r instanceof ShapelessRecipe sl){
+                                List<ItemStack> content = sl.getIngredientList();
+                                for (int i = 0; i < 9; i++) {
+                                    if (i >= content.size()) break;
+                                    ItemStack itemStack = content.get(i);
+                                    if (itemStack == null) continue;
+                                    inv.setItem(i + 1, itemStack);
+                                }
                             }
                             p.openInventory(inv);
-                            playerPreviousStatus.put(p.getName(),status);
+                            playerPreviousStatus.put(p.getName(), status);
                             playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.CRAFTING_MENU);
                         }
                     } else if(status != PlayerStats.MenuStatus.CRAFTING_MENU) {
