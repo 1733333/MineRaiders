@@ -2,6 +2,8 @@ package Listeners;
 
 import Events.PlayerShieldAmountChangeEvent;
 import Universal.*;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.data.BlockData;
@@ -14,8 +16,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -100,9 +105,16 @@ public class GadgetListener implements Listener {
         ItemStack offHand = p.getInventory().getItemInOffHand();
         boolean rightClick = action.equals(Action.RIGHT_CLICK_AIR)
                 || action.equals(Action.RIGHT_CLICK_BLOCK);
-        if (hand.getType() != Material.AIR) {
-            String tag = k.getLore(hand);
-            if (rightClick) {
+        String tag = k.getLore(hand);
+        if (rightClick) {
+            if (offHand.getType() != Material.AIR) {
+                switch (tag) {
+                    case "§f修理光粉":
+                        interactEvent.setCancelled(true);
+                        mendingPowder(p,offHand);
+                        break;
+                }
+            } else if (hand.getType() != Material.AIR) {
                 switch (tag) {
                     case "§f破片手雷":
                         grenade(p, hand);
@@ -145,11 +157,11 @@ public class GadgetListener implements Listener {
                         flute(p);
                         break;
                     case "§f狼群":
-                        wolfPack(p,hand);
+                        wolfPack(p, hand);
                         interactEvent.setCancelled(true);
                         break;
                     case "§f跳跃者脉冲单元":
-                        leaperUnit(p,hand);
+                        leaperUnit(p, hand);
                         interactEvent.setCancelled(true);
                         break;
                 }
@@ -158,8 +170,6 @@ public class GadgetListener implements Listener {
                     interactEvent.setCancelled(true);
                 }
             }
-        } else if (offHand.getType() != Material.AIR) {
-
         }
     }
 
@@ -811,7 +821,9 @@ public class GadgetListener implements Listener {
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        g.setVelocity(shootVec.multiply(0.3));
+        if(!p.isSneaking()) {
+            g.setVelocity(shootVec.multiply(0.5));
+        }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -867,7 +879,9 @@ public class GadgetListener implements Listener {
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        g.setVelocity(shootVec.multiply(0.3));
+        if(!p.isSneaking()) {
+            g.setVelocity(shootVec.multiply(0.5));
+        }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -925,7 +939,9 @@ public class GadgetListener implements Listener {
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        g.setVelocity(shootVec.multiply(0.3));
+        if(!p.isSneaking()) {
+            g.setVelocity(shootVec.multiply(0.5));
+        }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -983,7 +999,9 @@ public class GadgetListener implements Listener {
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        g.setVelocity(shootVec.multiply(0.3));
+        if(!p.isSneaking()) {
+            g.setVelocity(shootVec.multiply(0.5));
+        }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -1244,7 +1262,9 @@ public class GadgetListener implements Listener {
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        g.setVelocity(shootVec.multiply(0.3));
+        if(!p.isSneaking()) {
+            g.setVelocity(shootVec.multiply(0.5));
+        }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -1445,6 +1465,39 @@ public class GadgetListener implements Listener {
                 }
             };
             land.runTaskTimer(plugin, 3L, 1L);
+        }
+    }
+    public void mendingPowder(Player p, ItemStack hand) {
+        World w = p.getWorld();
+        EntityEquipment e = p.getEquipment();
+        Material material = hand.getType();
+        ItemStack mainHand = e.getItemInMainHand();
+        boolean repaired = false;
+        if (p.getCooldown(material) == 0) {
+            p.setCooldown(material, 20);
+            if (mainHand.getType() != Material.AIR) {
+                ItemMeta meta = mainHand.getItemMeta();
+                if(meta instanceof Damageable d){
+                    int maxDamage = d.getMaxDamage();
+                    int damage = d.getDamage();
+                    d.setDamage((int) Math.max(0,damage - (maxDamage * 0.2)));
+                    mainHand.setItemMeta(d);
+                    e.setItemInMainHand(mainHand);
+                    w.playSound(p.getLocation(),Sound.BLOCK_ENCHANTMENT_TABLE_USE,1,1);
+                    repaired = true;
+                }
+            }
+        }
+        if(repaired) {
+            if (p.getGameMode() != GameMode.CREATIVE) {
+                int amount = hand.getAmount();
+                hand.setAmount(amount - 1);
+            }
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    TextComponent.fromLegacy(ChatColor.AQUA + "修理成功！"));
+        }else {
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    TextComponent.fromLegacy(ChatColor.RED + "修理失败！主手没有物品或者主手物品无法被修理"));
         }
     }
 }

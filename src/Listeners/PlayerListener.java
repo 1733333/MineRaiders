@@ -5,6 +5,7 @@ import Events.PlayerShieldAmountChangeEvent;
 import Events.PlayerShieldBreakEvent;
 import Universal.Kit;
 import Universal.PlayerStats;
+import Universal.Recipes;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -18,14 +19,13 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.*;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -34,11 +34,15 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+
+import static Universal.PlayerStats.playerMenuStatus;
 
 public class PlayerListener implements Listener {
     JavaPlugin plugin;
 
     Kit k = Kit.INSTANCE;
+    Recipes re = Recipes.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
     HashSet<Player>reviving = new HashSet<>();
     HashSet<Player>beingRevive = new HashSet<>();
@@ -433,6 +437,55 @@ public class PlayerListener implements Listener {
             w.playSound(p.getLocation(),Sound.ENTITY_CREAKING_SWAY,1,1.5f);
             w.spawnParticle(Particle.TRIAL_OMEN, p.getLocation().add(0, 1, 0),
                     20, 0.2, 0.4, 0.2);
+        }
+    }
+    @EventHandler
+    public void playerCheckRecipe(PlayerInteractEvent interactEvent) {
+        Action action = interactEvent.getAction();
+        Player p = interactEvent.getPlayer();
+        if (p.getGameMode() == GameMode.SPECTATOR) return;
+        ItemStack hand = p.getInventory().getItemInMainHand();
+        ItemStack offHand = p.getInventory().getItemInOffHand();
+        boolean rightClick = action.equals(Action.RIGHT_CLICK_AIR)
+                || action.equals(Action.RIGHT_CLICK_BLOCK);
+        if (hand.getType() == Material.WRITTEN_BOOK) {
+            if(rightClick){
+                ItemMeta meta = hand.getItemMeta();
+                String name = meta.getDisplayName();
+                int index = name.indexOf(ChatColor.GOLD + "配方");
+                if(index > 0){
+                    String itemName = name.substring(0,index);
+                    int key = re.getRecipeKeys().getOrDefault(itemName,-1);
+                    if(key > -1){
+                        NamespacedKey k = NamespacedKey.fromString("r" + key, plugin);
+                        Recipe r = Bukkit.getRecipe(k);
+                        ItemStack item = r.getResult();
+                        Inventory inv = Bukkit.createInventory(p, InventoryType.WORKBENCH,
+                                ChatColor.RED + "" + ChatColor.BOLD + "配方");
+                        inv.setItem(0, item);
+                        if(r instanceof ShapedRecipe sr) {
+                            ItemStack[] content = re.getRecipeFlat(sr);
+                            for (int i = 0; i < 9; i++) {
+                                if (i >= content.length) break;
+                                ItemStack itemStack = content[i];
+                                if (itemStack == null) continue;
+                                inv.setItem(i + 1, itemStack);
+                            }
+                        }
+                        if(r instanceof ShapelessRecipe sl){
+                            List<ItemStack> content = sl.getIngredientList();
+                            for (int i = 0; i < 9; i++) {
+                                if (i >= content.size()) break;
+                                ItemStack itemStack = content.get(i);
+                                if (itemStack == null) continue;
+                                inv.setItem(i + 1, itemStack);
+                            }
+                        }
+                        p.openInventory(inv);
+                        playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.CRAFTING_MENU);
+                    }
+                }
+            }
         }
     }
 }

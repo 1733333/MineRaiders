@@ -331,7 +331,6 @@ public class ContainerListener implements Listener {
                 int rarity = lp.getRarity(item);
                 int bound = 5 + Math.abs(rarity);
                 if(p.hasPotionEffect(PotionEffectType.HASTE)){
-                    p.playSound(p.getLocation(),Sound.ENTITY_PUFFER_FISH_BLOW_UP,1,1);
                     PotionEffect effect = p.getPotionEffect(PotionEffectType.HASTE);
                     int amp = effect.getAmplifier() + 1;
                     bound = Math.max(bound - amp, 1);
@@ -376,7 +375,8 @@ public class ContainerListener implements Listener {
                         case 5 -> Sound.UI_TOAST_CHALLENGE_COMPLETE;
                         default -> Sound.ENTITY_ITEM_PICKUP;
                     };
-                    p.playSound(p, s, 1, 1);
+                    p.playSound(container.getLocation(), s, 1, 1);
+                    w.playSound(container.getLocation(),Sound.UI_LOOM_TAKE_RESULT,1,1);
                     w.spawnParticle(Particle.EXPLOSION, container.getLocation(), 1);
                     w.spawnParticle(Particle.BLOCK, container.getLocation()
                             , 50, 1.5, 1.5, 1.5, container.getBlockData());
@@ -401,15 +401,6 @@ public class ContainerListener implements Listener {
         World w = item.getWorld();
         ItemStack stack = item.getItemStack();
         int rarity = lp.getRarity(stack);
-        Color c = switch (rarity) {
-            case 0 -> Color.GRAY;
-            case 1 -> Color.LIME;
-            case 2 -> Color.AQUA;
-            case 3 -> Color.FUCHSIA;
-            case 4 -> Color.ORANGE;
-            case 5 -> Color.RED;
-            default -> Color.WHITE;
-        };
         if (rarity > 0) {
             BukkitRunnable particle = new BukkitRunnable() {
                 @Override

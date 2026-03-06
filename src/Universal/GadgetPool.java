@@ -358,6 +358,8 @@ public enum GadgetPool {
         lore.add(ChatColor.WHITE + "电击地雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "部署");
+        lore.add(ChatColor.WHITE + "部署时按住" + ChatColor.AQUA + "潜行键"
+                + ChatColor.WHITE + "将地雷部署在原地");
         lore.add(ChatColor.WHITE + "实体进入范围内触发");
         lore.add(ChatColor.WHITE + "触发后跳至半空，并对范围内的实体施加电击效果");
         itemMeta.setLore(lore);
@@ -375,6 +377,8 @@ public enum GadgetPool {
         lore.add(ChatColor.WHITE + "毒气地雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "部署");
+        lore.add(ChatColor.WHITE + "部署时按住" + ChatColor.AQUA + "潜行键"
+                + ChatColor.WHITE + "将地雷部署在原地");
         lore.add(ChatColor.WHITE + "实体进入范围内触发");
         lore.add(ChatColor.WHITE + "触发后跳至半空并释放毒气");
         itemMeta.setLore(lore);
@@ -392,6 +396,8 @@ public enum GadgetPool {
         lore.add(ChatColor.WHITE + "爆炸地雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "部署");
+        lore.add(ChatColor.WHITE + "部署时按住" + ChatColor.AQUA + "潜行键"
+                + ChatColor.WHITE + "将地雷部署在原地");
         lore.add(ChatColor.WHITE + "实体进入范围内触发");
         lore.add(ChatColor.WHITE + "触发后跳至半空，之后爆炸");
         itemMeta.setLore(lore);
@@ -409,6 +415,8 @@ public enum GadgetPool {
         lore.add(ChatColor.WHITE + "火焰地雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "部署");
+        lore.add(ChatColor.WHITE + "部署时按住" + ChatColor.AQUA + "潜行键"
+                + ChatColor.WHITE + "将地雷部署在原地");
         lore.add(ChatColor.WHITE + "实体进入范围内触发");
         lore.add(ChatColor.WHITE + "触发后跳至半空，之后释放火焰");
         itemMeta.setLore(lore);
@@ -540,7 +548,10 @@ public enum GadgetPool {
         meta.setMaxStackSize(8);
         meta.setDisplayName(ChatColor.AQUA + "修理光粉");
         lore.add(ChatColor.WHITE + "可以修复物品的粉末");
-        lore.add(ChatColor.WHITE + "应该也能食用...吧");
+        lore.add(ChatColor.WHITE + "把需要修理的物品放在主手");
+        lore.add(ChatColor.WHITE + "然后把修理光粉放在副手");
+        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
+                + ChatColor.WHITE + "修理物品");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -548,8 +559,8 @@ public enum GadgetPool {
     public ItemStack wolfPack(){
         ItemStack item = new ItemStack(Material.WOLF_SPAWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.GOLD + "狼群");
-        itemMeta.setMaxStackSize(4);
+        itemMeta.setDisplayName(ChatColor.YELLOW + "狼群");
+        itemMeta.setMaxStackSize(1);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "狼群");
         lore.add(ChatColor.WHITE + "扔到空中后一段时间后");
@@ -564,7 +575,7 @@ public enum GadgetPool {
                 "stick[consumable={consume_seconds:2,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"lodestone\"]"
         );
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.GOLD + "死线");
+        itemMeta.setDisplayName(ChatColor.YELLOW + "死线");
         itemMeta.setMaxStackSize(1);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "死线");
