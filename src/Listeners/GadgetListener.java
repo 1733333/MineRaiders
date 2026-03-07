@@ -106,12 +106,13 @@ public class GadgetListener implements Listener {
         boolean rightClick = action.equals(Action.RIGHT_CLICK_AIR)
                 || action.equals(Action.RIGHT_CLICK_BLOCK);
         String tag = k.getLore(hand);
+        String tag1 = k.getLore(offHand);
         if (rightClick) {
             if (offHand.getType() != Material.AIR) {
-                switch (tag) {
-                    case "§f修理光粉":
-                        interactEvent.setCancelled(true);
+                switch (tag1) {
+                    case "§f可以修复物品的粉末":
                         mendingPowder(p,offHand);
+                        interactEvent.setCancelled(true);
                         break;
                 }
             } else if (hand.getType() != Material.AIR) {
@@ -330,7 +331,7 @@ public class GadgetListener implements Listener {
                 loots = lp.getKeys();
                 break;
             case "§f配方":
-                loots = rp.getBoxRecipes();
+                loots = rp.getBoxRecipeBooks();
                 break;
             default:
                 return;

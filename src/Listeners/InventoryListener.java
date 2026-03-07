@@ -10,11 +10,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -57,7 +54,7 @@ public class InventoryListener implements Listener {
                     case WEAPON_MENU -> wp.getPluginWeapons();
                     case ARMOR_MENU -> ap.getRecipeArmors();
                     case GADGET_MENU -> gp.getGadgets();
-                    case RECIPE_MENU -> re.getMenuItems();
+                    case RECIPE_MENU -> re.getRecipeItems();
                     case FREE_RECIPE_MENU -> re.getFreeRecipeItems();
                     case DROP_MENU -> dp.getAllDrops();
                     default -> new ItemStack[0];

@@ -22,6 +22,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
@@ -33,9 +34,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static Universal.PlayerStats.playerMenuStatus;
 
@@ -406,7 +409,7 @@ public class PlayerListener implements Listener {
                     int count = 0;
                     @Override
                     public void run() {
-                        if(count > 17){
+                        if(count > 21){
                             this.cancel();
                         }
                         if(count < 7){
@@ -419,7 +422,7 @@ public class PlayerListener implements Listener {
                             }
                             w.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO,1,2 - (0.1f * count));
                         }else if(count > 10){
-                            if(count % 2 == 1) {
+                            if(count % 3 == 1) {
                                 w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1, 1.8f);
                             }
                         }
@@ -447,7 +450,6 @@ public class PlayerListener implements Listener {
         World w = p.getWorld();
         if (p.getGameMode() == GameMode.SPECTATOR) return;
         ItemStack hand = p.getInventory().getItemInMainHand();
-        ItemStack offHand = p.getInventory().getItemInOffHand();
         boolean rightClick = action.equals(Action.RIGHT_CLICK_AIR)
                 || action.equals(Action.RIGHT_CLICK_BLOCK);
         if (hand.getType() == Material.WRITTEN_BOOK) {
@@ -480,8 +482,9 @@ public class PlayerListener implements Listener {
                             }
                             if(action == Action.RIGHT_CLICK_BLOCK){
                                 Block clicked = interactEvent.getClickedBlock();
-                                if(clicked.getType() == Material.CRAFTING_TABLE){
-                                    if(k.checkMaterials(p,content)){
+                                if(clicked.getType() == Material.CRAFTING_TABLE && p.isSneaking()){
+                                    ItemStack[]missing = k.checkMaterials(p,content);
+                                    if(missing.length == 0){
                                         Item i = w.dropItem(p.getEyeLocation(),item);
                                         i.setVelocity(p.getEyeLocation().getDirection().multiply(0.1));
                                         w.playSound(p.getLocation(),Sound.BLOCK_ANVIL_USE,1,1);
@@ -489,12 +492,50 @@ public class PlayerListener implements Listener {
                                         if(p.getGameMode() != GameMode.CREATIVE){
                                             k.removeItems(p,content);
                                         }
+                                    }else {
+                                        inv = Bukkit.createInventory(p,9,
+                                                ChatColor.RED + "" + ChatColor.BOLD + "缺少物品列表");
+                                        for(ItemStack i : missing){
+                                            inv.addItem(i);
+                                        }
                                     }
                                 }
                             }
                             p.openInventory(inv);
                             playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.CRAFTING_MENU);
                         }
+                    }
+                }
+            }
+        }
+    }
+    @EventHandler
+    public void playerCrafting(CraftItemEvent craftEvent){
+        if(craftEvent.getWhoClicked() instanceof Player p) {
+            ItemStack result = craftEvent.getRecipe().getResult();
+            ItemMeta resultMeta = result.getItemMeta();
+            HashMap<String,Integer>keyMap = re.getRecipeKeys();
+            Inventory inv = p.getInventory();
+            if (resultMeta.hasDisplayName()) {
+                String resultName = resultMeta.getDisplayName();
+                int key = keyMap.getOrDefault(resultName, -1);
+                if (key != -1) {
+                    boolean cancel = true;
+                    for (ItemStack i : inv.getContents()) {
+                        if (i.getType() == Material.WRITTEN_BOOK) {
+                            ItemMeta meta = i.getItemMeta();
+                            String bookName = meta.getDisplayName();
+                            int index = bookName.indexOf(ChatColor.GOLD + "配方");
+                            if(index != -1){
+                                String itemName = resultName.substring(0,index);
+                                if(itemName.equals(resultName)){
+                                    cancel = false;
+                                }
+                            }
+                        }
+                    }
+                    if (cancel) {
+                        craftEvent.setCancelled(true);
                     }
                 }
             }

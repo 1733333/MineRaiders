@@ -4,13 +4,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -22,9 +22,9 @@ public enum Recipes {
     GadgetPool gp = GadgetPool.INSTANCE;
     LootPool lp = LootPool.INSTANCE;
     Kit k = Kit.INSTANCE;
-    ItemStack[] boxRecipes = new ItemStack[0];
+    ItemStack[] boxRecipeBooks = new ItemStack[0];
     ItemStack[] recipeBooks = new ItemStack[0];
-    ItemStack[] menuItems = new ItemStack[0];
+    ItemStack[] recipeItems = new ItemStack[0];
     HashMap<String, Integer> recipeKeys = new HashMap<>();
     String[] freeRecipes = new String[0];
     ItemStack[] freeRecipeItems = new ItemStack[]{
@@ -60,7 +60,7 @@ public enum Recipes {
         ItemStack[] gadgets = gp.getRecipeGadgets();
         List<ItemStack> weaponRecipes = new ArrayList<>();
         List<ItemStack> gadgetRecipes = new ArrayList<>();
-        List<ItemStack> menuItemsList = new ArrayList<>();
+        List<ItemStack> recipeItemsList = new ArrayList<>();
         List<String> freeRecipeString = Arrays.stream(freeRecipes).toList();
         for (ItemStack i : weapons) {
             String lore = k.getLore(i);
@@ -74,11 +74,7 @@ public enum Recipes {
             if (!itemMeta.hasDisplayName()) continue;
             bookMeta.setDisplayName(itemMeta.getDisplayName()
                     + ChatColor.GOLD + "配方");
-            ArrayList<String> lores = new ArrayList<>();
-            lores.add(ChatColor.WHITE + "一本古老的书");
-            lores.add(ChatColor.WHITE + "记载着合成" + itemMeta.getDisplayName()
-                    + ChatColor.WHITE + "的配方");
-            lores.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
+            ArrayList<String> lores = recipeBookLores(itemMeta);
             bookMeta.setLore(lores);
             book.setItemMeta(bookMeta);
             weaponRecipes.add(book);
@@ -95,11 +91,7 @@ public enum Recipes {
             if (!itemMeta.hasDisplayName()) continue;
             bookMeta.setDisplayName(itemMeta.getDisplayName()
                     + ChatColor.GOLD + "配方");
-            ArrayList<String> lores = new ArrayList<>();
-            lores.add(ChatColor.WHITE + "一本古老的书");
-            lores.add(ChatColor.WHITE + "记载着合成" + itemMeta.getDisplayName()
-                    + ChatColor.WHITE + "的配方");
-            lores.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
+            ArrayList<String> lores = recipeBookLores(itemMeta);
             bookMeta.setLore(lores);
             book.setItemMeta(bookMeta);
             gadgetRecipes.add(book);
@@ -107,14 +99,28 @@ public enum Recipes {
         List<ItemStack> recipeList = new ArrayList<>(weaponRecipes);
         List<ItemStack> boxRecipeList = new ArrayList<>(weaponRecipes);
         recipeList.addAll(gadgetRecipes);
-        menuItemsList.addAll(List.of(weapons));
-        menuItemsList.addAll(List.of(gadgets));
+        recipeItemsList.addAll(List.of(weapons));
+        recipeItemsList.addAll(List.of(gadgets));
         for (int j = 0; j < 5; j++) {
             boxRecipeList.addAll(gadgetRecipes);
         }
-        boxRecipes = boxRecipeList.toArray(new ItemStack[0]);
+        boxRecipeBooks = boxRecipeList.toArray(new ItemStack[0]);
         recipeBooks = recipeList.toArray(new ItemStack[0]);
-        menuItems = menuItemsList.toArray(new ItemStack[0]);
+        recipeItems = recipeItemsList.toArray(new ItemStack[0]);
+    }
+
+    public static ArrayList<String> recipeBookLores(ItemMeta itemMeta) {
+        ArrayList<String> lores = new ArrayList<>();
+        lores.add(ChatColor.WHITE + "一本古老的书");
+        lores.add(ChatColor.WHITE + "记载着合成" + itemMeta.getDisplayName()
+                + ChatColor.WHITE + "的配方");
+        lores.add(ChatColor.WHITE + "放在背包里才能合成对应物品");
+        lores.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
+                + ChatColor.WHITE + "打开配方书");
+        lores.add(ChatColor.WHITE + "拿着配方按住" + ChatColor.AQUA + "潜行键"
+                + ChatColor.WHITE + "并且按" + ChatColor.AQUA + "鼠标右键点击工作台");
+        lores.add(ChatColor.WHITE + "将会根据背包内的物品自动合成该配方");
+        return lores;
     }
 
     public void registerRecipe() {
@@ -130,16 +136,16 @@ public enum Recipes {
         r9();r19();r29();r39();r49();r59();r69();r79();r89();r99();r109();
     }
 
-    public ItemStack[] getBoxRecipes() {
-        return boxRecipes.clone();
+    public ItemStack[] getBoxRecipeBooks() {
+        return boxRecipeBooks.clone();
     }
 
     public ItemStack[] getRecipeBooks() {
         return recipeBooks.clone();
     }
 
-    public ItemStack[] getMenuItems() {
-        return menuItems.clone();
+    public ItemStack[] getRecipeItems() {
+        return recipeItems.clone();
     }
 
     public ItemStack[] getFreeRecipeItems() {

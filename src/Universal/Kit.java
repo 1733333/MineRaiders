@@ -11,12 +11,11 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -417,8 +416,8 @@ public enum Kit {
         }
         return false;
     }
-    public boolean checkMaterials(Player player, ItemStack[] required) {
-        StringBuilder missing = new StringBuilder();
+    public ItemStack[] checkMaterials(Player player, ItemStack[] required) {
+        List<ItemStack>missingStack = new ArrayList<>();
         for (ItemStack req : required) {
             if(req == null)continue;
             int needed = req.getAmount();
@@ -430,16 +429,10 @@ public enum Kit {
             }
             int diff = needed - has;
             if (diff > 0) {
-                if (!missing.isEmpty()) missing.append(", ");
-                missing.append("缺少 ").append(req.getItemMeta().getDisplayName()).append(" x").append(diff);
+                missingStack.add(req);
             }
         }
-        if (missing.isEmpty()) {
-            return true;
-        }else {
-            player.sendMessage(missing.toString());
-            return false;
-        }
+        return missingStack.toArray(new ItemStack[0]);
     }
     public void removeItems(Player player, ItemStack[] required) {
         for (ItemStack req : required) {

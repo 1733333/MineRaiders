@@ -1,6 +1,5 @@
 package commands;
 
-import Universal.GadgetPool;
 import Universal.LootPool;
 import Universal.PlayerStats;
 import Universal.Recipes;
@@ -21,7 +20,7 @@ public class RecipeCommand implements CommandExecutor {
         if(commandSender instanceof Player p) {
             Inventory inv = Bukkit.createInventory(p, 54,
                     ChatColor.RED + "" + ChatColor.BOLD + "配方列表|点击物品即可查询配方");
-            ItemStack[] weapons = re.getMenuItems();
+            ItemStack[] weapons = re.getRecipeItems();
             for (int i = 0; i < 52; i++) {
                 if (i >= weapons.length) break;
                 inv.setItem(i,weapons[i]);
