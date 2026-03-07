@@ -420,6 +420,7 @@ public enum Kit {
         }
         List<ItemStack> missing = new ArrayList<>();
         for (ItemStack req : required) {
+            if(req == null)continue;
             int need = req.getAmount();
             Iterator<ItemStack> iter = items.iterator();
             while (iter.hasNext() && need > 0) {
