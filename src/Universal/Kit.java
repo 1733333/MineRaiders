@@ -15,10 +15,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public enum Kit {
     INSTANCE;
@@ -417,22 +414,34 @@ public enum Kit {
         return false;
     }
     public ItemStack[] checkMaterials(Player player, ItemStack[] required) {
-        List<ItemStack>missingStack = new ArrayList<>();
+        List<ItemStack> items = new ArrayList<>();
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item != null && item.getType() != Material.AIR) items.add(item.clone());
+        }
+        List<ItemStack> missing = new ArrayList<>();
         for (ItemStack req : required) {
-            if(req == null)continue;
-            int needed = req.getAmount();
-            int has = 0;
-            for (ItemStack item : player.getInventory().getContents()) {
-                if (item != null && item.getType() == req.getType()) {
-                    has += item.getAmount();
+            int need = req.getAmount();
+            Iterator<ItemStack> iter = items.iterator();
+            while (iter.hasNext() && need > 0) {
+                ItemStack item = iter.next();
+                if (item.isSimilar(req)) {
+                    int amount = item.getAmount();
+                    if (amount <= need) {
+                        need -= amount;
+                        iter.remove();
+                    } else {
+                        item.setAmount(amount - need);
+                        need = 0;
+                    }
                 }
             }
-            int diff = needed - has;
-            if (diff > 0) {
-                missingStack.add(req);
+            if (need > 0) {
+                ItemStack miss = req.clone();
+                miss.setAmount(need);
+                missing.add(miss);
             }
         }
-        return missingStack.toArray(new ItemStack[0]);
+        return missing.toArray(new ItemStack[0]);
     }
     public void removeItems(Player player, ItemStack[] required) {
         for (ItemStack req : required) {

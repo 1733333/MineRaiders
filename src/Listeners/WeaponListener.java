@@ -166,6 +166,36 @@ public class WeaponListener implements Listener {
                     shootBowEvent.setProjectile(a);
                     p.setCooldown(bow.getType(), 20);
                 }
+                case "§f猎头" -> {
+                    if (shootBowEvent.getForce() >= 2.9) {
+                        w.playSound(shootLoc, Sound.ITEM_CROSSBOW_SHOOT, 1, 1);
+                        Arrow a = w.spawnArrow(shootLoc, shootVec, 4, 0);
+                        a.setShooter(p);
+                        a.setCritical(true);
+                        a.setDamage(2);
+                        shootBowEvent.setProjectile(a);
+                        BukkitRunnable headShot = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                w.spawnParticle(Particle.SOUL, a.getLocation(), 1);
+                                if(a.isDead()){
+                                    for(Entity e : a.getNearbyEntities(1,1,1)){
+                                        if(e == p)continue;
+                                        if(e instanceof LivingEntity l){
+                                            if(k.locDistance(a.getLocation(),l.getEyeLocation()) <= 0.1){
+                                                l.damage(10, DamageSource.builder(DamageType.ARROW).build());
+                                                p.playSound(p.getLocation(),Sound.ENTITY_PLAYER_LEVELUP,1,1);
+                                                p.playSound(p.getLocation(),Sound.ENTITY_WITHER_BREAK_BLOCK,1,1);
+                                            }
+                                        }
+                                    }
+                                    this.cancel();
+                                }
+                            }
+                        };
+                        headShot.runTaskTimer(plugin,0L,1L);
+                    }
+                }
             }
         }
     }

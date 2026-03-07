@@ -474,6 +474,7 @@ public class PlayerListener implements Listener {
                             content = sl.getIngredientList().toArray(new ItemStack[0]);
                         }
                         if (content.length > 0) {
+                            boolean open = true;
                             for (int i = 0; i < 9; i++) {
                                 if (i >= content.length) break;
                                 ItemStack itemStack = content[i];
@@ -485,6 +486,7 @@ public class PlayerListener implements Listener {
                                 if(clicked.getType() == Material.CRAFTING_TABLE && p.isSneaking()){
                                     ItemStack[]missing = k.checkMaterials(p,content);
                                     if(missing.length == 0){
+                                        open = false;
                                         Item i = w.dropItem(p.getEyeLocation(),item);
                                         i.setVelocity(p.getEyeLocation().getDirection().multiply(0.1));
                                         w.playSound(p.getLocation(),Sound.BLOCK_ANVIL_USE,1,1);
@@ -501,8 +503,10 @@ public class PlayerListener implements Listener {
                                     }
                                 }
                             }
-                            p.openInventory(inv);
-                            playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.CRAFTING_MENU);
+                            if(open) {
+                                p.openInventory(inv);
+                                playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.CRAFTING_MENU);
+                            }
                         }
                     }
                 }
@@ -515,27 +519,29 @@ public class PlayerListener implements Listener {
             ItemStack result = craftEvent.getRecipe().getResult();
             ItemMeta resultMeta = result.getItemMeta();
             HashMap<String,Integer>keyMap = re.getRecipeKeys();
+            List<String> freeRecipeString = Arrays.stream(re.getFreeRecipes()).toList();
             Inventory inv = p.getInventory();
             if (resultMeta.hasDisplayName()) {
                 String resultName = resultMeta.getDisplayName();
                 int key = keyMap.getOrDefault(resultName, -1);
                 if (key != -1) {
-                    boolean cancel = true;
-                    for (ItemStack i : inv.getContents()) {
-                        if (i.getType() == Material.WRITTEN_BOOK) {
-                            ItemMeta meta = i.getItemMeta();
-                            String bookName = meta.getDisplayName();
-                            int index = bookName.indexOf(ChatColor.GOLD + "配方");
-                            if(index != -1){
-                                String itemName = resultName.substring(0,index);
-                                if(itemName.equals(resultName)){
-                                    cancel = false;
+                    if (!freeRecipeString.contains(resultName)) {
+                        craftEvent.setCancelled(true);
+                        for (ItemStack i : inv.getContents()) {
+                            if(i == null)continue;
+                            if (i.getType() == Material.WRITTEN_BOOK) {
+                                ItemMeta meta = i.getItemMeta();
+                                String bookName = meta.getDisplayName();
+                                int index = bookName.indexOf(ChatColor.GOLD + "配方");
+                                if (index != -1) {
+                                    String itemName = resultName.substring(0, index);
+                                    if (itemName.equals(resultName)) {
+                                        craftEvent.setCancelled(false);
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
-                    if (cancel) {
-                        craftEvent.setCancelled(true);
                     }
                 }
             }

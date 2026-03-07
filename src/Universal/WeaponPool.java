@@ -130,6 +130,7 @@ public enum WeaponPool {
             seaHammer(),
             echoBow(),
             echoCrossBow(),
+            headHunter(),
     };
 
     public ItemStack[] getRecipeWeapons() {
@@ -530,6 +531,19 @@ public enum WeaponPool {
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "三叉戟");
         lore.add(ChatColor.WHITE + "可以合成的三叉戟");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack headHunter(){
+        ItemStack item = new ItemStack(Material.BOW);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.RED + "猎头");
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "猎头");
+        lore.add(ChatColor.WHITE + "奖励那些射得准的玩家");
+        lore.add(ChatColor.WHITE + "当拉满弓时会射出特殊箭矢");
+        lore.add(ChatColor.WHITE + "特殊箭矢爆头造成额外伤害");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

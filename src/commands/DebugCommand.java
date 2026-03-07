@@ -33,7 +33,10 @@ public class DebugCommand implements CommandExecutor {
                     switch (num){
                         case -3 ->w.dropItem(p.getLocation(),flute());
                         case -2 ->damageTest(p.getLocation());
-                        case -1 ->Bukkit.resetRecipes();
+                        case -1 ->{
+                            Bukkit.resetRecipes();
+                            Bukkit.broadcastMessage(ChatColor.RED + "自定义配方已清除");
+                        }
                         case 0->m.shredder(p.getLocation());
                         case 1->m.flea(p.getLocation());
                         case 2->m.pop(p.getLocation());

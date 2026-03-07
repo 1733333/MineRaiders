@@ -124,6 +124,7 @@ public enum Recipes {
     }
 
     public void registerRecipe() {
+        Bukkit.broadcastMessage(ChatColor.AQUA + "自定义配方已加载");
         r0();r10();r20();r30();r40();r50();r60();r70();r80();r90();r100();r110();
         r1();r11();r21();r31();r41();r51();r61();r71();r81();r91();r101();r111();
         r2();r12();r22();r32();r42();r52();r62();r72();r82();r92();r102();r112();
@@ -154,6 +155,10 @@ public enum Recipes {
 
     public HashMap<String, Integer> getRecipeKeys() {
         return recipeKeys;
+    }
+
+    public String[] getFreeRecipes() {
+        return freeRecipes.clone();
     }
 
     public ItemStack[] getRecipeFlat(ShapedRecipe recipe) {

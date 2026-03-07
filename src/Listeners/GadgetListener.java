@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -45,6 +46,7 @@ public class GadgetListener implements Listener {
     WeaponPool wp = WeaponPool.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
     HashSet<Player>isPlaying = new HashSet<>();
+    HashSet<Entity>projectileHit = new HashSet<>();
     HashSet<Player> isChargingShield = new HashSet<>();
     HashMap<String,BukkitRunnable> playerTask = new HashMap<>();
     int[]musicScore1 = new int[]{
@@ -80,6 +82,13 @@ public class GadgetListener implements Listener {
         this.plugin = plugin;
     }
 
+    @EventHandler
+    public void projectileHit(ProjectileHitEvent hitEvent){
+        Projectile pr = hitEvent.getEntity();
+        if (pr.getName().contains("狼群")) {
+            projectileHit.add(pr);
+        }
+    }
     @EventHandler
     public void armorStandDeath(EntityDeathEvent deathEvent) {
         Entity e = deathEvent.getEntity();
@@ -1161,6 +1170,7 @@ public class GadgetListener implements Listener {
                                 a.setGlowing(true);
                                 a.setTicksLived(1200);
                                 a.setDamage(10);
+                                a.setCustomName(ChatColor.YELLOW + p.getName() + "的狼群");
                                 BukkitRunnable traceEnemy = new BukkitRunnable() {
                                     @Override
                                     public void run() {
@@ -1184,11 +1194,13 @@ public class GadgetListener implements Listener {
                                             a.setVelocity(entityVector.normalize());
                                             distance = k.distance(a,nearest);
                                         }
-                                        if ((distance > 0 && distance < 2) || a.isDead()) {
-                                            if ((distance > 0 && distance < 2)) {
+                                        if ((distance > 0 && distance < 2) || a.isDead() || projectileHit.contains(a)) {
+                                            if ((distance > 0 && distance < 2) || projectileHit.contains(a)) {
                                                 int count = 0;
+                                                projectileHit.remove(a);
                                                 for (Entity e : a.getNearbyEntities(3, 3, 3)) {
                                                     if (e instanceof Arrow a1) {
+                                                        projectileHit.remove(a1);
                                                         a1.remove();
                                                         count += 1;
                                                     }
