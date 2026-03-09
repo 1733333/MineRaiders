@@ -27,6 +27,7 @@ public class GetAllItemsCommand implements CommandExecutor {
             inv.setItem(5,recipe());
             inv.setItem(6,freeRecipe());
             PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.COOKBOOK_MENU);
+            p.openInventory(inv);
         }
         return true;
     }

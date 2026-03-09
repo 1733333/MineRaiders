@@ -56,7 +56,7 @@ public class MR extends JavaPlugin {
         this.getCommand("getrecipes").setExecutor(recipeCommand);
         this.getCommand("getfreerecipes").setExecutor(freeRecipeCommand);
         this.getCommand("getdrops").setExecutor(dropCommand);
-        this.getCommand("gets").setExecutor(getAllItemsCommand);
+        this.getCommand("getall").setExecutor(getAllItemsCommand);
 
         containerListener.setPlugin(this);
         gadgetListener.setPlugin(this);

@@ -175,7 +175,7 @@ public class WeaponListener implements Listener {
                         a.setShooter(p);
                         a.setCritical(true);
                         a.setCustomName(ChatColor.RED+ p.getName() + "的猎头箭");
-                        a.setDamage(2);
+                        a.setDamage(0);
                         a.setTicksLived(1200);
                         shootBowEvent.setProjectile(a);
                         BukkitRunnable particle = new BukkitRunnable() {
@@ -199,14 +199,16 @@ public class WeaponListener implements Listener {
                 Entity e = hitEvent.getHitEntity();
                 if (e instanceof LivingEntity l) {
                     double arrowY = pr.getLocation().getY();
-                    double entityY = l.getLocation().getY();
+                    double entityY = l.getEyeLocation().getY();
+                    double damage = 10;
                     if (Math.abs(entityY - arrowY) < 0.5) {
-                        l.damage(10, DamageSource.builder(DamageType.ARROW).build());
+                        damage = 20;
                         if (pr.getShooter() instanceof Player p) {
                             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                             p.playSound(p.getLocation(), Sound.ENTITY_WITHER_BREAK_BLOCK, 1, 1);
                         }
                     }
+                    l.damage(damage, DamageSource.builder(DamageType.ARROW).build());
                 }
             }
         }

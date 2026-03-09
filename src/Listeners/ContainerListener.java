@@ -88,6 +88,7 @@ public class ContainerListener implements Listener {
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
     }
+
     public int getContainerRarity(Block b){
         List<Material> normalContainerList = Arrays.stream(normalContainer).toList();
         List<Material> goodContainerList = Arrays.stream(goodContainer).toList();

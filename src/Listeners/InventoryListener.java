@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.*;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +38,7 @@ public class InventoryListener implements Listener {
     @EventHandler
     public void invClick(InventoryClickEvent clickEvent) {
         Player p = (Player) clickEvent.getWhoClicked();
-        if(playerStats.isDying(p)){
+        if (playerStats.isDying(p)) {
             clickEvent.setCancelled(true);
             return;
         }
@@ -48,7 +49,7 @@ public class InventoryListener implements Listener {
         ItemStack item = clickEvent.getCurrentItem();
         if (item == null) return;
         if (status != PlayerStats.MenuStatus.NOT_MENU &&
-            status != PlayerStats.MenuStatus.COOKBOOK_MENU) {
+                status != PlayerStats.MenuStatus.COOKBOOK_MENU) {
             if (slot < 54) {
                 ItemStack[] stack = switch (status) {
                     case LOOT_MENU -> lp.getAllLoots();
@@ -60,7 +61,7 @@ public class InventoryListener implements Listener {
                     case DROP_MENU -> dp.getAllDrops();
                     default -> new ItemStack[0];
                 };
-                String invName = switch (status){
+                String invName = switch (status) {
                     case LOOT_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "战利品列表";
                     case WEAPON_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "武器列表";
                     case ARMOR_MENU -> ChatColor.RED + "" + ChatColor.BOLD + "盔甲列表";
@@ -71,23 +72,32 @@ public class InventoryListener implements Listener {
                     default -> "";
                 };
                 clickEvent.setCancelled(true);
-                if (slot == 52) {
-                    changePage(p, stack, true, invName,status);
+                if (slot == 51) {
+                    changePage(p, stack, true, invName, status);
+                } else if (slot == 52) {
+                    p.closeInventory();
+                    BukkitRunnable later = new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            p.performCommand("getall");
+                        }
+                    };
+                    later.runTaskLater(plugin,1L);
                 } else if (slot == 53) {
-                    changePage(p, stack, false, invName,status);
+                    changePage(p, stack, false, invName, status);
                 }
-                if (slot < 52) {
+                if (slot < 51) {
                     if (status == PlayerStats.MenuStatus.RECIPE_MENU ||
                             status == PlayerStats.MenuStatus.FREE_RECIPE_MENU) {
-                        HashMap<String,Integer>keyMap = re.getRecipeKeys();
-                        int key = keyMap.getOrDefault(item.getItemMeta().getDisplayName(),-1);
-                        if(key != -1) {
+                        HashMap<String, Integer> keyMap = re.getRecipeKeys();
+                        int key = keyMap.getOrDefault(item.getItemMeta().getDisplayName(), -1);
+                        if (key != -1) {
                             NamespacedKey k = NamespacedKey.fromString("r" + key, plugin);
                             Recipe r = Bukkit.getRecipe(k);
                             Inventory inv = Bukkit.createInventory(p, InventoryType.WORKBENCH,
                                     ChatColor.RED + "" + ChatColor.BOLD + "配方");
                             inv.setItem(0, item);
-                            if(r instanceof ShapedRecipe sr) {
+                            if (r instanceof ShapedRecipe sr) {
                                 ItemStack[] content = re.getRecipeFlat(sr);
                                 for (int i = 0; i < 9; i++) {
                                     if (i >= content.length) break;
@@ -96,7 +106,7 @@ public class InventoryListener implements Listener {
                                     inv.setItem(i + 1, itemStack);
                                 }
                             }
-                            if(r instanceof ShapelessRecipe sl){
+                            if (r instanceof ShapelessRecipe sl) {
                                 List<ItemStack> content = sl.getIngredientList();
                                 for (int i = 0; i < 9; i++) {
                                     if (i >= content.size()) break;
@@ -109,7 +119,7 @@ public class InventoryListener implements Listener {
                             playerPreviousStatus.put(p.getName(), status);
                             playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.CRAFTING_MENU);
                         }
-                    } else if(status != PlayerStats.MenuStatus.CRAFTING_MENU) {
+                    } else if (status != PlayerStats.MenuStatus.CRAFTING_MENU) {
                         if (p.isOp()) {
                             Item i = w.dropItem(p.getLocation(), item);
                             i.setPickupDelay(0);
@@ -118,30 +128,38 @@ public class InventoryListener implements Listener {
                 }
             }
         }
-        if(status == PlayerStats.MenuStatus.COOKBOOK_MENU){
+        if (status == PlayerStats.MenuStatus.COOKBOOK_MENU) {
             clickEvent.setCancelled(true);
-            String command = switch (slot){
-                case 0 ->"getarmors";
-                case 1 ->"getweapons";
-                case 2 ->"getgadgets";
-                case 3 ->"getdrops";
-                case 4 ->"getloots";
-                case 5 ->"getrecipes";
-                case 6 ->"getfreerecipes";
-                default -> "";
+            p.closeInventory();
+            BukkitRunnable later = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    String command = switch (slot) {
+                        case 0 -> "getarmors";
+                        case 1 -> "getweapons";
+                        case 2 -> "getgadgets";
+                        case 3 -> "getdrops";
+                        case 4 -> "getloots";
+                        case 5 -> "getrecipes";
+                        case 6 -> "getfreerecipes";
+                        default -> "";
+                    };
+                    if (!command.isEmpty()) {
+                        p.performCommand(command);
+                    }
+                }
             };
-            if(!command.isEmpty()){
-                p.performCommand(command);
-            }
+            later.runTaskLater(plugin, 1L);
         }
     }
+
     @EventHandler
     public void invClose(InventoryCloseEvent closeEvent) {
         Player p = (Player) closeEvent.getPlayer();
         String name = p.getName();
         PlayerStats.MenuStatus status = playerPreviousStatus.getOrDefault(name, PlayerStats.MenuStatus.NOT_MENU);
         PlayerStats.MenuStatus pStatus = playerPreviousStatus.getOrDefault(name, PlayerStats.MenuStatus.NOT_MENU);
-        if(status == PlayerStats.MenuStatus.CRAFTING_MENU) {
+        if (status == PlayerStats.MenuStatus.CRAFTING_MENU) {
             if (pStatus == PlayerStats.MenuStatus.RECIPE_MENU) {
                 p.performCommand("getrecipes");
             }
@@ -149,62 +167,54 @@ public class InventoryListener implements Listener {
                 p.performCommand("getfreerecipes");
             }
         }
-        switch (status) {
-            case LOOT_MENU :
-            case WEAPON_MENU :
-            case ARMOR_MENU :
-            case GADGET_MENU :
-            case RECIPE_MENU :
-            case FREE_RECIPE_MENU :
-            case DROP_MENU :
-                p.performCommand("gets");
-        };
         playerMenuStatus.put(name, PlayerStats.MenuStatus.NOT_MENU);
         playerPage.remove(name);
     }
 
-    public void changePage(Player p, ItemStack[]stacks, boolean pageUp, String name, PlayerStats.MenuStatus status){
-        int currentPage = playerPage.getOrDefault(p.getName(),0);
-        int maxPage = lp.getAllLoots().length / 52;
-        if(pageUp){
-            if(currentPage == 0){
-                p.playSound(p.getEyeLocation(),Sound.ENCHANT_THORNS_HIT,1,1);
-            }else {
-                p.playSound(p.getEyeLocation(),Sound.ITEM_BOOK_PAGE_TURN,1,1);
-                Inventory inv = Bukkit.createInventory(p,54,name);
-                int positiveBound = currentPage * 52;
-                int negativeBound = (currentPage - 1) * 52;
+    public void changePage(Player p, ItemStack[] stacks, boolean pageUp, String name, PlayerStats.MenuStatus status) {
+        int currentPage = playerPage.getOrDefault(p.getName(), 0);
+        int maxPage = lp.getAllLoots().length / 51;
+        if (pageUp) {
+            if (currentPage == 0) {
+                p.playSound(p.getEyeLocation(), Sound.ENCHANT_THORNS_HIT, 1, 1);
+            } else {
+                p.playSound(p.getEyeLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1, 1);
+                Inventory inv = Bukkit.createInventory(p, 54, name);
+                int positiveBound = currentPage * 51;
+                int negativeBound = (currentPage - 1) * 51;
                 int slot = 0;
-                for(int i = negativeBound; i < positiveBound;i ++){
-                    if(i >= stacks.length)break;
-                    inv.setItem(slot,stacks[i]);
-                    slot ++;
+                for (int i = negativeBound; i < positiveBound; i++) {
+                    if (i >= stacks.length) break;
+                    inv.setItem(slot, stacks[i]);
+                    slot++;
                 }
-                inv.setItem(52,lp.pageUp());
-                inv.setItem(53,lp.pageDown());
+                inv.setItem(51, lp.pageUp());
+                inv.setItem(52, lp.close());
+                inv.setItem(53, lp.pageDown());
                 p.openInventory(inv);
                 currentPage -= 1;
-                playerPage.put(p.getName(),currentPage);
+                playerPage.put(p.getName(), currentPage);
             }
-        }else {
-            if(currentPage + 1 > maxPage){
-                p.playSound(p.getEyeLocation(),Sound.ENCHANT_THORNS_HIT,1,1);
-            }else {
+        } else {
+            if (currentPage + 1 > maxPage) {
+                p.playSound(p.getEyeLocation(), Sound.ENCHANT_THORNS_HIT, 1, 1);
+            } else {
                 currentPage += 1;
-                p.playSound(p.getEyeLocation(),Sound.ITEM_BOOK_PAGE_TURN,1,1);
-                Inventory inv = Bukkit.createInventory(p,54,name);
-                int positiveBound = (currentPage + 1) * 52;
-                int negativeBound = currentPage * 52;
+                p.playSound(p.getEyeLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1, 1);
+                Inventory inv = Bukkit.createInventory(p, 54, name);
+                int positiveBound = (currentPage + 1) * 51;
+                int negativeBound = currentPage * 51;
                 int slot = 0;
-                for(int i = negativeBound; i < positiveBound;i ++){
-                    if(i >= stacks.length)break;
-                    inv.setItem(slot,stacks[i]);
-                    slot ++;
+                for (int i = negativeBound; i < positiveBound; i++) {
+                    if (i >= stacks.length) break;
+                    inv.setItem(slot, stacks[i]);
+                    slot++;
                 }
-                inv.setItem(52,lp.pageUp());
-                inv.setItem(53,lp.pageDown());
+                inv.setItem(51, lp.pageUp());
+                inv.setItem(52, lp.close());
+                inv.setItem(53, lp.pageDown());
                 p.openInventory(inv);
-                playerPage.put(p.getName(),currentPage);
+                playerPage.put(p.getName(), currentPage);
             }
         }
         playerMenuStatus.put(p.getName(), status);

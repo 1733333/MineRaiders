@@ -22,11 +22,12 @@ public class ArmorCommand implements CommandExecutor {
             Inventory inv = Bukkit.createInventory(p, 54,
                     ChatColor.RED + "" + ChatColor.BOLD + "盔甲列表");
             ItemStack[] weapons = ap.getRecipeArmors();
-            for (int i = 0; i < 52; i++) {
+            for (int i = 0; i < 51; i++) {
                 if (i >= weapons.length) break;
                 inv.setItem(i,weapons[i]);
             }
-            inv.setItem(52, lp.pageUp());
+            inv.setItem(51, lp.pageUp());
+            inv.setItem(52, lp.close());
             inv.setItem(53, lp.pageDown());
             PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.ARMOR_MENU);
             p.openInventory(inv);

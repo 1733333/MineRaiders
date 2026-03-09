@@ -729,6 +729,7 @@ public enum Monsters {
         s.setCustomName(ChatColor.YELLOW + "机魂");
         v.setCustomName(ChatColor.YELLOW + "机魂推进器");
         s.setSilent(true);
+        s.setInvisible(true);
         v.addPassenger(s);
         v.setBound(loc);
         v.setInvisible(true);

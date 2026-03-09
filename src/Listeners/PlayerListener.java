@@ -22,6 +22,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
@@ -543,6 +544,49 @@ public class PlayerListener implements Listener {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+    @EventHandler
+    public void highLightContainer(EntityPotionEffectEvent effectEvent){
+        Entity e = effectEvent.getEntity();
+        World w = e.getWorld();
+        ContainerListener cl = new ContainerListener();
+        if(e instanceof Player p){
+            if(effectEvent.getCause() == EntityPotionEffectEvent.Cause.POTION_DRINK){
+                PotionEffect effect = effectEvent.getNewEffect();
+                if(effect.getType() == PotionEffectType.NIGHT_VISION){
+                    BukkitRunnable highLight = new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if(!p.hasPotionEffect(PotionEffectType.NIGHT_VISION)){
+                                this.cancel();
+                            }
+                            int radius = 10;
+                            for(int a = -radius;a <= radius;a++) {
+                                for (int b = -radius; b <= radius; b++) {
+                                    for (int c = -radius; c <= radius; c++) {
+                                        Location bLoc = p.getLocation().add(a,b,c).clone();
+                                        Block block = w.getBlockAt(bLoc);
+                                        int rarity = cl.getContainerRarity(block);
+                                        if(rarity != -1){
+                                            Particle particle = switch (rarity){
+                                                case -2,-3,-4,-5-> Particle.HAPPY_VILLAGER;
+                                                case 0 -> Particle.WAX_OFF;
+                                                case 1 -> Particle.SCRAPE;
+                                                case 2 -> Particle.WAX_ON;
+                                                default -> Particle.ENTITY_EFFECT;
+                                            };
+                                            p.spawnParticle(particle,bLoc.add(0,0.5,0),
+                                            20,0.55,0.55,0.55,0);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    highLight.runTaskTimer(plugin,0L,40L);
                 }
             }
         }

@@ -23,11 +23,12 @@ public class LootCommand implements CommandExecutor {
             Inventory inv = Bukkit.createInventory(p, 54,
                     ChatColor.RED + "" + ChatColor.BOLD + "战利品列表");
             ItemStack[] weapons = lp.getAllLoots();
-            for (int i = 0; i < 52; i++) {
+            for (int i = 0; i < 51; i++) {
                 if (i >= weapons.length) break;
                 inv.setItem(i,weapons[i]);
             }
-            inv.setItem(52, lp.pageUp());
+            inv.setItem(51, lp.pageUp());
+            inv.setItem(52, lp.close());
             inv.setItem(53, lp.pageDown());
             PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.LOOT_MENU);
             p.openInventory(inv);

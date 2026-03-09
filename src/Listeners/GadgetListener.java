@@ -1046,7 +1046,7 @@ public class GadgetListener implements Listener {
                                                 p1.sendTitle(" ", ChatColor.AQUA + "！被电击！", 10, 40, 10);
                                             }
                                             l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2));
-                                            l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 100, 2));
+                                            l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 100, 4));
                                         }
                                     }
                                     w.playSound(g.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1, 1);

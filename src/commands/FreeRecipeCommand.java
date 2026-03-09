@@ -21,11 +21,12 @@ public class FreeRecipeCommand implements CommandExecutor {
             Inventory inv = Bukkit.createInventory(p, 54,
                     ChatColor.RED + "" + ChatColor.BOLD + "免费配方列表|点击物品即可查询配方");
             ItemStack[] weapons = re.getFreeRecipeItems();
-            for (int i = 0; i < 52; i++) {
+            for (int i = 0; i < 51; i++) {
                 if (i >= weapons.length) break;
                 inv.setItem(i,weapons[i]);
             }
-            inv.setItem(52, lp.pageUp());
+            inv.setItem(51, lp.pageUp());
+            inv.setItem(52, lp.close());
             inv.setItem(53, lp.pageDown());
             PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.FREE_RECIPE_MENU);
             p.openInventory(inv);

@@ -316,6 +316,16 @@ public enum LootPool {
         item.setItemMeta(itemMeta);
         return item;
     }
+    public ItemStack close() {
+        ItemStack item = new ItemStack(Material.YELLOW_STAINED_GLASS);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.YELLOW + "返回主菜单");
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "点击返回主菜单");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
 
     public ItemStack k0() {
         ItemStack i = new ItemStack(Material.COPPER_TORCH);
