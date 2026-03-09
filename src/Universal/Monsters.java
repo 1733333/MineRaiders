@@ -6,6 +6,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -720,5 +721,24 @@ public enum Monsters {
         };
         getTarget.runTaskTimer(plugin, 0L, 100L);
         shooting.runTaskTimer(plugin, 0L, 50L);
+    }
+    public void guardianMinion(Location loc){
+        World w = loc.getWorld();
+        Skeleton s = (Skeleton) w.spawnEntity(loc, EntityType.SKELETON);
+        Vex v = (Vex) w.spawnEntity(loc, EntityType.VEX);
+        s.setCustomName(ChatColor.YELLOW + "机魂");
+        v.setCustomName(ChatColor.YELLOW + "机魂推进器");
+        s.setSilent(true);
+        v.addPassenger(s);
+        v.setBound(loc);
+        v.setInvisible(true);
+        v.setInvulnerable(true);
+        v.setSilent(true);
+        v.getEquipment().clear();
+        EntityEquipment e = s.getEquipment();
+        e.clear();
+        e.setHelmet(new ItemStack(Material.DISPENSER));
+        e.setChestplate(ap.mobChest(Color.GRAY));
+        e.setItemInMainHand(new ItemStack(Material.BOW));
     }
 }

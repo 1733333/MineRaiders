@@ -14,6 +14,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -36,6 +37,7 @@ public class WeaponListener implements Listener {
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
     }
+
     @EventHandler
     public void playerShootBow(EntityShootBowEvent shootBowEvent) {
         Entity e = shootBowEvent.getEntity();
@@ -172,28 +174,38 @@ public class WeaponListener implements Listener {
                         Arrow a = w.spawnArrow(shootLoc, shootVec, 4, 0);
                         a.setShooter(p);
                         a.setCritical(true);
+                        a.setCustomName(ChatColor.RED+ p.getName() + "的猎头箭");
                         a.setDamage(2);
+                        a.setTicksLived(1200);
                         shootBowEvent.setProjectile(a);
-                        BukkitRunnable headShot = new BukkitRunnable() {
+                        BukkitRunnable particle = new BukkitRunnable() {
                             @Override
                             public void run() {
-                                w.spawnParticle(Particle.SOUL, a.getLocation(), 1);
-                                if(a.isDead()){
-                                    for(Entity e : a.getNearbyEntities(1,1,1)){
-                                        if(e == p)continue;
-                                        if(e instanceof LivingEntity l){
-                                            if(k.locDistance(a.getLocation(),l.getEyeLocation()) <= 0.1){
-                                                l.damage(10, DamageSource.builder(DamageType.ARROW).build());
-                                                p.playSound(p.getLocation(),Sound.ENTITY_PLAYER_LEVELUP,1,1);
-                                                p.playSound(p.getLocation(),Sound.ENTITY_WITHER_BREAK_BLOCK,1,1);
-                                            }
-                                        }
-                                    }
-                                    this.cancel();
-                                }
+                                if(a.isDead())this.cancel();
+                                w.spawnParticle(Particle.SOUL,a.getLocation(),0);
                             }
                         };
-                        headShot.runTaskTimer(plugin,0L,1L);
+                        particle.runTaskTimer(plugin,0L,1L);
+                    }
+                }
+            }
+        }
+    }
+    @EventHandler
+    public void projectileHit(ProjectileHitEvent hitEvent){
+        Projectile pr = hitEvent.getEntity();
+        if(pr.getName().contains("猎头箭")) {
+            if (hitEvent.getHitEntity() != null) {
+                Entity e = hitEvent.getHitEntity();
+                if (e instanceof LivingEntity l) {
+                    double arrowY = pr.getLocation().getY();
+                    double entityY = l.getLocation().getY();
+                    if (Math.abs(entityY - arrowY) < 0.5) {
+                        l.damage(10, DamageSource.builder(DamageType.ARROW).build());
+                        if (pr.getShooter() instanceof Player p) {
+                            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                            p.playSound(p.getLocation(), Sound.ENTITY_WITHER_BREAK_BLOCK, 1, 1);
+                        }
                     }
                 }
             }
@@ -217,7 +229,6 @@ public class WeaponListener implements Listener {
                         smashGround(p,hand);
                         interactEvent.setCancelled(true);
                     }
-
                 }
             }
         }

@@ -47,7 +47,8 @@ public class InventoryListener implements Listener {
         int slot = clickEvent.getRawSlot();
         ItemStack item = clickEvent.getCurrentItem();
         if (item == null) return;
-        if (status != PlayerStats.MenuStatus.NOT_MENU) {
+        if (status != PlayerStats.MenuStatus.NOT_MENU &&
+            status != PlayerStats.MenuStatus.COOKBOOK_MENU) {
             if (slot < 54) {
                 ItemStack[] stack = switch (status) {
                     case LOOT_MENU -> lp.getAllLoots();
@@ -117,6 +118,22 @@ public class InventoryListener implements Listener {
                 }
             }
         }
+        if(status == PlayerStats.MenuStatus.COOKBOOK_MENU){
+            clickEvent.setCancelled(true);
+            String command = switch (slot){
+                case 0 ->"getarmors";
+                case 1 ->"getweapons";
+                case 2 ->"getgadgets";
+                case 3 ->"getdrops";
+                case 4 ->"getloots";
+                case 5 ->"getrecipes";
+                case 6 ->"getfreerecipes";
+                default -> "";
+            };
+            if(!command.isEmpty()){
+                p.performCommand(command);
+            }
+        }
     }
     @EventHandler
     public void invClose(InventoryCloseEvent closeEvent) {
@@ -132,6 +149,16 @@ public class InventoryListener implements Listener {
                 p.performCommand("getfreerecipes");
             }
         }
+        switch (status) {
+            case LOOT_MENU :
+            case WEAPON_MENU :
+            case ARMOR_MENU :
+            case GADGET_MENU :
+            case RECIPE_MENU :
+            case FREE_RECIPE_MENU :
+            case DROP_MENU :
+                p.performCommand("gets");
+        };
         playerMenuStatus.put(name, PlayerStats.MenuStatus.NOT_MENU);
         playerPage.remove(name);
     }

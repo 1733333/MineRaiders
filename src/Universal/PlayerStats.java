@@ -20,6 +20,7 @@ public enum PlayerStats {
         FREE_RECIPE_MENU,
         DROP_MENU,
         CRAFTING_MENU,
+        COOKBOOK_MENU,
         DEV_MENU,
     }
     HashSet<Player> isDying = new HashSet<>();

@@ -46,7 +46,6 @@ public class GadgetListener implements Listener {
     WeaponPool wp = WeaponPool.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
     HashSet<Player>isPlaying = new HashSet<>();
-    HashSet<Entity>projectileHit = new HashSet<>();
     HashSet<Player> isChargingShield = new HashSet<>();
     HashMap<String,BukkitRunnable> playerTask = new HashMap<>();
     int[]musicScore1 = new int[]{
@@ -82,13 +81,6 @@ public class GadgetListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
-    public void projectileHit(ProjectileHitEvent hitEvent){
-        Projectile pr = hitEvent.getEntity();
-        if (pr.getName().contains("狼群")) {
-            projectileHit.add(pr);
-        }
-    }
     @EventHandler
     public void armorStandDeath(EntityDeathEvent deathEvent) {
         Entity e = deathEvent.getEntity();
@@ -1194,18 +1186,18 @@ public class GadgetListener implements Listener {
                                             a.setVelocity(entityVector.normalize());
                                             distance = k.distance(a,nearest);
                                         }
-                                        if ((distance > 0 && distance < 2) || a.isDead() || projectileHit.contains(a)) {
-                                            if ((distance > 0 && distance < 2) || projectileHit.contains(a)) {
+                                        if ((distance > 0 && distance < 2) || a.isDead()) {
+                                            if ((distance > 0 && distance < 2)) {
                                                 int count = 0;
-                                                projectileHit.remove(a);
-                                                for (Entity e : a.getNearbyEntities(3, 3, 3)) {
+                                                for (Entity e : a.getNearbyEntities(5, 5, 5)) {
                                                     if (e instanceof Arrow a1) {
-                                                        projectileHit.remove(a1);
-                                                        a1.remove();
-                                                        count += 1;
+                                                        if(a1.getName().contains("狼群")) {
+                                                            a1.remove();
+                                                            count += 1;
+                                                        }
                                                     }
                                                 }
-                                                nearest.damage(count * 30);
+                                                nearest.damage(count * 40);
                                                 w.playSound(a.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 2, 1);
                                                 w.spawnParticle(Particle.EXPLOSION_EMITTER, a.getLocation(), 1);
                                             }

@@ -159,7 +159,7 @@ public class MonsterListener implements Listener {
                         l.damage(damage);
                     }
                 }
-                boolean stab = false;
+//                boolean stab = false;
 //                if (a instanceof LivingEntity attacker) {
 //                    Vector stabVec = damaged.getEyeLocation().getDirection();
 //                    Vector lVec = damaged.getEyeLocation().toVector();
@@ -180,20 +180,24 @@ public class MonsterListener implements Listener {
         LivingEntity dead = deathEvent.getEntity();
         World w = dead.getWorld();
         String dName = dead.getName();
-        if (dName.equals("§7堡垒底盘") || dName.equals("§7堡垒炮塔")) {
-            if(!dead.getPassengers().isEmpty()){
-                for(Entity e : dead.getPassengers()){
-                    if(e instanceof LivingEntity l){
+        switch (dName){
+            case"§7堡垒底盘":
+            case"§7堡垒炮塔":
+            case"§e机魂":
+            case"§e机魂推进器":
+                if(!dead.getPassengers().isEmpty()){
+                    for(Entity e : dead.getPassengers()){
+                        if(e instanceof LivingEntity l){
+                            l.setHealth(0);
+                        }
+                    }
+                }
+                if(dead.getVehicle() != null){
+                    Entity v = dead.getVehicle();
+                    if(v instanceof LivingEntity l){
                         l.setHealth(0);
                     }
                 }
-            }
-            if(dead.getVehicle() != null){
-                Entity v = dead.getVehicle();
-                if(v instanceof LivingEntity l){
-                    l.setHealth(0);
-                }
-            }
         }
         if (dName.equals("§6火球")) {
             BukkitRunnable fire = new BukkitRunnable() {
@@ -219,6 +223,7 @@ public class MonsterListener implements Listener {
             case "§c粉碎者":
             case "§a跳蚤":
             case "§a爆爆":
+            case "§e机魂":
                 w.playSound(mob.getLocation(),Sound.ENTITY_BREEZE_DEATH,2,0.75f);
                 w.playSound(mob.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,1.5f);
         }
@@ -306,6 +311,26 @@ public class MonsterListener implements Listener {
         Entity e = splitEvent.getEntity();
         if(e.getCustomName() != null){
             splitEvent.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void mobImmune(EntityDamageEvent damageEvent){
+        Entity e = damageEvent.getEntity();
+        DamageSource source = damageEvent.getDamageSource();
+        DamageType type = source.getDamageType();
+        if(e instanceof LivingEntity l){
+            String name = l.getCustomName();
+            if(name != null){
+                switch (name){
+                    case "§e机魂" ->{
+                        if(type == DamageType.IN_WALL){
+                            damageEvent.setDamage(0);
+                            damageEvent.setCancelled(true);
+                        }
+                    }
+                }
+            }
         }
     }
 }

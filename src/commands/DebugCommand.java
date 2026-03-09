@@ -44,6 +44,7 @@ public class DebugCommand implements CommandExecutor {
                         case 4->m.snitch(p.getLocation());
                         case 5->m.leaper(p.getLocation());
                         case 6->m.bastion(p.getLocation());
+                        case 7->m.guardianMinion(p.getLocation());
                     }
                 }
             } catch (Exception ignored) {

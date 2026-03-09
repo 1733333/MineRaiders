@@ -31,3 +31,6 @@ commands:
   getdrops:
     description: get all drops
     usage: /getdrops
+  gets:
+    description: open a menu
+    usage: /gets
