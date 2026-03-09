@@ -578,8 +578,7 @@ public class PlayerListener implements Listener {
                                                 case 2 -> Particle.WAX_ON;
                                                 default -> Particle.ENTITY_EFFECT;
                                             };
-                                            p.spawnParticle(particle,bLoc.add(0,0.5,0),
-                                            20,0.55,0.55,0.55,0);
+                                            drawBlockOutline(block,particle);
                                         }
                                     }
                                 }
@@ -589,6 +588,29 @@ public class PlayerListener implements Listener {
                     highLight.runTaskTimer(plugin,0L,40L);
                 }
             }
+        }
+    }
+    public void drawBlockOutline(Block block,Particle particle) {
+        World w = block.getWorld();
+        double x = block.getX();
+        double y = block.getY();
+        double z = block.getZ();
+        for (double t = 0; t <= 1; t += 0.25) { // 步长 0.25，每条棱生成 5 个粒子
+
+            w.spawnParticle(particle, x + t, y, z, 1, 0, 0, 0, 0);
+            w.spawnParticle(particle, x + t, y, z + 1, 1, 0, 0, 0, 0);
+            w.spawnParticle(particle, x + t, y + 1, z, 1, 0, 0, 0, 0);
+            w.spawnParticle(particle, x + t, y + 1, z + 1, 1, 0, 0, 0, 0);
+
+            w.spawnParticle(particle, x, y + t, z, 1, 0, 0, 0, 0);
+            w.spawnParticle(particle, x + 1, y + t, z, 1, 0, 0, 0, 0);
+            w.spawnParticle(particle, x, y + t, z + 1, 1, 0, 0, 0, 0);
+            w.spawnParticle(particle, x + 1, y + t, z + 1, 1, 0, 0, 0, 0);
+
+            w.spawnParticle(particle, x, y, z + t, 1, 0, 0, 0, 0);
+            w.spawnParticle(particle, x + 1, y, z + t, 1, 0, 0, 0, 0);
+            w.spawnParticle(particle, x, y + 1, z + t, 1, 0, 0, 0, 0);
+            w.spawnParticle(particle, x + 1, y + 1, z + t, 1, 0, 0, 0, 0);
         }
     }
 }
