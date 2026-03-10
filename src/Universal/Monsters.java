@@ -788,14 +788,14 @@ public enum Monsters {
         p.setInvisible(true);
         p.setSilent(true);
         s.getEquipment().clear();
-        s.getEquipment().setHelmet(new ItemStack(Material.OBSERVER));
-        s.getEquipment().setChestplate(ap.mobChest(Color.BLACK));
-        double health = 10000;
+        s.getEquipment().setHelmet(new ItemStack(Material.DISPENSER));
+        s.getEquipment().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
+        double health = 1000;
         s.setCustomName(ChatColor.RED + "公爵");
         s.getAttribute(Attribute.SCALE).setBaseValue(3);
         s.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
+        p.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
         s.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
-        s.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.30);
         s.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,PotionEffect.INFINITE_DURATION,10));
         s.setInvisible(true);
         s.setCustomNameVisible(false);
