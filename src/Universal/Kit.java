@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
@@ -464,4 +465,42 @@ public enum Kit {
             }
         }
     }
+    public void drawBlockOutline(Player player,Block block,Particle particle) {
+        BoundingBox box = block.getBoundingBox();
+        double minX = box.getMinX(), minY = box.getMinY(), minZ = box.getMinZ();
+        double maxX = box.getMaxX(), maxY = box.getMaxY(), maxZ = box.getMaxZ();
+        int pointsPerEdge = 5;
+        List<double[]> positions = new ArrayList<>();
+        for (int i = 0; i < pointsPerEdge; i++) {
+            double t = i / (double)(pointsPerEdge - 1);
+            double x = minX + t * (maxX - minX);
+            double y = minY + t * (maxY - minY);
+            double z = minZ + t * (maxZ - minZ);
+            positions.add(new double[]{x, minY, minZ});
+            positions.add(new double[]{x, minY, maxZ});
+            positions.add(new double[]{x, maxY, minZ});
+            positions.add(new double[]{x, maxY, maxZ});
+            positions.add(new double[]{minX, y, minZ});
+            positions.add(new double[]{maxX, y, minZ});
+            positions.add(new double[]{minX, y, maxZ});
+            positions.add(new double[]{maxX, y, maxZ});
+            positions.add(new double[]{minX, minY, z});
+            positions.add(new double[]{maxX, minY, z});
+            positions.add(new double[]{minX, maxY, z});
+            positions.add(new double[]{maxX, maxY, z});
+        }
+        positions.sort(Comparator.comparingDouble(p ->
+                Math.sqrt(Math.pow(p[0]-minX,2)+Math.pow(p[1]-minY,2)+Math.pow(p[2]-minZ,2))));
+        Iterator<double[]> iter = positions.iterator();
+        new BukkitRunnable() {
+            public void run() {
+                for (int i = 0; i < 3 && iter.hasNext(); i++) {
+                    double[] p = iter.next();
+                    player.spawnParticle(particle, p[0], p[1], p[2], 1, 0, 0, 0, 0);
+                }
+                if (!iter.hasNext()) cancel();
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+
 }

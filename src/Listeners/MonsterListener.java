@@ -185,6 +185,8 @@ public class MonsterListener implements Listener {
             case"§7堡垒炮塔":
             case"§e机魂":
             case"§e机魂推进器":
+            case"§c公爵":
+            case"§c公爵引擎":
                 if(!dead.getPassengers().isEmpty()){
                     for(Entity e : dead.getPassengers()){
                         if(e instanceof LivingEntity l){
@@ -325,6 +327,7 @@ public class MonsterListener implements Listener {
                 switch (name){
                     case "§e机魂" ->{
                         if(type == DamageType.IN_WALL){
+                            l.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING,100,0));
                             damageEvent.setDamage(0);
                             damageEvent.setCancelled(true);
                         }

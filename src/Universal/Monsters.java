@@ -722,7 +722,7 @@ public enum Monsters {
         getTarget.runTaskTimer(plugin, 0L, 100L);
         shooting.runTaskTimer(plugin, 0L, 50L);
     }
-    public void guardianMinion(Location loc){
+    public void dukeMinion(Location loc){
         World w = loc.getWorld();
         Skeleton s = (Skeleton) w.spawnEntity(loc, EntityType.SKELETON);
         Vex v = (Vex) w.spawnEntity(loc, EntityType.VEX);
@@ -741,5 +741,276 @@ public enum Monsters {
         e.setHelmet(new ItemStack(Material.DISPENSER));
         e.setChestplate(ap.mobChest(Color.GRAY));
         e.setItemInMainHand(new ItemStack(Material.BOW));
+        BukkitRunnable getTarget = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (s.isDead()) {
+                    cancel();
+                    return;
+                }
+                if (s.getTarget() == null) {
+                    double radius = 20;
+                    for (Entity e : s.getNearbyEntities(radius, radius, radius)) {
+                        if (e instanceof Player p1) {
+                            if (k.distance(s, p1) > radius) continue;
+                            if (playerStats.isDying(p1)) continue;
+                            if (p1.getGameMode().equals(GameMode.SURVIVAL)) {
+                                s.setTarget(p1);
+                                v.setTarget(p1);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        BukkitRunnable dash = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if(s.isDead()){
+                    this.cancel();
+                }
+                if(s.getTarget()!= null){
+                    LivingEntity t = s.getTarget();
+                    k.knockBack(v,t.getLocation(),-0.1);
+                }
+            }
+        };
+        dash.runTaskTimer(plugin,0L,20L);
+        getTarget.runTaskTimer(plugin, 0L, 100L);
+    }
+    public void duke(Location loc) {
+        World w = loc.getWorld();
+        WitherSkeleton s = (WitherSkeleton) w.spawnEntity(loc, EntityType.WITHER_SKELETON);
+        Phantom p = (Phantom) w.spawnEntity(loc, EntityType.PHANTOM);
+        p.setCustomName(ChatColor.RED + "公爵引擎");
+        p.addPassenger(s);
+        p.setInvulnerable(true);
+        p.setInvisible(true);
+        p.setSilent(true);
+        s.getEquipment().clear();
+        s.getEquipment().setHelmet(new ItemStack(Material.OBSERVER));
+        s.getEquipment().setChestplate(ap.mobChest(Color.BLACK));
+        double health = 10000;
+        s.setCustomName(ChatColor.RED + "公爵");
+        s.getAttribute(Attribute.SCALE).setBaseValue(3);
+        s.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
+        s.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
+        s.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.30);
+        s.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,PotionEffect.INFINITE_DURATION,10));
+        s.setInvisible(true);
+        s.setCustomNameVisible(false);
+        s.setHealth(health);
+        BukkitRunnable getTarget = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (s.isDead()) {
+                    cancel();
+                    return;
+                }
+                w.playSound(s, Sound.ENTITY_PHANTOM_FLAP, 1, 1);
+                if (s.getTarget() == null) {
+                    double radius = 10;
+                    for (Entity e : s.getNearbyEntities(radius, radius, radius)) {
+                        if (e instanceof Player player) {
+                            if (k.distance(s, player) > radius) continue;
+                            if(playerStats.isDying(player))continue;
+                            if (player.getGameMode().equals(GameMode.SURVIVAL)) {
+                                s.setTarget(player);
+                                p.setTarget(player);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        BukkitRunnable particle = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (s.isDead()) {
+                    cancel();
+                    return;
+                }
+                for (int i = 0; i < 15; i++) {
+                    double x = r.nextDouble() - r.nextDouble();
+                    double y = r.nextDouble() - r.nextDouble();
+                    double z = r.nextDouble() - r.nextDouble();
+                    Vector spread = new Vector(x, y, z).normalize();
+                    Vector shoot = (new Vector(0, -1, 0).add(spread.multiply(0.8))).multiply(2);
+                    w.spawnParticle(Particle.SOUL_FIRE_FLAME, s.getLocation().add(0, 1, 0)
+                            , 0, shoot.getX(), shoot.getY(), shoot.getZ(), 0.1);
+                }
+            }
+        };
+        BukkitRunnable skill = new BukkitRunnable() {
+            int count = 0;
+            @Override
+            public void run() {
+                if(s.isDead()){
+                    this.cancel();
+                    return;
+                }
+                switch (count){
+                    case 0 ->{
+                        dukeShoot(s);
+                    }
+                    case 1 ->{
+                        dukeBomb(s);
+                    }
+                    case 2 ->{
+                        dukeBurn(p);
+                    }
+                    case 3 ->{
+                        dukeMinion(p.getLocation());
+                        dukeMinion(p.getLocation());
+                        dukeMinion(p.getLocation());
+                        w.playSound(p.getLocation(),Sound.ENTITY_EVOKER_PREPARE_SUMMON,2,1);
+                    }
+                }
+                count += 1;
+                if(count > 4){
+                    count = 0;
+                }
+            }
+        };
+        getTarget.runTaskTimer(plugin, 0L, 100L);
+        particle.runTaskTimer(plugin, 0L, 10L);
+        skill.runTaskTimer(plugin,100L,200L);
+    }
+    public void dukeShoot(LivingEntity l){
+        World w = l.getWorld();
+        BukkitRunnable shoot = new BukkitRunnable() {
+            int count = 0;
+            @Override
+            public void run() {
+                if(count > 2){
+                    this.cancel();
+                    return;
+                }
+                Location shootLoc = l.getEyeLocation();
+                Vector shootVec = shootLoc.getDirection();
+                w.playSound(l.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,2);
+                for(int i = 0;i < 20;i++){
+                    Arrow a = w.spawnArrow(shootLoc,shootVec,2,25);
+                    a.setDamage(5);
+                    a.setShooter(l);
+                    a.setCritical(true);
+                    a.setTicksLived(1200);
+                    a.setPierceLevel(10);
+                    a.setColor(Color.ORANGE);
+                }
+                count++;
+            }
+        };
+        shoot.runTaskTimer(plugin,0L,10L);
+    }
+    public void dukeBomb(LivingEntity shooter){
+        World w = shooter.getWorld();
+        w.playSound(shooter.getLocation(),Sound.ENTITY_WITHER_AMBIENT,2,1);
+        BukkitRunnable shoot = new BukkitRunnable() {
+            int count = 0;
+            @Override
+            public void run() {
+                if (shooter.isDead() || count > 3) {
+                    cancel();
+                    return;
+                }
+                w.playSound(shooter, Sound.ENTITY_WITHER_BREAK_BLOCK, 2, 1);
+                w.playSound(shooter, Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 0.5f, 1);
+                w.playSound(shooter, Sound.ENTITY_GENERIC_EXPLODE, 2, 2);
+                w.playSound(shooter, Sound.UI_BUTTON_CLICK, 2, 1);
+                w.spawnParticle(Particle.FIREWORK, shooter.getEyeLocation(), 15, 0, 0, 0, 2);
+                for (int i = 0; i < 10; i++) {
+                    Snowball b = (Snowball) w.spawnEntity(shooter.getLocation(), EntityType.SNOWBALL);
+                    b.setItem(new ItemStack(Material.WITHER_SKELETON_SKULL));
+                    b.setVisualFire(true);
+                    b.setShooter(shooter);
+                    double x = r.nextDouble() - r.nextDouble();
+                    double y = r.nextDouble() - r.nextDouble();
+                    double z = r.nextDouble() - r.nextDouble();
+                    Vector spread = new Vector(x, y, z).normalize();
+                    if(i == 0){
+                        spread = shooter.getEyeLocation().getDirection();
+                    }
+                    b.setVelocity(spread.multiply(0.5));
+                    BukkitRunnable particle = new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (b.isDead()) {
+                                k.explode(shooter,b,10,0,3,0);
+                                w.spawnParticle(Particle.LAVA, b.getLocation(), 1);
+                                w.spawnParticle(Particle.EXPLOSION_EMITTER,b.getLocation(),1);
+                                w.playSound(b.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,1);
+                                cancel();
+                                return;
+                            }
+                            w.spawnParticle(Particle.FLAME, b.getLocation(), 0);
+                        }
+                    };
+                    particle.runTaskTimer(plugin, 0L, 1L);
+                }
+                count += 1;
+            }
+        };
+        shoot.runTaskTimer(plugin, 40L, 4L);
+    }
+    public void dukeBurn(LivingEntity shooter){
+        World w = shooter.getWorld();
+        Location lLoc = shooter.getLocation();
+        w.playSound(shooter.getLocation(),Sound.ENTITY_WITHER_SHOOT,2,1);
+        if(shooter instanceof Mob m){
+            if(m.getTarget() != null){
+                Location targetLoc = m.getTarget().getLocation();
+                targetLoc.setY(lLoc.getY());
+                k.knockBack(shooter,targetLoc,-1);
+            }
+        }
+        final int range = 15;
+        BukkitRunnable shoot = new BukkitRunnable() {
+            int count = 0;
+
+            public void run() {
+                if (shooter.isDead() || count > 9) {
+                    cancel();
+                    return;
+                }
+                Location shootLoc = shooter.getEyeLocation();
+                Vector stabVec = new Vector(0,-1,0);
+                w.playSound(shootLoc, Sound.ITEM_FIRECHARGE_USE, 1.0F, 1.0F);
+                List<Entity> entities = shooter.getNearbyEntities(range, range, range);
+                for (Entity e : entities) {
+                    if (e instanceof LivingEntity l) {
+                        if (e instanceof Player p) {
+                            if (p.getGameMode() == GameMode.SPECTATOR)
+                                continue;
+                        }
+                        double distance = k.distance(l, shooter);
+                        double ballDistance = k.locDistance(shootLoc.clone()
+                                .add(stabVec.multiply(0.9D)), l.getLocation());
+                        Vector lVec = l.getEyeLocation().toVector();
+                        Vector pVec = shooter.getEyeLocation().toVector();
+                        Vector sVec = lVec.clone().subtract(pVec);
+                        double angle = k.angle(stabVec, sVec);
+                        if ((distance <= range && angle > 0.95D) || ballDistance < 2.0D) {
+                            l.damage(1.0D, DamageSource.builder(DamageType.IN_FIRE)
+                                    .withCausingEntity(shooter).build());
+                            int fire = l.getFireTicks();
+                            l.setFireTicks(fire + 30);
+                            w.playSound(l.getEyeLocation(), Sound.ENTITY_PLAYER_HURT_ON_FIRE, 1.0F, 1.0F);
+                        }
+                    }
+                }
+                for (int i = 0; i < 50; i++) {
+                    double x = r.nextDouble() - r.nextDouble();
+                    double y = r.nextDouble() - r.nextDouble();
+                    double z = r.nextDouble() - r.nextDouble();
+                    Vector spread = (new Vector(x, y, z)).normalize();
+                    Vector shoot = stabVec.clone().add(spread.multiply(0.3D));
+                    w.spawnParticle(Particle.FLAME, shootLoc, 0, shoot
+                            .getX(), shoot.getY(), shoot.getZ(), 0.5D);
+                }
+                count++;
+            }
+        };
+        shoot.runTaskTimer(plugin, 40L, 5L);
     }
 }

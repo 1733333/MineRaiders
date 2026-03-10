@@ -8,7 +8,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
@@ -44,7 +43,8 @@ public class DebugCommand implements CommandExecutor {
                         case 4->m.snitch(p.getLocation());
                         case 5->m.leaper(p.getLocation());
                         case 6->m.bastion(p.getLocation());
-                        case 7->m.guardianMinion(p.getLocation());
+                        case 7->m.dukeMinion(p.getLocation());
+                        case 8->m.duke(p.getLocation());
                     }
                 }
             } catch (Exception ignored) {

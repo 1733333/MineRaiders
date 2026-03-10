@@ -33,6 +33,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.Arrays;
@@ -578,39 +579,17 @@ public class PlayerListener implements Listener {
                                                 case 2 -> Particle.WAX_ON;
                                                 default -> Particle.ENTITY_EFFECT;
                                             };
-                                            drawBlockOutline(block,particle);
+                                            k.drawBlockOutline(p,block,particle);
                                         }
                                     }
                                 }
                             }
                         }
                     };
-                    highLight.runTaskTimer(plugin,0L,40L);
+                    highLight.runTaskTimer(plugin,0L,100L);
                 }
             }
         }
     }
-    public void drawBlockOutline(Block block,Particle particle) {
-        World w = block.getWorld();
-        double x = block.getX();
-        double y = block.getY();
-        double z = block.getZ();
-        for (double t = 0; t <= 1; t += 0.25) { // 步长 0.25，每条棱生成 5 个粒子
 
-            w.spawnParticle(particle, x + t, y, z, 1, 0, 0, 0, 0);
-            w.spawnParticle(particle, x + t, y, z + 1, 1, 0, 0, 0, 0);
-            w.spawnParticle(particle, x + t, y + 1, z, 1, 0, 0, 0, 0);
-            w.spawnParticle(particle, x + t, y + 1, z + 1, 1, 0, 0, 0, 0);
-
-            w.spawnParticle(particle, x, y + t, z, 1, 0, 0, 0, 0);
-            w.spawnParticle(particle, x + 1, y + t, z, 1, 0, 0, 0, 0);
-            w.spawnParticle(particle, x, y + t, z + 1, 1, 0, 0, 0, 0);
-            w.spawnParticle(particle, x + 1, y + t, z + 1, 1, 0, 0, 0, 0);
-
-            w.spawnParticle(particle, x, y, z + t, 1, 0, 0, 0, 0);
-            w.spawnParticle(particle, x + 1, y, z + t, 1, 0, 0, 0, 0);
-            w.spawnParticle(particle, x, y + 1, z + t, 1, 0, 0, 0, 0);
-            w.spawnParticle(particle, x + 1, y + 1, z + t, 1, 0, 0, 0, 0);
-        }
-    }
 }
