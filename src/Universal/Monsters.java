@@ -809,7 +809,7 @@ public enum Monsters {
                 }
                 w.playSound(s, Sound.ENTITY_PHANTOM_FLAP, 1, 1);
                 if (s.getTarget() == null) {
-                    double radius = 10;
+                    double radius = 64;
                     for (Entity e : s.getNearbyEntities(radius, radius, radius)) {
                         if (e instanceof Player player) {
                             if (k.distance(s, player) > radius) continue;
@@ -830,14 +830,14 @@ public enum Monsters {
                     cancel();
                     return;
                 }
-                for (int i = 0; i < 15; i++) {
+                for (int i = 0; i < 30; i++) {
                     double x = r.nextDouble() - r.nextDouble();
                     double y = r.nextDouble() - r.nextDouble();
                     double z = r.nextDouble() - r.nextDouble();
                     Vector spread = new Vector(x, y, z).normalize();
                     Vector shoot = (new Vector(0, -1, 0).add(spread.multiply(0.8))).multiply(2);
                     w.spawnParticle(Particle.SOUL_FIRE_FLAME, s.getLocation().add(0, 1, 0)
-                            , 0, shoot.getX(), shoot.getY(), shoot.getZ(), 0.1);
+                            , 0, shoot.getX(), shoot.getY(), shoot.getZ(), 0.2);
                 }
             }
         };
@@ -888,6 +888,14 @@ public enum Monsters {
                 }
                 Location shootLoc = l.getEyeLocation();
                 Vector shootVec = shootLoc.getDirection();
+                if(l instanceof Mob m){
+                    if(m.getTarget() != null) {
+                        LivingEntity target = m.getTarget();
+                        Vector lVec = target.getEyeLocation().toVector();
+                        Vector sVec = shootLoc.toVector();
+                        shootVec = (lVec.subtract(sVec)).normalize();
+                    }
+                }
                 w.playSound(l.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,2);
                 for(int i = 0;i < 20;i++){
                     Arrow a = w.spawnArrow(shootLoc,shootVec,2,25);
@@ -1006,7 +1014,7 @@ public enum Monsters {
                     Vector spread = (new Vector(x, y, z)).normalize();
                     Vector shoot = stabVec.clone().add(spread.multiply(0.3D));
                     w.spawnParticle(Particle.FLAME, shootLoc, 0, shoot
-                            .getX(), shoot.getY(), shoot.getZ(), 0.5D);
+                            .getX(), shoot.getY(), shoot.getZ());
                 }
                 count++;
             }
