@@ -64,8 +64,10 @@ public class MonsterListener implements Listener {
             }
         }
         if(shooter instanceof LivingEntity l){
-            if(l.getName().equals("§7堡垒炮塔")){
-                launchEvent.setCancelled(true);
+            switch (l.getName()){
+                case"§7堡垒炮塔":
+                case"§c公爵引擎":
+                    launchEvent.setCancelled(true);
             }
         }
     }
@@ -226,6 +228,7 @@ public class MonsterListener implements Listener {
             case "§a跳蚤":
             case "§a爆爆":
             case "§e机魂":
+            case"§c公爵":
                 w.playSound(mob.getLocation(),Sound.ENTITY_BREEZE_DEATH,2,0.75f);
                 w.playSound(mob.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,1.5f);
         }
@@ -237,21 +240,17 @@ public class MonsterListener implements Listener {
         if(damageEvent.getDamage() > 3) {
             if (e instanceof LivingEntity d) {
                 String dName = d.getName();
-                if (dName.equals("§7堡垒底盘")) {
-                    w.playSound(d.getLocation(), Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, 2, 1);
-                }
-                if (dName.equals("§7堡垒炮塔")) {
-                    w.playSound(d.getLocation(), Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, 2, 1);
-                }
-                if (dName.equals("§7跳跃者")) {
-                    w.playSound(d.getLocation(), Sound.ENTITY_BLAZE_HURT, 2, 1);
-                }
-                if (dName.equals("§c粉碎者")) {
-                    w.playSound(d.getLocation(), Sound.ENTITY_WITHER_HURT, 2, 1);
-                }
-                if (dName.equals("§6火球") &&
-                        d.hasPotionEffect(PotionEffectType.RESISTANCE))
-                    w.playSound(d.getLocation(), Sound.ITEM_SHIELD_BLOCK, 2, 1.0F);
+                Sound s = switch (dName){
+                    case "§7堡垒底盘" ->Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR;
+                    case "§7堡垒炮塔" -> Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR;
+                    case "§7跳跃者" ->Sound.ENTITY_BLAZE_HURT;
+                    case "§c粉碎者" ->Sound.ENTITY_WITHER_HURT;
+                    case "§6火球" -> Sound.ITEM_SHIELD_BLOCK;
+                    case "§e机魂" -> Sound.ENTITY_VEX_HURT;
+                    case "§c公爵" ->Sound.ENTITY_WITHER_BREAK_BLOCK;
+                    default -> Sound.UI_BUTTON_CLICK;
+                };
+                w.playSound(d.getLocation(),s,2,1);
             }
         }
     }
@@ -316,20 +315,28 @@ public class MonsterListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void mobImmune(EntityDamageEvent damageEvent){
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void mobDamageReduction(EntityDamageEvent damageEvent){
         Entity e = damageEvent.getEntity();
         DamageSource source = damageEvent.getDamageSource();
         DamageType type = source.getDamageType();
+        double damage = damageEvent.getFinalDamage();
         if(e instanceof LivingEntity l){
             String name = l.getCustomName();
             if(name != null){
                 switch (name){
-                    case "§e机魂" ->{
+                    case "§e机魂"->{
                         if(type == DamageType.IN_WALL){
-                            l.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING,100,0));
                             damageEvent.setDamage(0);
                             damageEvent.setCancelled(true);
+                        }
+                    }
+                    case "§c公爵"->{
+                        if(type == DamageType.IN_WALL){
+                            damageEvent.setDamage(0);
+                            damageEvent.setCancelled(true);
+                        }else{
+                            damageEvent.setDamage(damage / 10);
                         }
                     }
                 }

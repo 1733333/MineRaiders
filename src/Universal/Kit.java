@@ -496,7 +496,7 @@ public enum Kit {
             public void run() {
                 for (int i = 0; i < 3 && iter.hasNext(); i++) {
                     double[] p = iter.next();
-                    player.spawnParticle(particle, p[0], p[1], p[2], 1, 0, 0, 0, 0);
+                    player.spawnParticle(particle, p[0], p[1], p[2], 0);
                 }
                 if (!iter.hasNext()) cancel();
             }

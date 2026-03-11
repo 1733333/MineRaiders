@@ -135,6 +135,7 @@ public enum LootPool {
             i67(),
             i67(),
             i67(),
+            i75(),
             i108(),
     };
     ItemStack[] epicItem = {
@@ -148,7 +149,6 @@ public enum LootPool {
             i72(),
             i73(),
             i74(),
-            i75(),
             i76(),
             i77(),
             i78(),
@@ -1314,8 +1314,8 @@ public enum LootPool {
         ItemStack i = new ItemStack(Material.PHANTOM_MEMBRANE);
         ItemMeta meta = i.getItemMeta();
         ArrayList<String> lore = new ArrayList<>();
-        meta.setMaxStackSize(2);
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】幻翼膜");
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】幻翼膜");
         lore.add(ChatColor.WHITE + "高级炼药材料");
         meta.setLore(lore);
         i.setItemMeta(meta);

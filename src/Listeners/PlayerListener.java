@@ -557,36 +557,38 @@ public class PlayerListener implements Listener {
         if(e instanceof Player p){
             if(effectEvent.getCause() == EntityPotionEffectEvent.Cause.POTION_DRINK){
                 PotionEffect effect = effectEvent.getNewEffect();
-                if(effect.getType() == PotionEffectType.NIGHT_VISION){
-                    BukkitRunnable highLight = new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            if(!p.hasPotionEffect(PotionEffectType.NIGHT_VISION)){
-                                this.cancel();
-                            }
-                            int radius = 10;
-                            for(int a = -radius;a <= radius;a++) {
-                                for (int b = -radius; b <= radius; b++) {
-                                    for (int c = -radius; c <= radius; c++) {
-                                        Location bLoc = p.getLocation().add(a,b,c).clone();
-                                        Block block = w.getBlockAt(bLoc);
-                                        int rarity = cl.getContainerRarity(block);
-                                        if(rarity != -1){
-                                            Particle particle = switch (rarity){
-                                                case -2,-3,-4,-5-> Particle.HAPPY_VILLAGER;
-                                                case 0 -> Particle.WAX_OFF;
-                                                case 1 -> Particle.SCRAPE;
-                                                case 2 -> Particle.WAX_ON;
-                                                default -> Particle.ENTITY_EFFECT;
-                                            };
-                                            k.drawBlockOutline(p,block,particle);
+                if(effect.getType() == PotionEffectType.NIGHT_VISION) {
+                    if (!p.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
+                        BukkitRunnable highLight = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                if (!p.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
+                                    this.cancel();
+                                }
+                                int radius = 10;
+                                for (int a = -radius; a <= radius; a++) {
+                                    for (int b = -radius; b <= radius; b++) {
+                                        for (int c = -radius; c <= radius; c++) {
+                                            Location bLoc = p.getLocation().add(a, b, c).clone();
+                                            Block block = w.getBlockAt(bLoc);
+                                            int rarity = cl.getContainerRarity(block);
+                                            if (rarity != -1) {
+                                                Particle particle = switch (rarity) {
+                                                    case -2, -3, -4, -5 -> Particle.HAPPY_VILLAGER;
+                                                    case 0 -> Particle.WAX_OFF;
+                                                    case 1 -> Particle.SCRAPE;
+                                                    case 2 -> Particle.WAX_ON;
+                                                    default -> Particle.ENTITY_EFFECT;
+                                                };
+                                                k.drawBlockOutline(p, block, particle);
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                    };
-                    highLight.runTaskTimer(plugin,0L,100L);
+                        };
+                        highLight.runTaskTimer(plugin, 0L, 70L);
+                    }
                 }
             }
         }

@@ -452,7 +452,7 @@ public class GadgetListener implements Listener {
         g.setPlayerCreated(true);
         g.setCustomName(ChatColor.AQUA + p.getName() + "的铁傀儡");
         double maxHealth = 100;
-        g.getAttribute(Attribute.ATTACK_DAMAGE.MAX_HEALTH).setBaseValue(maxHealth);
+        g.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
         BukkitRunnable damage = new BukkitRunnable() {
             @Override
             public void run() {

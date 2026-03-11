@@ -121,7 +121,7 @@ public class WeaponListener implements Listener {
                                             count -= 1;
                                         }
                                     };
-                                    explode.runTaskTimer(plugin, 20L, 2L);
+                                    explode.runTaskTimer(plugin, 0L, 2L);
                                     this.cancel();
                                 }
                                 locs.add(a.getLocation());
@@ -186,6 +186,12 @@ public class WeaponListener implements Listener {
                             }
                         };
                         particle.runTaskTimer(plugin,0L,1L);
+                    }
+                }
+                case "§f测试弓" -> {
+                    if (shootBowEvent.getForce() >= 2.9) {
+                        pr.setTicksLived(1200);
+                        pr.addPassenger(p);
                     }
                 }
             }
