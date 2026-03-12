@@ -2,6 +2,7 @@ package Universal;
 
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
@@ -630,42 +631,42 @@ public enum Monsters {
     }
     public void bastion(Location loc) {
         World w = loc.getWorld();
-        Ravager b = (Ravager) w.spawnEntity(loc, EntityType.RAVAGER);
-        Pillager p = (Pillager) w.spawnEntity(loc, EntityType.PILLAGER);
-        b.addPassenger(p);
+        Ravager bottom = (Ravager) w.spawnEntity(loc, EntityType.RAVAGER);
+        Pillager top = (Pillager) w.spawnEntity(loc, EntityType.PILLAGER);
+        bottom.addPassenger(top);
         double max = 700;
         double scale = 1.35;
-        b.getAttribute(Attribute.SCALE).setBaseValue(scale);
-        b.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max);
-        b.getAttribute(Attribute.ARMOR).setBaseValue(16);
-        b.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
-        b.setHealth(max);
-        b.setCustomName(ChatColor.GRAY + "堡垒底盘");
-        b.setSilent(true);
-        b.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 2));
-        b.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 10));
-        p.getAttribute(Attribute.SCALE).setBaseValue(scale);
-        p.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max);
-        p.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
-        p.setHealth(max);
-        p.setCustomName(ChatColor.GRAY + "堡垒炮塔");
-        p.setSilent(true);
+        bottom.getAttribute(Attribute.SCALE).setBaseValue(scale);
+        bottom.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max);
+        bottom.getAttribute(Attribute.ARMOR).setBaseValue(16);
+        bottom.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
+        bottom.setHealth(max);
+        bottom.setCustomName(ChatColor.GRAY + "堡垒底盘");
+        bottom.setSilent(true);
+        bottom.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 2));
+        bottom.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 10));
+        top.getAttribute(Attribute.SCALE).setBaseValue(scale);
+        top.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max);
+        top.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
+        top.setHealth(max);
+        top.setCustomName(ChatColor.GRAY + "堡垒炮塔");
+        top.setSilent(true);
         BukkitRunnable getTarget = new BukkitRunnable() {
             @Override
             public void run() {
-                if (p.isDead()) {
+                if (top.isDead()) {
                     cancel();
                     return;
                 }
-                if (p.getTarget() == null) {
+                if (top.getTarget() == null) {
                     double radius = 64;
-                    for (Entity e : p.getNearbyEntities(radius, radius, radius)) {
+                    for (Entity e : top.getNearbyEntities(radius, radius, radius)) {
                         if (e instanceof Player p1) {
-                            if (k.distance(p, p1) > radius) continue;
+                            if (k.distance(top, p1) > radius) continue;
                             if (playerStats.isDying(p1)) continue;
                             if (p1.getGameMode().equals(GameMode.SURVIVAL)) {
-                                p.setTarget(p1);
-                                b.setTarget(p1);
+                                top.setTarget(p1);
+                                bottom.setTarget(p1);
                             }
                         }
                     }
@@ -675,30 +676,30 @@ public enum Monsters {
         BukkitRunnable shooting = new BukkitRunnable() {
             @Override
             public void run() {
-                if (p.isDead()) {
+                if (top.isDead()) {
                     cancel();
                     return;
                 }
                 Color c = Color.AQUA;
-                if (p.getTarget() != null) {
+                if (top.getTarget() != null) {
                     c = Color.RED;
-                    if (!p.hasPotionEffect(PotionEffectType.LUCK)) {
+                    if (!top.hasPotionEffect(PotionEffectType.LUCK)) {
                         BukkitRunnable shoot = new BukkitRunnable() {
                             int count = 0;
 
                             @Override
                             public void run() {
-                                if (p.isDead() || count > 50) {
+                                if (top.isDead() || count > 50) {
                                     if (count > 50) {
-                                        p.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 80, 0));
+                                        top.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 80, 0));
                                     }
                                     this.cancel();
                                 }
-                                w.playSound(p.getLocation(), Sound.ENTITY_CREAKING_ACTIVATE, 1, 1.5f);
-                                Location shootLoc = p.getEyeLocation();
+                                w.playSound(top.getLocation(), Sound.ENTITY_CREAKING_ACTIVATE, 1, 1.5f);
+                                Location shootLoc = top.getEyeLocation();
                                 Vector shootVec = shootLoc.getDirection();
-                                if (p.getTarget() != null) {
-                                    LivingEntity target = p.getTarget();
+                                if (top.getTarget() != null) {
+                                    LivingEntity target = top.getTarget();
                                     Vector lVec = target.getEyeLocation().toVector();
                                     Vector sVec = shootLoc.toVector();
                                     shootVec = (lVec.subtract(sVec)).normalize();
@@ -707,15 +708,15 @@ public enum Monsters {
                                 a.setTicksLived(1200);
                                 a.setDamage(0.75);
                                 a.setCritical(true);
-                                a.setShooter(p);
+                                a.setShooter(top);
                                 count += 1;
                             }
                         };
                         shoot.runTaskTimer(plugin, 0L, 1L);
                     }
                 }
-                Location subLoc = p.getEyeLocation();
-                Vector subVec = p.getEyeLocation().getDirection();
+                Location subLoc = top.getEyeLocation();
+                Vector subVec = top.getEyeLocation().getDirection();
                 Particle.DustOptions dust = new Particle.DustOptions(c, 1);
                 for (int i = 0; i < 40; i++) {
                     w.spawnParticle(Particle.DUST, subLoc, 1, dust);
@@ -728,19 +729,19 @@ public enum Monsters {
     }
     public void dukeMinion(Location loc){
         World w = loc.getWorld();
-        Skeleton s = (Skeleton) w.spawnEntity(loc, EntityType.SKELETON);
-        Vex v = (Vex) w.spawnEntity(loc, EntityType.VEX);
-        s.setCustomName(ChatColor.YELLOW + "机魂");
-        v.setCustomName(ChatColor.YELLOW + "机魂推进器");
-        s.setSilent(true);
-        s.setInvisible(true);
-        v.addPassenger(s);
-        v.setBound(loc);
-        v.setInvisible(true);
-        v.setSilent(true);
-        v.getEquipment().clear();
-        v.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 86400, 10));
-        EntityEquipment e = s.getEquipment();
+        Skeleton top = (Skeleton) w.spawnEntity(loc, EntityType.SKELETON);
+        Vex bottom = (Vex) w.spawnEntity(loc, EntityType.VEX);
+        top.setCustomName(ChatColor.YELLOW + "机魂");
+        bottom.setCustomName(ChatColor.YELLOW + "机魂推进器");
+        top.setSilent(true);
+        top.setInvisible(true);
+        bottom.addPassenger(top);
+        bottom.setBound(loc);
+        bottom.setInvisible(true);
+        bottom.setSilent(true);
+        bottom.getEquipment().clear();
+        bottom.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 86400, 10));
+        EntityEquipment e = top.getEquipment();
         e.clear();
         e.setHelmet(new ItemStack(Material.DISPENSER));
         e.setChestplate(ap.mobChest(Color.GRAY));
@@ -748,19 +749,19 @@ public enum Monsters {
         BukkitRunnable getTarget = new BukkitRunnable() {
             @Override
             public void run() {
-                if (s.isDead()) {
+                if (top.isDead()) {
                     cancel();
                     return;
                 }
-                if (s.getTarget() == null) {
+                if (top.getTarget() == null) {
                     double radius = 20;
-                    for (Entity e : s.getNearbyEntities(radius, radius, radius)) {
+                    for (Entity e : top.getNearbyEntities(radius, radius, radius)) {
                         if (e instanceof Player p1) {
-                            if (k.distance(s, p1) > radius) continue;
+                            if (k.distance(top, p1) > radius) continue;
                             if (playerStats.isDying(p1)) continue;
                             if (p1.getGameMode().equals(GameMode.SURVIVAL)) {
-                                s.setTarget(p1);
-                                v.setTarget(p1);
+                                top.setTarget(p1);
+                                bottom.setTarget(p1);
                             }
                         }
                     }
@@ -770,12 +771,12 @@ public enum Monsters {
         BukkitRunnable dash = new BukkitRunnable() {
             @Override
             public void run() {
-                if(s.isDead()){
+                if(top.isDead()){
                     this.cancel();
                 }
-                if(s.getTarget()!= null){
-                    LivingEntity t = s.getTarget();
-                    k.knockBack(v,t.getLocation(),-0.1);
+                if(top.getTarget()!= null){
+                    LivingEntity t = top.getTarget();
+                    k.knockBack(bottom,t.getLocation(),-0.1);
                 }
             }
         };
@@ -784,47 +785,42 @@ public enum Monsters {
     }
     public void duke(Location loc) {
         World w = loc.getWorld();
-        WitherSkeleton s = (WitherSkeleton) w.spawnEntity(loc, EntityType.WITHER_SKELETON);
-        Wither p = (Wither) w.spawnEntity(loc, EntityType.WITHER);
-        p.setCustomName(ChatColor.RED + "公爵引擎");
-        p.addPassenger(s);
-        p.setInvisible(true);
-        p.setSilent(true);
-        s.getEquipment().clear();
-        s.getEquipment().setHelmet(new ItemStack(Material.DISPENSER));
-        s.getEquipment().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
+        WitherSkeleton top = (WitherSkeleton) w.spawnEntity(loc, EntityType.WITHER_SKELETON);
+        Wither bottom = (Wither) w.spawnEntity(loc, EntityType.WITHER);
+        bottom.setCustomName(ChatColor.RED + "公爵引擎");
+        bottom.addPassenger(top);
+        bottom.setInvisible(true);
+        bottom.setSilent(true);
+        top.getEquipment().clear();
+        top.getEquipment().setHelmet(new ItemStack(Material.DISPENSER));
+        top.getEquipment().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
         double maxHealth = 1000;
-        s.setCustomName(ChatColor.RED + "公爵");
-        s.getAttribute(Attribute.SCALE).setBaseValue(3);
-        p.getAttribute(Attribute.SCALE).setBaseValue(1);
-        p.getAttribute(Attribute.FLYING_SPEED).setBaseValue(0.1);
-        s.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
-        p.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
-        s.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
-        s.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,PotionEffect.INFINITE_DURATION,10));
-        s.setInvisible(true);
-        s.setCustomNameVisible(false);
-        s.setHealth(maxHealth);
-        p.setHealth(maxHealth);
-        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 86400, 10));
-        BossBar bar = Bukkit.createBossBar(s.getCustomName(), BarColor.RED, BarStyle.SOLID, BarFlag.DARKEN_SKY);
-        new BukkitRunnable(){
-            @Override
-            public void run() {
-                p.getBossBar().removeAll();
-            }
-        }.runTaskLater(plugin,1L);
+        top.setCustomName(ChatColor.RED + "公爵");
+        top.getAttribute(Attribute.SCALE).setBaseValue(3);
+        top.getAttribute(Attribute.ARMOR).setBaseValue(20);
+        bottom.getAttribute(Attribute.SCALE).setBaseValue(1.2);
+        bottom.getAttribute(Attribute.FLYING_SPEED).setBaseValue(0.1);
+        top.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
+        bottom.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
+        top.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
+        top.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,PotionEffect.INFINITE_DURATION,10));
+        top.setInvisible(true);
+        top.setCustomNameVisible(false);
+        top.setHealth(maxHealth);
+        bottom.setHealth(maxHealth);
+        bottom.getBossBar().setVisible(false);
+        BossBar bar = Bukkit.createBossBar(top.getCustomName(), BarColor.RED, BarStyle.SOLID, BarFlag.DARKEN_SKY);
         for(Player player : Bukkit.getOnlinePlayers()){
             bar.addPlayer(player);
         }
         BukkitRunnable bossBar = new BukkitRunnable() {
             @Override
             public void run() {
-                if(s.isDead()){
+                if(top.isDead()){
                     this.cancel();
                     bar.removeAll();
                 }
-                double health = s.getHealth();
+                double health = top.getHealth();
                 double progress = health / maxHealth;
                 bar.setProgress(Math.min(1,Math.max(0,progress)));
             }
@@ -832,20 +828,29 @@ public enum Monsters {
         BukkitRunnable getTarget = new BukkitRunnable() {
             @Override
             public void run() {
-                if (s.isDead()) {
+                if (top.isDead()) {
                     cancel();
                     return;
                 }
-                w.playSound(s, Sound.ENTITY_PHANTOM_FLAP, 1, 1);
-                if (s.getTarget() == null) {
+                Location bLoc = top.getLocation().clone();
+                int max = 0;
+                while (w.getBlockAt(bLoc).getType() == Material.AIR && max < 100){
+                    bLoc.add(new Vector(0,-1,0));
+                    max++;
+                }
+                Block ground;
+
+                bottom.setVelocity(new Vector(0,-1,0));
+                w.playSound(top, Sound.ENTITY_PHANTOM_FLAP, 1, 1);
+                if (top.getTarget() == null) {
                     double radius = 64;
-                    for (Entity e : s.getNearbyEntities(radius, radius, radius)) {
+                    for (Entity e : top.getNearbyEntities(radius, radius, radius)) {
                         if (e instanceof Player player) {
-                            if (k.distance(s, player) > radius) continue;
+                            if (k.distance(top, player) > radius) continue;
                             if(playerStats.isDying(player))continue;
                             if (player.getGameMode().equals(GameMode.SURVIVAL)) {
-                                s.setTarget(player);
-                                p.setTarget(player);
+                                top.setTarget(player);
+                                bottom.setTarget(player);
                             }
                         }
                     }
@@ -855,7 +860,7 @@ public enum Monsters {
         BukkitRunnable particle = new BukkitRunnable() {
             @Override
             public void run() {
-                if (s.isDead()) {
+                if (top.isDead()) {
                     cancel();
                     return;
                 }
@@ -865,7 +870,7 @@ public enum Monsters {
                     double z = r.nextDouble() - r.nextDouble();
                     Vector spread = new Vector(x, y, z).normalize();
                     Vector shoot = (new Vector(0, -1, 0).add(spread.multiply(0.8))).multiply(2);
-                    w.spawnParticle(Particle.CLOUD, s.getLocation().add(0, 3, 0)
+                    w.spawnParticle(Particle.CLOUD, top.getLocation().add(0, 3, 0)
                             , 0, shoot.getX(), shoot.getY(), shoot.getZ(), 0.2);
                 }
             }
@@ -875,19 +880,19 @@ public enum Monsters {
             int skill = 0;
             @Override
             public void run() {
-                if(s.isDead()){
+                if(top.isDead()){
                     this.cancel();
                     return;
                 }
                 if(count > 0 && count % 4 == 0){
                     switch (skill){
-                        case 0 ->dukeBomb(s);
-                        case 1 ->dukeMissile(s);
+                        case 0 ->dukeBomb(top);
+                        case 1 ->dukeMissile(top);
                         case 2 -> {
-                            dukeMinion(s.getLocation());
-                            dukeMinion(s.getLocation());
-                            dukeMinion(s.getLocation());
-                            w.playSound(s.getLocation(),Sound.ENTITY_EVOKER_PREPARE_SUMMON,1,1);
+                            dukeMinion(top.getLocation());
+                            dukeMinion(top.getLocation());
+                            dukeMinion(top.getLocation());
+                            w.playSound(top.getLocation(),Sound.ENTITY_EVOKER_PREPARE_SUMMON,1,1);
                         }
                     }
                     skill++;
@@ -895,15 +900,28 @@ public enum Monsters {
                         skill = 0;
                     }
                 }else {
-                    dukeShoot(s);
+                    dukeShoot(top);
                 }
                 count ++;
+            }
+        };
+        BukkitRunnable dash = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if(top.isDead()){
+                    this.cancel();
+                }
+                if(top.getTarget()!= null){
+                    LivingEntity t = top.getTarget();
+                    k.knockBack(bottom,t.getLocation(),-0.2);
+                }
             }
         };
         bossBar.runTaskTimer(plugin,0L,2L);
         getTarget.runTaskTimer(plugin, 0L, 100L);
         particle.runTaskTimer(plugin, 0L, 10L);
         attack.runTaskTimer(plugin,20L,80L);
+        dash.runTaskTimer(plugin,0L,20L);
     }
     public void dukeShoot(LivingEntity l){
         World w = l.getWorld();
@@ -980,6 +998,7 @@ public enum Monsters {
                                 w.spawnParticle(Particle.LAVA, b.getLocation(), 1);
                                 w.spawnParticle(Particle.EXPLOSION_EMITTER,b.getLocation(),1);
                                 w.playSound(b.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,1);
+                                w.playSound(b.getLocation(),Sound.ENTITY_FIREWORK_ROCKET_TWINKLE,2,1);
                                 cancel();
                                 return;
                             }
@@ -1019,7 +1038,7 @@ public enum Monsters {
                         nearbyPlayer.add(p);
                     }
                 }
-                for(int i = 0;i < 20;i++){
+                for(int i = 0;i < 30;i++){
                     double x = r.nextDouble() - r.nextDouble();
                     double y = r.nextDouble() - r.nextDouble();
                     double z = r.nextDouble() - r.nextDouble();
@@ -1038,7 +1057,7 @@ public enum Monsters {
                             }
                             if(sb.isDead() || distance < 2){
                                 this.cancel();
-                                k.explode(shooter,sb,10,0,3,0);
+                                k.explode(shooter,sb,12,0,3,0);
                                 w.spawnParticle(Particle.GUST_EMITTER_SMALL,sb.getLocation(),1);
                                 w.playSound(sb.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,1);
                             }

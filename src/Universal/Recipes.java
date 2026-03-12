@@ -124,7 +124,6 @@ public enum Recipes {
     }
 
     public void registerRecipe() {
-        Bukkit.broadcastMessage(ChatColor.AQUA + "自定义配方已加载");
         r0();r10();r20();r30();r40();r50();r60();r70();r80();r90();r100();r110();
         r1();r11();r21();r31();r41();r51();r61();r71();r81();r91();r101();r111();
         r2();r12();r22();r32();r42();r52();r62();r72();r82();r92();r102();r112();
@@ -133,8 +132,8 @@ public enum Recipes {
         r5();r15();r25();r35();r45();r55();r65();r75();r85();r95();r105();r115();
         r6();r16();r26();r36();r46();r56();r66();r76();r86();r96();r106();r116();
         r7();r17();r27();r37();r47();r57();r67();r77();r87();r97();r107();r117();
-        r8();r18();r28();r38();r48();r58();r68();r78();r88();r98();r108();
-        r9();r19();r29();r39();r49();r59();r69();r79();r89();r99();r109();
+        r8();r18();r28();r38();r48();r58();r68();r78();r88();r98();r108();r118();
+        r9();r19();r29();r39();r49();r59();r69();r79();r89();r99();r109();r119();
     }
 
     public ItemStack[] getBoxRecipeBooks() {
@@ -209,6 +208,7 @@ public enum Recipes {
         recipeKeys.put(i.getItemMeta().getDisplayName(), key);
         key += 1;
         try{
+            Bukkit.broadcastMessage(ChatColor.AQUA + "自定义配方已加载");
             Bukkit.addRecipe(r); 
         } catch (Exception ignored) {}
     }
@@ -1804,6 +1804,34 @@ public enum Recipes {
         r.addIngredient(Material.EMERALD);
         r.addIngredient(4,Material.PRISMARINE_SHARD);
         r.addIngredient(4,Material.PRISMARINE_CRYSTALS);
+        recipeKeys.put(i.getItemMeta().getDisplayName(), key);
+        key += 1;
+        try{
+            Bukkit.addRecipe(r);
+        }
+        catch (Exception ignored) {}
+    }
+    public void r118() {
+        ItemStack i = wp.headHunter().clone();
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, i);
+        r.shape(" AB", "A B", " AB");
+        r.setIngredient('A', Material.EMERALD);
+        r.setIngredient('B', Material.BONE);
+        recipeKeys.put(i.getItemMeta().getDisplayName(), key);
+        key += 1;
+        try{
+            Bukkit.addRecipe(r);
+        }
+        catch (Exception ignored) {}
+    }
+    public void r119() {
+        ItemStack i = wp.emeraldSword().clone();
+        NamespacedKey w = new NamespacedKey(plugin, "r" + key);
+        ShapedRecipe r = new ShapedRecipe(w, i);
+        r.shape(" A ", "ABA", " A ");
+        r.setIngredient('A', Material.EMERALD);
+        r.setIngredient('B', Material.IRON_SWORD);
         recipeKeys.put(i.getItemMeta().getDisplayName(), key);
         key += 1;
         try{

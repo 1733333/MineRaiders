@@ -26,6 +26,7 @@ public enum WeaponPool {
             quartzSword(),
             netherSword(),
             goldenCarrot(),
+            emeraldSword(),
             echoSword(),
             fireSword(),
             raiderTool(),
@@ -35,6 +36,7 @@ public enum WeaponPool {
             echoBow(),
             echoCrossBow(),
             trident(),
+            headHunter(),
     };
     public ItemStack[] containerWeapons = {
         new ItemStack(Material.WOODEN_SWORD),
@@ -120,6 +122,7 @@ public enum WeaponPool {
             quartzSword(),
             netherSword(),
             goldenCarrot(),
+            emeraldSword(),
             echoSword(),
             ferro(),
             broom(),
@@ -543,7 +546,19 @@ public enum WeaponPool {
         lore.add(ChatColor.WHITE + "猎头");
         lore.add(ChatColor.WHITE + "奖励那些射得准的玩家");
         lore.add(ChatColor.WHITE + "当拉满弓时会射出特殊箭矢");
-        lore.add(ChatColor.WHITE + "特殊箭矢爆头造成额外伤害");
+        lore.add(ChatColor.WHITE + "特殊箭矢爆头其他玩家可以造成额外伤害");
+        itemMeta.setLore(lore);
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+    public ItemStack emeraldSword(){
+        ItemStack item = new ItemStack(Material.IRON_SWORD);
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.AQUA + "绿宝石剑");
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "绿宝石剑");
+        lore.add(ChatColor.WHITE + "上面刻着魔法铭文");
+        lore.add(ChatColor.WHITE + "对怪物造成额外魔法伤害");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

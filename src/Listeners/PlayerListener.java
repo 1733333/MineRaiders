@@ -181,7 +181,7 @@ public class PlayerListener implements Listener {
                     crawling(p);
                     sos(p);
                     playerStats.setDying(p);
-                    for (Entity e : p.getNearbyEntities(10, 10, 10)) {
+                    for (Entity e : p.getNearbyEntities(32, 32, 32)) {
                         if (e instanceof Mob m) {
                             if (m.getTarget() == p) {
                                 m.setTarget(null);

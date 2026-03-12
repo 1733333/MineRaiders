@@ -68,7 +68,7 @@ public class ArmorListener implements Listener {
         return match;
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler
     public void playerDamaged(EntityDamageEvent damageEvent) {
         if (damageEvent.isCancelled())return;
         Entity damaged = damageEvent.getEntity();
@@ -81,6 +81,7 @@ public class ArmorListener implements Listener {
             if (k.isFullSet(p)) {
                 if (health > 19) {
                     if (cName.contains("黑曜石")) {
+                        damageEvent.setDamage(2);
                         w.playSound(p.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 1);
                         w.playSound(p.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 1);
                         w.playSound(p.getLocation(), Sound.BLOCK_NETHER_BRICKS_BREAK, 1, 1);

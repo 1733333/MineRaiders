@@ -31,12 +31,14 @@ public class MonsterListener implements Listener {
     }
 
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler
     public void damageEvent(EntityDamageEvent damageEvent) {
         Entity damaged = damageEvent.getEntity();
+        double damage = damageEvent.getFinalDamage();
         if (damaged instanceof LivingEntity l) {
-            if (l.getName().contains("伤害测试假人")) {
-                double damage = damageEvent.getDamage();
+            String name = l.getName();
+            if (name.contains("伤害测试假人")) {
+                damage = damageEvent.getDamage();
                 if (damage > 0) {
                     for (Entity e : l.getNearbyEntities(20, 20, 20)) {
                         if(e instanceof Player p) {
@@ -47,6 +49,23 @@ public class MonsterListener implements Listener {
                                     + ChatColor.RED
                                     + ChatColor.BOLD
                                     + String.format("%.2f", damage));
+                        }
+                    }
+                }
+            }
+            switch (name){
+                case "§7堡垒底盘","§7堡垒炮塔","§c公爵","§c公爵引擎"->{
+                    if (!damaged.getPassengers().isEmpty()) {
+                        for (Entity e : damaged.getPassengers()) {
+                            if (e instanceof LivingEntity l1) {
+                                l1.damage(damage);
+                            }
+                        }
+                    }
+                    if (damaged.getVehicle() != null) {
+                        Entity v = damaged.getVehicle();
+                        if (v instanceof LivingEntity l1) {
+                            l1.damage(damage);
                         }
                     }
                 }
@@ -77,103 +96,62 @@ public class MonsterListener implements Listener {
         World w = damageEvent.getDamager().getWorld();
         Entity a = damageEvent.getDamager();
         Entity d = damageEvent.getEntity();
-        double damage = damageEvent.getFinalDamage();
         if (a instanceof LivingEntity attacker) {
             String aName = attacker.getName();
-            if (aName.equals("§c粉碎者") &&
-                    !damageType.equals(DamageType.ARROW)) {
-                damageEvent.setCancelled(true);
-                damageEvent.setDamage(0);
-            }
-            if (aName.equals("§6火球") &&
-                    !damageType.equals(DamageType.IN_FIRE)) {
-                damageEvent.setCancelled(true);
-                damageEvent.setDamage(0);
-            }
-            if (aName.equals("§7跳跃者") &&
-                    !damageType.equals(DamageType.EXPLOSION)) {
-                damageEvent.setCancelled(true);
-                damageEvent.setDamage(0);
-            }
-            if (aName.equals("§7堡垒底盘")) {
-                damageEvent.setCancelled(true);
-                damageEvent.setDamage(0);
-            }
-            if (aName.equals("§a跳蚤")) {
-                damageEvent.setCancelled(true);
-                damageEvent.setDamage(0);
-                Entity entity1 = damageEvent.getEntity();
-                if (entity1 instanceof Player p) {
-                    if (!attacker.hasPotionEffect(PotionEffectType.LUCK)) {
-                        p.addPassenger(attacker);
-                        p.sendTitle(ChatColor.RED + "！被跳蚤缠上了！", ChatColor.RED + "使用 潜行键 挣脱", 10, 40, 10);
-                        BukkitRunnable blind = new BukkitRunnable() {
-                            public void run() {
-                                if (p.getPassengers().isEmpty())
-                                    cancel();
-                                p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 40, 0));
-                                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
-                            }
-                        };
-                        blind.runTaskTimer(plugin, 0L, 40L);
+            switch (aName) {
+                case "§c粉碎者" -> {
+                    if (damageType.equals(DamageType.ARROW)) {
+                        damageEvent.setCancelled(true);
+                        damageEvent.setDamage(0);
                     }
                 }
-            }
-            if (damageEvent.getEntity() instanceof Player p) {
-                if (playerStats.isDying(p)) {
-                    if (attacker instanceof Mob m) {
-                        m.setTarget(null);
+                case "§6火球"->{
+                    if (damageType.equals(DamageType.IN_FIRE)) {
+                        damageEvent.setCancelled(true);
+                        damageEvent.setDamage(0);
+                    }
+                }
+                case "§7跳跃者" ->{
+                    if (damageType.equals(DamageType.EXPLOSION)) {
+                        damageEvent.setCancelled(true);
+                        damageEvent.setDamage(0);
+                    }
+                }
+                case "§7堡垒底盘" ->{
+                    damageEvent.setCancelled(true);
+                    damageEvent.setDamage(0);
+                }
+                case "§a跳蚤" ->{
+                    damageEvent.setCancelled(true);
+                    damageEvent.setDamage(0);
+                    Entity entity1 = damageEvent.getEntity();
+                    if (entity1 instanceof Player p) {
+                        if (!attacker.hasPotionEffect(PotionEffectType.LUCK)) {
+                            p.addPassenger(attacker);
+                            p.sendTitle(ChatColor.RED + "！被跳蚤缠上了！", ChatColor.RED + "使用 潜行键 挣脱", 10, 40, 10);
+                            new BukkitRunnable() {
+                                public void run() {
+                                    if (p.getPassengers().isEmpty())
+                                        cancel();
+                                    p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 40, 0));
+                                    p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
+                                }
+                            }.runTaskTimer(plugin, 0L, 40L);
+                        }
                     }
                 }
             }
         }
         if (d instanceof LivingEntity damaged) {
             String dName = damaged.getName();
-            if (dName.equals("§6火球") &&
-                    damaged.hasPotionEffect(PotionEffectType.RESISTANCE))
-                w.playSound(damaged, Sound.ITEM_SHIELD_BLOCK, 1.0F, 1.0F);
-            if (dName.equals("§7跳跃者")) {
-                if (damaged instanceof Mob m) {
-                    if (a instanceof LivingEntity l) {
-                        m.setTarget(l);
-                    }
-                }
-                if (damaged.getLastDamage() > 0) {
-                    w.playSound(damaged.getLocation(), Sound.ENTITY_BLAZE_HURT, 1, 1);
-                }
-            }
-            if (dName.equals("§7堡垒底盘") || dName.equals("§7堡垒炮塔")) {
-                if (damaged instanceof Mob m) {
-                    if (a instanceof LivingEntity l) {
-                        m.setTarget(l);
-                    }
-                }
-                if (!damaged.getPassengers().isEmpty()) {
-                    for (Entity e : damaged.getPassengers()) {
-                        if (e instanceof LivingEntity l) {
-                            l.damage(damage);
+            switch (dName){
+                case "§7跳跃者","§7堡垒底盘","§7堡垒炮塔"->{
+                    if (damaged instanceof Mob m) {
+                        if (a instanceof LivingEntity l) {
+                            m.setTarget(l);
                         }
                     }
                 }
-                if (damaged.getVehicle() != null) {
-                    Entity v = damaged.getVehicle();
-                    if (v instanceof LivingEntity l) {
-                        l.damage(damage);
-                    }
-                }
-//                boolean stab = false;
-//                if (a instanceof LivingEntity attacker) {
-//                    Vector stabVec = damaged.getEyeLocation().getDirection();
-//                    Vector lVec = damaged.getEyeLocation().toVector();
-//                    Vector pVec = attacker.getEyeLocation().toVector();
-//                    Vector sVec = lVec.clone().subtract(pVec);
-//                    double angle = k.angle(stabVec, sVec);
-//                    if (angle > 0.5) {
-//                        damage *= 3;
-//                        damageEvent.setDamage(damage);
-//                        stab = true;
-//                    }
-//                }
             }
         }
     }
@@ -331,7 +309,8 @@ public class MonsterListener implements Listener {
                             damageEvent.setCancelled(true);
                         }
                     }
-                    case "§c公爵"->{
+                    case "§c公爵","§c公爵引擎"->{
+                        Bukkit.broadcastMessage(type.toString());
                         if(type == DamageType.IN_WALL){
                             damageEvent.setDamage(0);
                             damageEvent.setCancelled(true);

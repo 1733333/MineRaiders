@@ -203,18 +203,18 @@ public class WeaponListener implements Listener {
         if(pr.getName().contains("猎头箭")) {
             if (hitEvent.getHitEntity() != null) {
                 Entity e = hitEvent.getHitEntity();
-                if (e instanceof LivingEntity l) {
+                if (e instanceof Player player) {
                     double arrowY = pr.getLocation().getY();
-                    double entityY = l.getEyeLocation().getY();
-                    double damage = 10;
-                    if (Math.abs(entityY - arrowY) < 0.5) {
-                        damage = 20;
+                    double entityY = player.getEyeLocation().getY();
+                    double damage = 8;
+                    if (Math.abs(entityY - arrowY) < 0.4) {
+                        damage = 12;
                         if (pr.getShooter() instanceof Player p) {
                             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                             p.playSound(p.getLocation(), Sound.ENTITY_WITHER_BREAK_BLOCK, 1, 1);
                         }
                     }
-                    l.damage(damage, DamageSource.builder(DamageType.ARROW).build());
+                    player.damage(damage, DamageSource.builder(DamageType.ARROW).build());
                 }
             }
         }
@@ -297,6 +297,12 @@ public class WeaponListener implements Listener {
                         case "§f仙人掌剑" ->{
                             p.damage(1, DamageSource.builder(DamageType.CACTUS).build());
                             w.playSound(p.getLocation(),Sound.ENCHANT_THORNS_HIT,1,1);
+                        }
+                        case "§f绿宝石剑" ->{
+                            if(damaged instanceof Mob m){
+                                m.damage(4, DamageSource.builder(DamageType.MAGIC)
+                                        .withDirectEntity(p).build());
+                            }
                         }
                     }
                 }
