@@ -502,5 +502,15 @@ public enum Kit {
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }
-
+    public void spawnCircleParticles(Location center, double radius, int points) {
+        World world = center.getWorld();
+        double y = center.getY();
+        double step = 2 * Math.PI / points;
+        for (int i = 0; i < points; i++) {
+            double angle = i * step;
+            double x = center.getX() + radius * Math.cos(angle);
+            double z = center.getZ() + radius * Math.sin(angle);
+            world.spawnParticle(Particle.FLAME, x, y, z, 1, 0, 0, 0, 0);
+        }
+    }
 }

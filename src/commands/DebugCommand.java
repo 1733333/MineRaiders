@@ -7,6 +7,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -28,6 +29,7 @@ public class DebugCommand implements CommandExecutor {
             try {
                 if (p.isOp()) {
                     World w = p.getWorld();
+                    ItemStack hand = p.getEquipment().getItemInMainHand();
                     int num = Integer.parseInt(strings[0]);
                     switch (num){
                         case -3 ->w.dropItem(p.getLocation(),flute());
@@ -45,6 +47,7 @@ public class DebugCommand implements CommandExecutor {
                         case 6->m.bastion(p.getLocation());
                         case 7->m.dukeMinion(p.getLocation());
                         case 8->m.duke(p.getLocation());
+                        case 9->mimic(p.getLocation(),hand);
                     }
                 }
             } catch (Exception ignored) {
@@ -87,5 +90,15 @@ public class DebugCommand implements CommandExecutor {
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
+    }
+    public void mimic(Location loc,ItemStack hand){
+        World w = loc.getWorld();
+        Skeleton s = (Skeleton) w.spawnEntity(loc,EntityType.SKELETON);
+        EntityEquipment e = s.getEquipment();
+        e.clear();
+        e.setHelmet(ap.mobHelm(Color.LIME));
+        e.setItemInMainHand(hand);
+        s.setCustomName(ChatColor.GREEN + "模仿者");
+        s.setCustomNameVisible(true);
     }
 }

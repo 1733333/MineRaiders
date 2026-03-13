@@ -727,7 +727,7 @@ public enum Monsters {
         getTarget.runTaskTimer(plugin, 0L, 100L);
         shooting.runTaskTimer(plugin, 0L, 50L);
     }
-    public void dukeMinion(Location loc){
+    public Entity dukeMinion(Location loc){
         World w = loc.getWorld();
         Skeleton top = (Skeleton) w.spawnEntity(loc, EntityType.SKELETON);
         Vex bottom = (Vex) w.spawnEntity(loc, EntityType.VEX);
@@ -782,6 +782,7 @@ public enum Monsters {
         };
         dash.runTaskTimer(plugin,0L,20L);
         getTarget.runTaskTimer(plugin, 0L, 100L);
+        return top;
     }
     public void duke(Location loc) {
         World w = loc.getWorld();
@@ -913,7 +914,7 @@ public enum Monsters {
                 }
                 if(top.getTarget()!= null){
                     LivingEntity t = top.getTarget();
-                    k.knockBack(bottom,t.getLocation(),-0.2);
+                    k.knockBack(bottom,t.getLocation(),-0.5);
                 }
             }
         };
@@ -1038,13 +1039,17 @@ public enum Monsters {
                         nearbyPlayer.add(p);
                     }
                 }
-                for(int i = 0;i < 30;i++){
-                    double x = r.nextDouble() - r.nextDouble();
-                    double y = r.nextDouble() - r.nextDouble();
-                    double z = r.nextDouble() - r.nextDouble();
-                    Vector spread = new Vector(x, y, z).normalize();
-                    ShulkerBullet sb = (ShulkerBullet) w.spawnEntity(shooter.getEyeLocation(),EntityType.SHULKER_BULLET);
-                    sb.setVelocity(spread);
+                Location center = shooter.getLocation().add(0,3,0);
+                double radius = 3;
+                int points = 40;
+                double y = center.getY();
+                double step = 2 * Math.PI / points;
+                for (int i = 0; i < points; i++) {
+                    double angle = i * step;
+                    double x = center.getX() + radius * Math.cos(angle);
+                    double z = center.getZ() + radius * Math.sin(angle);
+                    Location spawnLoc = new Location(w,x,y,z);
+                    ShulkerBullet sb = (ShulkerBullet) w.spawnEntity(spawnLoc,EntityType.SHULKER_BULLET);
                     if(!nearbyPlayer.isEmpty()){
                         sb.setTarget(nearbyPlayer.get(r.nextInt(nearbyPlayer.size())));
                     }

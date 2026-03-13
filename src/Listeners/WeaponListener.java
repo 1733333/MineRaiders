@@ -40,159 +40,163 @@ public class WeaponListener implements Listener {
 
     @EventHandler
     public void playerShootBow(EntityShootBowEvent shootBowEvent) {
-        Entity e = shootBowEvent.getEntity();
+        LivingEntity p = shootBowEvent.getEntity();
         Entity pr = shootBowEvent.getProjectile();
-        World w = e.getWorld();
-        if (e instanceof Player p) {
-            Location shootLoc = p.getEyeLocation().clone();
-            Vector shootVec = shootLoc.getDirection().clone();
-            ItemStack bow = shootBowEvent.getBow();
-            String tag = k.getLore(bow);
-            switch (tag) {
-                case "§f烈焰弓" -> {
-                    if (shootBowEvent.getForce() > 0.5) {
-                        Vector v = pr.getVelocity();
-                        pr.setVelocity(v.multiply(1.1));
-                        w.playSound(p.getLocation(), Sound.ITEM_FIRECHARGE_USE, 1, 1);
-                    }
-                }
-                case "§f风之弓" -> {
+        World w = p.getWorld();
+        Location shootLoc = p.getEyeLocation().clone();
+        Vector shootVec = shootLoc.getDirection().clone();
+        ItemStack bow = shootBowEvent.getBow();
+        String tag = k.getLore(bow);
+        switch (tag) {
+            case "§f烈焰弓" -> {
+                if (shootBowEvent.getForce() > 0.5) {
                     Vector v = pr.getVelocity();
-                    pr.setVelocity(v.multiply(1.3));
-                    pr.setTicksLived(1200);
-                    w.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1, 1);
-                    BukkitRunnable hit = new BukkitRunnable() {
+                    pr.setVelocity(v.multiply(1.1));
+                    w.playSound(p.getLocation(), Sound.ITEM_FIRECHARGE_USE, 1, 1);
+                }
+            }
+            case "§f风之弓" -> {
+                Vector v = pr.getVelocity();
+                pr.setVelocity(v.multiply(1.3));
+                pr.setTicksLived(1200);
+                w.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1, 1);
+                BukkitRunnable hit = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (pr.isDead()) {
+                            w.playSound(pr.getLocation(), Sound.ENTITY_BREEZE_SHOOT, 2, 1);
+                            w.spawnParticle(Particle.GUST, pr.getLocation(), 1);
+                            double radius = 3;
+                            for (Entity e : pr.getNearbyEntities(radius, radius, radius)) {
+                                k.knockBack(e, pr.getLocation(), -1 * (shootBowEvent.getForce() / 3));
+                            }
+                            this.cancel();
+                        }
+                    }
+                };
+                hit.runTaskTimer(plugin, 0L, 2L);
+            }
+            case "§f回响长弓" -> {
+                if (shootBowEvent.getForce() >= 2.9) {
+                    if(p instanceof Player) {
+                        ((Player) p).setCooldown(bow.getType(), 30);
+                    }
+                    Arrow a = w.spawnArrow(shootLoc.add(shootVec), shootVec, 3, 2);
+                    a.setColor(Color.AQUA);
+                    a.setDamage(3);
+                    a.setGlowing(true);
+                    a.setTicksLived(1200);
+                    a.setPierceLevel(100);
+                    shootBowEvent.setProjectile(a);
+                    HashSet<Entity> damaged = new HashSet<>();
+                    ArrayList<Location> locs = new ArrayList<>();
+                    BukkitRunnable record = new BukkitRunnable() {
+
                         @Override
                         public void run() {
-                            if (pr.isDead()) {
-                                w.playSound(pr.getLocation(), Sound.ENTITY_BREEZE_SHOOT, 2, 1);
-                                w.spawnParticle(Particle.GUST, pr.getLocation(), 1);
-                                double radius = 3;
-                                for (Entity e : pr.getNearbyEntities(radius, radius, radius)) {
-                                    k.knockBack(e, pr.getLocation(), -1 * (shootBowEvent.getForce() / 3));
-                                }
+                            if (a.isDead()) {
+                                BukkitRunnable explode = new BukkitRunnable() {
+                                    int count = locs.size() - 1;
+                                    @Override
+                                    public void run() {
+                                        if (count < 0) {
+                                            this.cancel();
+                                            return;
+                                        }
+                                        Location pLoc = locs.get(count);
+                                        w.spawnParticle(Particle.FLASH, pLoc, 1, Color.AQUA);
+                                        w.spawnParticle(Particle.SONIC_BOOM, pLoc, 1);
+                                        w.playSound(pLoc, Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST_FAR, 2, 1);
+                                        for (Entity entity : w.getNearbyEntities(pLoc, 2, 2, 2)) {
+                                            if (entity instanceof LivingEntity l) {
+                                                if (l instanceof Player p1) {
+                                                    if (p == p1) continue;
+                                                }
+                                                if (damaged.contains(l)) continue;
+                                                double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+                                                l.damage(max * 0.05, DamageSource.builder(DamageType.SONIC_BOOM)
+                                                        .withDirectEntity(p).build());
+                                                damaged.add(l);
+                                            }
+                                        }
+                                        count -= 1;
+                                    }
+                                };
+                                explode.runTaskTimer(plugin, 0L, 2L);
                                 this.cancel();
                             }
+                            locs.add(a.getLocation());
+                            w.spawnParticle(Particle.TRIAL_OMEN, a.getLocation(), 5, 0.1, 0.1, 0.1, 0.1);
                         }
                     };
-                    hit.runTaskTimer(plugin, 0L, 2L);
+                    record.runTaskTimer(plugin, 0L, 1L);
                 }
-                case "§f回响长弓" -> {
-                    if (shootBowEvent.getForce() >= 2.9) {
-                        p.setCooldown(bow.getType(), 30);
-                        Arrow a = w.spawnArrow(shootLoc.add(shootVec), shootVec, 3, 2);
-                        a.setColor(Color.AQUA);
-                        a.setDamage(3);
-                        a.setGlowing(true);
-                        a.setTicksLived(1200);
-                        a.setPierceLevel(100);
-                        shootBowEvent.setProjectile(a);
-                        HashSet<Entity> damaged = new HashSet<>();
-                        ArrayList<Location> locs = new ArrayList<>();
-                        BukkitRunnable record = new BukkitRunnable() {
-
-                            @Override
-                            public void run() {
-                                if (a.isDead()) {
-                                    BukkitRunnable explode = new BukkitRunnable() {
-                                        int count = locs.size() - 1;
-                                        @Override
-                                        public void run() {
-                                            if (count < 0) {
-                                                this.cancel();
-                                                return;
-                                            }
-                                            Location pLoc = locs.get(count);
-                                            w.spawnParticle(Particle.FLASH, pLoc, 1, Color.AQUA);
-                                            w.spawnParticle(Particle.SONIC_BOOM, pLoc, 1);
-                                            w.playSound(pLoc, Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST_FAR, 2, 1);
-                                            for (Entity entity : w.getNearbyEntities(pLoc, 2, 2, 2)) {
-                                                if (entity instanceof LivingEntity l) {
-                                                    if (l instanceof Player p1) {
-                                                        if (p == p1) continue;
-                                                    }
-                                                    if (damaged.contains(l)) continue;
-                                                    double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
-                                                    l.damage(max * 0.05, DamageSource.builder(DamageType.SONIC_BOOM)
-                                                            .withDirectEntity(p).build());
-                                                    damaged.add(l);
-                                                }
-                                            }
-                                            count -= 1;
-                                        }
-                                    };
-                                    explode.runTaskTimer(plugin, 0L, 2L);
-                                    this.cancel();
-                                }
-                                locs.add(a.getLocation());
-                                w.spawnParticle(Particle.TRIAL_OMEN, a.getLocation(), 5, 0.1, 0.1, 0.1, 0.1);
-                            }
-                        };
-                        record.runTaskTimer(plugin, 0L, 1L);
+            }
+            case "§f深渊十字弩" -> {
+                if (shootBowEvent.getForce() >= 1) {
+                    pr.remove();
+                    w.playSound(p.getLocation(), Sound.ENTITY_WARDEN_SONIC_BOOM, 2, 1);
+                    if(p instanceof Player) {
+                        ((Player) p).setCooldown(bow.getType(), 30);
                     }
-                }
-                case "§f深渊十字弩" -> {
-                    if (shootBowEvent.getForce() >= 1) {
-                        pr.remove();
-                        w.playSound(p.getLocation(), Sound.ENTITY_WARDEN_SONIC_BOOM, 2, 1);
-                        p.setCooldown(bow.getType(), 30);
-                        Location pLoc = shootLoc.clone();
-                        HashSet<Entity> damaged = new HashSet<>();
-                        for (int i = 0; i < 48; i++) {
-                            Block b = w.getBlockAt(pLoc);
-                            if (b.getType() != Material.AIR) break;
-                            w.spawnParticle(Particle.SONIC_BOOM, pLoc, 1);
-                            for (Entity entity : w.getNearbyEntities(pLoc, 1, 1, 1)) {
-                                if (entity instanceof LivingEntity l) {
-                                    if (l instanceof Player p1) {
-                                        if (p == p1) continue;
-                                    }
-                                    if (damaged.contains(l)) continue;
-                                    double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
-                                    l.damage(3 + max * 0.05, DamageSource.builder(DamageType.SONIC_BOOM)
-                                            .withDirectEntity(p).build());
-                                    damaged.add(l);
+                    Location pLoc = shootLoc.clone();
+                    HashSet<Entity> damaged = new HashSet<>();
+                    for (int i = 0; i < 48; i++) {
+                        Block b = w.getBlockAt(pLoc);
+                        if (b.getType() != Material.AIR) break;
+                        w.spawnParticle(Particle.SONIC_BOOM, pLoc, 1);
+                        for (Entity entity : w.getNearbyEntities(pLoc, 1, 1, 1)) {
+                            if (entity instanceof LivingEntity l) {
+                                if (l instanceof Player p1) {
+                                    if (p == p1) continue;
                                 }
+                                if (damaged.contains(l)) continue;
+                                double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+                                l.damage(3 + max * 0.05, DamageSource.builder(DamageType.SONIC_BOOM)
+                                        .withDirectEntity(p).build());
+                                damaged.add(l);
                             }
-                            pLoc.add(shootVec.multiply(1));
                         }
+                        pLoc.add(shootVec.multiply(1));
                     }
                 }
-                case "§f费洛" -> {
-                    w.playSound(shootLoc, Sound.ENTITY_GENERIC_EXPLODE, 2, 2);
-                    w.spawnParticle(Particle.EXPLOSION, shootLoc.add(shootVec), 1);
-                    Arrow a = w.spawnArrow(shootLoc, shootVec, 5, 0);
+            }
+            case "§f费洛" -> {
+                w.playSound(shootLoc, Sound.ENTITY_GENERIC_EXPLODE, 2, 2);
+                w.spawnParticle(Particle.EXPLOSION, shootLoc.add(shootVec), 1);
+                Arrow a = w.spawnArrow(shootLoc, shootVec, 5, 0);
+                a.setShooter(p);
+                a.setCritical(true);
+                a.setDamage(1.5);
+                shootBowEvent.setProjectile(a);
+                if(p instanceof Player) {
+                    ((Player) p).setCooldown(bow.getType(), 20);
+                }
+            }
+            case "§f猎头" -> {
+                if (shootBowEvent.getForce() >= 2.9) {
+                    w.playSound(shootLoc, Sound.ITEM_CROSSBOW_SHOOT, 1, 1);
+                    Arrow a = w.spawnArrow(shootLoc, shootVec, 4, 0);
                     a.setShooter(p);
                     a.setCritical(true);
-                    a.setDamage(1.5);
+                    a.setCustomName(ChatColor.RED+ p.getName() + "的猎头箭");
+                    a.setDamage(0);
+                    a.setTicksLived(1200);
                     shootBowEvent.setProjectile(a);
-                    p.setCooldown(bow.getType(), 20);
+                    BukkitRunnable particle = new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if(a.isDead())this.cancel();
+                            w.spawnParticle(Particle.SOUL,a.getLocation(),0);
+                        }
+                    };
+                    particle.runTaskTimer(plugin,0L,1L);
                 }
-                case "§f猎头" -> {
-                    if (shootBowEvent.getForce() >= 2.9) {
-                        w.playSound(shootLoc, Sound.ITEM_CROSSBOW_SHOOT, 1, 1);
-                        Arrow a = w.spawnArrow(shootLoc, shootVec, 4, 0);
-                        a.setShooter(p);
-                        a.setCritical(true);
-                        a.setCustomName(ChatColor.RED+ p.getName() + "的猎头箭");
-                        a.setDamage(0);
-                        a.setTicksLived(1200);
-                        shootBowEvent.setProjectile(a);
-                        BukkitRunnable particle = new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                if(a.isDead())this.cancel();
-                                w.spawnParticle(Particle.SOUL,a.getLocation(),0);
-                            }
-                        };
-                        particle.runTaskTimer(plugin,0L,1L);
-                    }
-                }
-                case "§f测试弓" -> {
-                    if (shootBowEvent.getForce() >= 2.9) {
-                        pr.setTicksLived(1200);
-                        pr.addPassenger(p);
-                    }
+            }
+            case "§f测试弓" -> {
+                if (shootBowEvent.getForce() >= 2.9) {
+                    pr.setTicksLived(1200);
+                    pr.addPassenger(p);
                 }
             }
         }
@@ -247,8 +251,8 @@ public class WeaponListener implements Listener {
         Entity damaged = damageEvent.getEntity();
         double damage = damageEvent.getDamage();
         World w = attacker.getWorld();
-        if(attacker instanceof Player p){
-            ItemStack hand = p.getInventory().getItemInMainHand();
+        if(attacker instanceof LivingEntity p){
+            ItemStack hand = p.getEquipment().getItemInMainHand();
             double aDamage = p.getAttribute(Attribute.ATTACK_DAMAGE).getValue();
             if(damage < aDamage * 0.8)return;
             damage -= damageEvent.getOriginalDamage(EntityDamageEvent.DamageModifier.ARMOR);
@@ -300,8 +304,19 @@ public class WeaponListener implements Listener {
                         }
                         case "§f绿宝石剑" ->{
                             if(damaged instanceof Mob m){
-                                m.damage(4, DamageSource.builder(DamageType.MAGIC)
-                                        .withDirectEntity(p).build());
+                                new BukkitRunnable(){
+                                    @Override
+                                    public void run() {
+                                        BlockData data = Bukkit.createBlockData(Material.EMERALD_BLOCK);
+                                        m.damage(4, DamageSource.builder(DamageType.MAGIC)
+                                                .withDirectEntity(p).build());
+                                        w.playSound(m.getLocation(),Sound.BLOCK_AMETHYST_BLOCK_BREAK,1,1);
+                                        w.playSound(m.getLocation(),Sound.BLOCK_AMETHYST_BLOCK_BREAK,1,1);
+                                        w.playSound(m.getLocation(),Sound.BLOCK_AMETHYST_BLOCK_BREAK,1,1);
+                                        w.playSound(m.getLocation(),Sound.BLOCK_ENCHANTMENT_TABLE_USE,1,1);
+                                        w.spawnParticle(Particle.DUST_PILLAR,m.getLocation(),20,0.1,0,0.1,data);
+                                    }
+                                }.runTaskLater(plugin,11L);
                             }
                         }
                     }

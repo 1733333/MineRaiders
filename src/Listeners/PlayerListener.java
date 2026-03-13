@@ -128,20 +128,27 @@ public class PlayerListener implements Listener {
     }
     public void crawling(Player p){
         World w = p.getWorld();
-        Shulker s = (Shulker) w.spawnEntity(p.getEyeLocation(),EntityType.SHULKER);
-        s.getAttribute(Attribute.SCALE).setBaseValue(0.7);
-        s.setInvisible(true);
-        s.setSilent(true);
-        s.setAI(false);
-        s.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE,PotionEffect.INFINITE_DURATION,10));
+        Shulker top = (Shulker) w.spawnEntity(p.getEyeLocation(),EntityType.SHULKER);
+        ArmorStand bottom = (ArmorStand) w.spawnEntity(p.getLocation(),EntityType.ARMOR_STAND);
+        bottom.setCustomName("倒地底座");
+        bottom.setSmall(true);
+        bottom.setMarker(true);
+        bottom.setInvisible(true);
+        top.getAttribute(Attribute.SCALE).setBaseValue(0.7);
+        top.setInvisible(true);
+        top.setSilent(true);
+        top.setAI(false);
+        top.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE,PotionEffect.INFINITE_DURATION,10));
+        bottom.addPassenger(top);
         BukkitRunnable crawling = new BukkitRunnable() {
             @Override
             public void run() {
                 if(!playerStats.isDying(p)){
-                    s.remove();
+                    top.remove();
+                    bottom.remove();
                     this.cancel();
                 }
-                s.teleport(p.getLocation().add(0,0.5,0));
+                bottom.teleport(p);
             }
         };
         crawling.runTaskTimer(plugin,0L,1L);

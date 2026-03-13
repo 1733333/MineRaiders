@@ -4,6 +4,7 @@ import Universal.Kit;
 import Universal.PlayerStats;
 import com.sun.nio.sctp.ShutdownNotification;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
@@ -55,17 +56,22 @@ public class MonsterListener implements Listener {
             }
             switch (name){
                 case "§7堡垒底盘","§7堡垒炮塔","§c公爵","§c公爵引擎"->{
+                    double maxHealth = l.getAttribute(Attribute.MAX_HEALTH).getValue();
+                    double health = l.getHealth();
+                    double scale = health/maxHealth;
                     if (!damaged.getPassengers().isEmpty()) {
                         for (Entity e : damaged.getPassengers()) {
                             if (e instanceof LivingEntity l1) {
-                                l1.damage(damage);
+                                double h1 = l1.getAttribute(Attribute.MAX_HEALTH).getValue();
+                                l1.setHealth(Math.min(h1 * scale,h1));
                             }
                         }
                     }
                     if (damaged.getVehicle() != null) {
                         Entity v = damaged.getVehicle();
                         if (v instanceof LivingEntity l1) {
-                            l1.damage(damage);
+                            double h1 = l1.getAttribute(Attribute.MAX_HEALTH).getValue();
+                            l1.setHealth(Math.min(h1 * scale,h1));
                         }
                     }
                 }
@@ -212,7 +218,7 @@ public class MonsterListener implements Listener {
         }
     }
     @EventHandler
-    public void damageSoundEffect(EntityDamageEvent damageEvent) {
+    public void damageSoundEffect(EntityDamageByEntityEvent damageEvent) {
         Entity e = damageEvent.getEntity();
         World w = e.getWorld();
         if(damageEvent.getDamage() > 3) {
@@ -229,6 +235,9 @@ public class MonsterListener implements Listener {
                     default -> Sound.UI_BUTTON_CLICK;
                 };
                 w.playSound(d.getLocation(),s,2,1);
+                if(damageEvent.getDamager() instanceof Player p){
+                    p.playSound(p.getLocation(),s,1,1);
+                }
             }
         }
     }
@@ -310,7 +319,6 @@ public class MonsterListener implements Listener {
                         }
                     }
                     case "§c公爵","§c公爵引擎"->{
-                        Bukkit.broadcastMessage(type.toString());
                         if(type == DamageType.IN_WALL){
                             damageEvent.setDamage(0);
                             damageEvent.setCancelled(true);
