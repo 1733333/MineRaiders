@@ -129,29 +129,23 @@ public class PlayerListener implements Listener {
     public void crawling(Player p){
         World w = p.getWorld();
         Shulker top = (Shulker) w.spawnEntity(p.getEyeLocation(),EntityType.SHULKER);
-        ArmorStand bottom = (ArmorStand) w.spawnEntity(p.getLocation(),EntityType.ARMOR_STAND);
-        bottom.setCustomName("倒地底座");
-        bottom.setSmall(true);
-        bottom.setMarker(true);
-        bottom.setInvisible(true);
         top.getAttribute(Attribute.SCALE).setBaseValue(0.7);
         top.setInvisible(true);
         top.setSilent(true);
         top.setAI(false);
+        top.setCollidable(false);
         top.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE,PotionEffect.INFINITE_DURATION,10));
-        bottom.addPassenger(top);
         BukkitRunnable crawling = new BukkitRunnable() {
             @Override
             public void run() {
                 if(!playerStats.isDying(p)){
                     top.remove();
-                    bottom.remove();
                     this.cancel();
                 }
-                bottom.teleport(p);
+                top.teleport(p.getLocation().add(0,1,0));
             }
         };
-        crawling.runTaskTimer(plugin,0L,1L);
+        crawling.runTaskTimer(plugin, 0L, 1L);
     }
     @EventHandler(priority = EventPriority.HIGHEST)
     public void playerDeath(EntityDamageEvent damageEvent) {

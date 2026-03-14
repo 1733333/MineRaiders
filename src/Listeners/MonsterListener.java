@@ -21,6 +21,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import static Universal.Monsters.entityMinionMap;
 
 public class MonsterListener implements Listener {
     JavaPlugin plugin;
@@ -171,6 +174,8 @@ public class MonsterListener implements Listener {
             case"§7堡垒炮塔":
             case"§e机魂":
             case"§e机魂推进器":
+            case"§c机魂":
+            case"§c机魂推进器":
             case"§c公爵":
             case"§c公爵引擎":
                 if(!dead.getPassengers().isEmpty()){
@@ -187,10 +192,15 @@ public class MonsterListener implements Listener {
                     }
                 }
         }
+        if(dName.equals("§c机魂")){
+            List<Entity> minions = entityMinionMap.getOrDefault("§c公爵",new ArrayList<>());
+            minions.remove(dead);
+            entityMinionMap.put("§c公爵",minions);
+        }
         if (dName.equals("§6火球")) {
             BukkitRunnable fire = new BukkitRunnable() {
                 public void run() {
-                    MonsterListener.this.k.fire(dead, dead, 5, 3,3);
+                    k.fire(dead, dead, 5, 3,3);
                 }
             };
             fire.runTaskLater(plugin, 20L);

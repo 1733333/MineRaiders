@@ -554,9 +554,9 @@ public enum WeaponPool {
     public ItemStack emeraldSword(){
         ItemStack item = new ItemStack(Material.IRON_SWORD);
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.AQUA + "绿宝石剑");
+        itemMeta.setDisplayName(ChatColor.AQUA + "铭文铁剑");
         ArrayList<String> lore = new ArrayList<>();
-        lore.add(ChatColor.WHITE + "绿宝石剑");
+        lore.add(ChatColor.WHITE + "铭文铁剑");
         lore.add(ChatColor.WHITE + "上面刻着魔法铭文");
         lore.add(ChatColor.WHITE + "对怪物造成额外魔法伤害");
         itemMeta.setLore(lore);

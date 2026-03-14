@@ -122,7 +122,7 @@ public class WeaponListener implements Listener {
                                         count -= 1;
                                     }
                                 };
-                                explode.runTaskTimer(plugin, 0L, 2L);
+                                explode.runTaskTimer(plugin, 10L, 2L);
                                 this.cancel();
                             }
                             locs.add(a.getLocation());
@@ -207,18 +207,20 @@ public class WeaponListener implements Listener {
         if(pr.getName().contains("猎头箭")) {
             if (hitEvent.getHitEntity() != null) {
                 Entity e = hitEvent.getHitEntity();
-                if (e instanceof Player player) {
-                    double arrowY = pr.getLocation().getY();
-                    double entityY = player.getEyeLocation().getY();
+                if(e instanceof LivingEntity l) {
                     double damage = 8;
-                    if (Math.abs(entityY - arrowY) < 0.4) {
-                        damage = 12;
-                        if (pr.getShooter() instanceof Player p) {
-                            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-                            p.playSound(p.getLocation(), Sound.ENTITY_WITHER_BREAK_BLOCK, 1, 1);
+                    if (e instanceof Player player) {
+                        double arrowY = pr.getLocation().getY();
+                        double headHeight = player.getEyeHeight() - 0.2; // 爆头范围
+                        if (arrowY >= player.getLocation().getY() + player.getEyeHeight() - headHeight) {
+                            damage = 12;
+                            if (pr.getShooter() instanceof Player p) {
+                                p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                                p.playSound(p.getLocation(), Sound.ENTITY_WITHER_BREAK_BLOCK, 1, 1);
+                            }
                         }
                     }
-                    player.damage(damage, DamageSource.builder(DamageType.ARROW).build());
+                    l.damage(damage, DamageSource.builder(DamageType.ARROW).build());
                 }
             }
         }
@@ -302,7 +304,7 @@ public class WeaponListener implements Listener {
                             p.damage(1, DamageSource.builder(DamageType.CACTUS).build());
                             w.playSound(p.getLocation(),Sound.ENCHANT_THORNS_HIT,1,1);
                         }
-                        case "§f绿宝石剑" ->{
+                        case "§f铭文铁剑" ->{
                             if(damaged instanceof Mob m){
                                 new BukkitRunnable(){
                                     @Override
@@ -317,6 +319,15 @@ public class WeaponListener implements Listener {
                                         w.spawnParticle(Particle.DUST_PILLAR,m.getLocation(),20,0.1,0,0.1,data);
                                     }
                                 }.runTaskLater(plugin,11L);
+                            }
+                        }
+                        case "§f大师长棍" -> {
+                            if (damaged instanceof Mob m) {
+                                damageEvent.setDamage(damage * 1.5);
+                                w.spawnParticle(Particle.GUST,m.getEyeLocation(),1);
+                                w.playSound(m.getLocation(),Sound.BLOCK_BONE_BLOCK_PLACE,1,1);
+                                w.playSound(m.getLocation(),Sound.BLOCK_BONE_BLOCK_PLACE,1,1);
+                                w.playSound(m.getLocation(),Sound.BLOCK_BONE_BLOCK_PLACE,1,1);
                             }
                         }
                     }

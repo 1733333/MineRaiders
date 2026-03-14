@@ -3,7 +3,7 @@ import Universal.BoxPool;
 import Universal.Kit;
 import Universal.Monsters;
 import Universal.Recipes;
-import commands.*;
+import Commands.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -30,6 +30,7 @@ public class MR extends JavaPlugin {
         DropCommand dropCommand = new DropCommand();
         FreeRecipeCommand freeRecipeCommand = new FreeRecipeCommand();
         GetAllItemsCommand getAllItemsCommand = new GetAllItemsCommand();
+        DoorManager doorManager = new DoorManager(this);
         ContainerListener containerListener = new ContainerListener();
         GadgetListener gadgetListener = new GadgetListener();
         MonsterListener monsterListener = new MonsterListener();
@@ -47,6 +48,7 @@ public class MR extends JavaPlugin {
         manager.registerEvents(armorListener,this);
         manager.registerEvents(armorEquipListener,this);
         manager.registerEvents(weaponListener,this);
+        manager.registerEvents(doorManager,this);
 
         this.getCommand("mineraidersdebug").setExecutor(debugCommand);
         this.getCommand("getloots").setExecutor(lootCommand);
@@ -57,6 +59,7 @@ public class MR extends JavaPlugin {
         this.getCommand("getfreerecipes").setExecutor(freeRecipeCommand);
         this.getCommand("getdrops").setExecutor(dropCommand);
         this.getCommand("getall").setExecutor(getAllItemsCommand);
+        this.getCommand("door").setExecutor(doorManager);
 
         containerListener.setPlugin(this);
         gadgetListener.setPlugin(this);

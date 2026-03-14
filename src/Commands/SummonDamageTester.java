@@ -1,4 +1,4 @@
-package commands;
+package Commands;
 
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;

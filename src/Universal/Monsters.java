@@ -31,6 +31,7 @@ public enum Monsters {
     ArmorPool ap = ArmorPool.INSTANCE;
     PlayerStats playerStats =  PlayerStats.INSTANCE;
     HashMap<LivingEntity,Player> snitchPlayerMap = new HashMap<>();
+    public static HashMap<String,List<Entity>> entityMinionMap = new HashMap<>();
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
     }
@@ -727,12 +728,16 @@ public enum Monsters {
         getTarget.runTaskTimer(plugin, 0L, 100L);
         shooting.runTaskTimer(plugin, 0L, 50L);
     }
-    public Entity dukeMinion(Location loc){
+    public Entity dukeMinion(Location loc,boolean isMinion){
         World w = loc.getWorld();
         Skeleton top = (Skeleton) w.spawnEntity(loc, EntityType.SKELETON);
         Vex bottom = (Vex) w.spawnEntity(loc, EntityType.VEX);
-        top.setCustomName(ChatColor.YELLOW + "机魂");
-        bottom.setCustomName(ChatColor.YELLOW + "机魂推进器");
+        ChatColor c = ChatColor.YELLOW;
+        if(isMinion){
+            c = ChatColor.RED;
+        }
+        top.setCustomName(c + "机魂");
+        bottom.setCustomName(c + "机魂推进器");
         top.setSilent(true);
         top.setInvisible(true);
         bottom.addPassenger(top);
@@ -890,10 +895,16 @@ public enum Monsters {
                         case 0 ->dukeBomb(top);
                         case 1 ->dukeMissile(top);
                         case 2 -> {
-                            dukeMinion(top.getLocation());
-                            dukeMinion(top.getLocation());
-                            dukeMinion(top.getLocation());
-                            w.playSound(top.getLocation(),Sound.ENTITY_EVOKER_PREPARE_SUMMON,1,1);
+                            List<Entity>minions = entityMinionMap.getOrDefault(top.getName(),new ArrayList<>());
+                            int count = 3 - minions.size();
+                            if(count > 0){
+                                for(int i = 0;i< count;i++){
+                                    Entity e = dukeMinion(top.getLocation(),true);
+                                    minions.add(e);
+                                }
+                                w.playSound(top.getLocation(),Sound.ENTITY_EVOKER_PREPARE_SUMMON,1,1);
+                                entityMinionMap.put(top.getName(),minions);
+                            }
                         }
                     }
                     skill++;
@@ -912,10 +923,7 @@ public enum Monsters {
                 if(top.isDead()){
                     this.cancel();
                 }
-                if(top.getTarget()!= null){
-                    LivingEntity t = top.getTarget();
-                    k.knockBack(bottom,t.getLocation(),-0.5);
-                }
+                top.setVelocity(new Vector(0,-0.5,0));
             }
         };
         bossBar.runTaskTimer(plugin,0L,2L);

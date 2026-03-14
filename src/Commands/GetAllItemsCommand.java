@@ -1,4 +1,4 @@
-package commands;
+package Commands;
 
 import Universal.PlayerStats;
 import org.bukkit.Bukkit;
