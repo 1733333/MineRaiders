@@ -254,6 +254,8 @@ public enum LootPool {
         content.addAll(List.of(epicItem));
         content.addAll(List.of(legendaryItem));
         content.addAll(List.of(mysticItem));
+        content.add(i112());
+        content.add(i113());
         return content.toArray(new ItemStack[0]).clone();
     }
 
@@ -293,6 +295,7 @@ public enum LootPool {
             case "§d【" -> 3;
             case "§6【" -> 4;
             case "§c【" -> 5;
+            case "§4【" -> 6;
             default -> -1;
         };
     }
@@ -1780,6 +1783,29 @@ public enum LootPool {
         meta.setMaxStackSize(8);
         meta.setDisplayName(ChatColor.GREEN + "【寻常】海晶砂粒");
         lore.add(ChatColor.WHITE + "漂浮手里剑...?");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack i112() {
+        ItemStack i = new ItemStack(Material.LEVER);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(8);
+        meta.setDisplayName(ChatColor.DARK_RED + "【神话】没(mei)收库房钥匙");
+        lore.add(ChatColor.WHITE + "没(mei)收库房的钥匙");
+        lore.add(ChatColor.WHITE + "可以开启没(mei)收库房");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack i113() {
+        ItemStack i = new ItemStack(Material.TALL_GRASS);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(8);
+        meta.setDisplayName(ChatColor.DARK_RED + "【神话】大蕊毛草");
+        lore.add(ChatColor.WHITE + "可以制成绝世药品");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();

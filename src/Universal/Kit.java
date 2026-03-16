@@ -65,7 +65,62 @@ public enum Kit {
         Vector v2N = v2.clone().normalize();
         return v1N.dot(v2N);
     }
-    public void explode(LivingEntity source,Entity jar,double damage,double amp,int radius,double selfDamage) {
+
+    public void explode(LivingEntity source, Entity jar, double baseDamage, double amp, int radius, double selfDamageMultiplier) {
+        World world = source.getWorld();
+
+        Location jarLoc = jar.getLocation();
+        Collection<Entity> nearby = world.getNearbyEntities(jarLoc, radius, radius, radius);
+        boolean isSpecial = source.getName().equals("§a爆爆");
+
+        for (Entity target : nearby) {
+            if (!(target instanceof LivingEntity living)) continue;
+
+            double distance = jarLoc.distance(target.getLocation());
+            if (distance > radius) continue; // 球形过滤
+
+            // 独立计算伤害
+            double finalDamage = baseDamage;
+            if (distance >= 1.0) {
+                finalDamage -= distance * amp;
+            }
+
+            // 自伤处理
+            if (living == source) {
+                if (selfDamageMultiplier == 0.0) {
+                    finalDamage = 0.0;
+                } else {
+                    finalDamage *= selfDamageMultiplier;
+                }
+            } else {
+                // 视线检测（仅非投掷者）
+                Location shooterEye = jar.getLocation();
+                Location targetEye = living.getEyeLocation();
+                Vector direction = targetEye.toVector().subtract(shooterEye.toVector());
+                double traceDistance = shooterEye.distance(targetEye);
+                RayTraceResult traceResult = world.rayTraceBlocks(shooterEye, direction, traceDistance);
+                if (traceResult != null) continue; // 被方块阻挡
+            }
+
+            finalDamage = Math.max(0.0, finalDamage); // 防止负伤害
+
+            // 造成伤害
+            if (isSpecial) {
+                living.damage(finalDamage);
+            } else {
+                DamageSource damageSource = DamageSource.builder(DamageType.EXPLOSION)
+                        .withDirectEntity(source)
+                        .build();
+                living.damage(finalDamage, damageSource);
+            }
+        }
+
+        // 特殊实体仅移除一次（如果设计如此）
+        if (isSpecial) {
+            source.remove();
+        }
+    }
+    public void ogExplode(LivingEntity source, Entity jar, double damage, double amp, int radius, double selfDamage) {
         World w = source.getWorld();
         Collection<Entity> entities = w.getNearbyEntities(jar.getLocation(), radius, radius, radius);
         for (Entity e : entities) {

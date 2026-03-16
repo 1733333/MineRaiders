@@ -792,7 +792,7 @@ public enum Monsters {
     public void duke(Location loc) {
         World w = loc.getWorld();
         WitherSkeleton top = (WitherSkeleton) w.spawnEntity(loc, EntityType.WITHER_SKELETON);
-        Wither bottom = (Wither) w.spawnEntity(loc, EntityType.WITHER);
+        Bee bottom = (Bee) w.spawnEntity(loc, EntityType.BEE);
         bottom.setCustomName(ChatColor.RED + "公爵引擎");
         bottom.addPassenger(top);
         bottom.setInvisible(true);
@@ -804,17 +804,17 @@ public enum Monsters {
         top.setCustomName(ChatColor.RED + "公爵");
         top.getAttribute(Attribute.SCALE).setBaseValue(3);
         top.getAttribute(Attribute.ARMOR).setBaseValue(20);
-        bottom.getAttribute(Attribute.SCALE).setBaseValue(1.2);
+        bottom.getAttribute(Attribute.SCALE).setBaseValue(5);
         bottom.getAttribute(Attribute.FLYING_SPEED).setBaseValue(0.1);
         top.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
         bottom.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
         top.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
         top.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,PotionEffect.INFINITE_DURATION,10));
+        bottom.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE,PotionEffect.INFINITE_DURATION,0));
         top.setInvisible(true);
         top.setCustomNameVisible(false);
         top.setHealth(maxHealth);
         bottom.setHealth(maxHealth);
-        bottom.getBossBar().setVisible(false);
         BossBar bar = Bukkit.createBossBar(top.getCustomName(), BarColor.RED, BarStyle.SOLID, BarFlag.DARKEN_SKY);
         for(Player player : Bukkit.getOnlinePlayers()){
             bar.addPlayer(player);
@@ -844,9 +844,6 @@ public enum Monsters {
                     bLoc.add(new Vector(0,-1,0));
                     max++;
                 }
-                Block ground;
-
-                bottom.setVelocity(new Vector(0,-1,0));
                 w.playSound(top, Sound.ENTITY_PHANTOM_FLAP, 1, 1);
                 if (top.getTarget() == null) {
                     double radius = 64;
@@ -917,20 +914,47 @@ public enum Monsters {
                 count ++;
             }
         };
-        BukkitRunnable dash = new BukkitRunnable() {
+        final double hoverHeight = 5.0; // 离地高度（格）
+        final double strength = 0.1;    // 调整力度（值越大响应越快，但可能抖动）
+
+        BukkitRunnable hover = new BukkitRunnable() {
             @Override
             public void run() {
-                if(top.isDead()){
+                if (top.isDead() || bottom.isDead()) {
                     this.cancel();
+                    return;
                 }
-                top.setVelocity(new Vector(0,-0.5,0));
+
+                Location bottomLoc = bottom.getLocation();
+                World world = bottom.getWorld();
+
+                // 向下射线追踪，检测地面
+                // 从底部实体位置开始，向下追踪 10 格（可根据需要调整）
+                RayTraceResult result = world.rayTraceBlocks(bottomLoc, new Vector(0, -1, 0), 10);
+                double groundY;
+                if (result != null && result.getHitBlock() != null) {
+                    // 获取被击中方块的上表面 Y 坐标
+                    groundY = result.getHitBlock().getLocation().getY() + 1.0;
+                } else {
+                    // 没检测到地面（如悬空），保持当前高度不变
+                    groundY = bottomLoc.getY() - hoverHeight; // 假装地面就在下方 hoverHeight 处，实际不会移动
+                }
+
+                double targetY = groundY + hoverHeight;
+                double currentY = bottomLoc.getY();
+                double diff = targetY - currentY;
+
+                // 使用速度调整高度，防止瞬间移动
+                Vector velocity = bottom.getVelocity();
+                velocity.setY(diff * strength);
+                bottom.setVelocity(velocity);
             }
         };
         bossBar.runTaskTimer(plugin,0L,2L);
         getTarget.runTaskTimer(plugin, 0L, 100L);
         particle.runTaskTimer(plugin, 0L, 10L);
         attack.runTaskTimer(plugin,20L,80L);
-        dash.runTaskTimer(plugin,0L,20L);
+        hover.runTaskTimer(plugin, 0L, 1L); // 每 tick 执行
     }
     public void dukeShoot(LivingEntity l){
         World w = l.getWorld();
@@ -958,9 +982,8 @@ public enum Monsters {
                 w.playSound(l.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,2);
                 for(int i = 0;i < 20;i++){
                     Arrow a = w.spawnArrow(shootLoc,shootVec,2,25);
-                    a.setDamage(2);
+                    a.setDamage(1);
                     a.setShooter(l);
-                    a.setCritical(true);
                     a.setTicksLived(1200);
                     a.setPierceLevel(10);
                     a.setColor(Color.ORANGE);
@@ -1049,7 +1072,7 @@ public enum Monsters {
                 }
                 Location center = shooter.getLocation().add(0,3,0);
                 double radius = 3;
-                int points = 40;
+                int points = 20;
                 double y = center.getY();
                 double step = 2 * Math.PI / points;
                 for (int i = 0; i < points; i++) {

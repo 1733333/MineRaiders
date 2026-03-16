@@ -415,6 +415,7 @@ public class ContainerListener implements Listener {
                         case 3 -> Particle.REVERSE_PORTAL;
                         case 4 -> Particle.FLAME;
                         case 5 -> Particle.RAID_OMEN;
+                        case 6 -> Particle.SCULK_SOUL;
                         default -> Particle.CLOUD;
                     };
                     if(rarity == 5){

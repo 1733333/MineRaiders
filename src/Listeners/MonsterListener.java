@@ -59,23 +59,20 @@ public class MonsterListener implements Listener {
             }
             switch (name){
                 case "§7堡垒底盘","§7堡垒炮塔","§c公爵","§c公爵引擎"->{
-                    double maxHealth = l.getAttribute(Attribute.MAX_HEALTH).getValue();
-                    double health = l.getHealth();
-                    double scale = health/maxHealth;
-                    if (!damaged.getPassengers().isEmpty()) {
-                        for (Entity e : damaged.getPassengers()) {
-                            if (e instanceof LivingEntity l1) {
-                                double h1 = l1.getAttribute(Attribute.MAX_HEALTH).getValue();
-                                l1.setHealth(Math.min(h1 * scale,h1));
-                            }
+                    double newHealth = Math.max(0, l.getHealth() - damage);
+                    double damagePercent = (l.getHealth() - newHealth) / l.getMaxHealth();
+                    // 同步给所有乘客（直接乘客，不考虑嵌套）
+                    for (Entity passenger : l.getPassengers()) {
+                        if (passenger instanceof LivingEntity p) {
+                            double pNewHealth = Math.max(0, p.getHealth() - p.getMaxHealth() * damagePercent);
+                            p.setHealth(pNewHealth);
                         }
                     }
-                    if (damaged.getVehicle() != null) {
-                        Entity v = damaged.getVehicle();
-                        if (v instanceof LivingEntity l1) {
-                            double h1 = l1.getAttribute(Attribute.MAX_HEALTH).getValue();
-                            l1.setHealth(Math.min(h1 * scale,h1));
-                        }
+                    // 同步给载具（如果当前实体是乘客）
+                    Entity vehicle = l.getVehicle();
+                    if (vehicle instanceof LivingEntity v) {
+                        double vNewHealth = Math.max(0, v.getHealth() - v.getMaxHealth() * damagePercent);
+                        v.setHealth(vNewHealth);
                     }
                 }
             }

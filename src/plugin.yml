@@ -34,6 +34,3 @@ commands:
   getall:
     description: open a menu
     usage: /getall
-  door:
-    description: 创建或开关门
-    usage: /door create <id> <x1> <y1> <z1> <x2> <y2> <z2> 或 /door toggle <id>

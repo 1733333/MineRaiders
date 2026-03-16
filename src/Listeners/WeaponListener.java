@@ -199,6 +199,21 @@ public class WeaponListener implements Listener {
                     pr.addPassenger(p);
                 }
             }
+            case "§f测试弓2" -> {
+                if (shootBowEvent.getForce() >= 2.9) {
+                    pr.addPassenger(p);
+                    new BukkitRunnable(){
+                        @Override
+                        public void run() {
+                            if(pr.getTicksLived() > 100){
+                                this.cancel();
+                                pr.remove();
+                            }
+                            pr.setVelocity(p.getEyeLocation().getDirection());
+                        }
+                    }.runTaskTimer(plugin,0L,2L);
+                }
+            }
         }
     }
     @EventHandler

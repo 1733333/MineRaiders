@@ -455,7 +455,7 @@ public enum WeaponPool {
         itemMeta.setDisplayName(ChatColor.YELLOW + "大师长棍");
         itemMeta.addEnchant(Enchantment.KNOCKBACK,2,true);
         itemMeta.addEnchant(Enchantment.FIRE_ASPECT,2,true);
-        itemMeta.addEnchant(Enchantment.SMITE,3,true);
+        itemMeta.addEnchant(Enchantment.SMITE,2,true);
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-1.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
