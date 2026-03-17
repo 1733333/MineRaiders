@@ -792,21 +792,20 @@ public enum Monsters {
     public void duke(Location loc) {
         World w = loc.getWorld();
         WitherSkeleton top = (WitherSkeleton) w.spawnEntity(loc, EntityType.WITHER_SKELETON);
-        Bee bottom = (Bee) w.spawnEntity(loc, EntityType.BEE);
+        Vex bottom = (Vex) w.spawnEntity(loc, EntityType.VEX);
         bottom.setCustomName(ChatColor.RED + "公爵引擎");
         bottom.addPassenger(top);
         bottom.setInvisible(true);
         bottom.setSilent(true);
-        bottom.setAnger(10);
         top.getEquipment().clear();
         top.getEquipment().setHelmet(new ItemStack(Material.DISPENSER));
         top.getEquipment().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
         double maxHealth = 1000;
         top.setCustomName(ChatColor.RED + "公爵");
         top.getAttribute(Attribute.SCALE).setBaseValue(3);
-        top.getAttribute(Attribute.ARMOR).setBaseValue(20);
-        bottom.getAttribute(Attribute.SCALE).setBaseValue(5);
-        bottom.getAttribute(Attribute.FLYING_SPEED).setBaseValue(0.1);
+        top.getAttribute(Attribute.ARMOR).setBaseValue(12);
+        bottom.getAttribute(Attribute.SCALE).setBaseValue(3);
+        bottom.getAttribute(Attribute.FLYING_SPEED).setBaseValue(0.05);
         top.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
         bottom.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
         top.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
@@ -915,8 +914,8 @@ public enum Monsters {
                 count ++;
             }
         };
-        final double hoverHeight = 5.0; // 离地高度（格）
-        final double strength = 0.1;    // 调整力度（值越大响应越快，但可能抖动）
+        final double hoverHeight = 2.0; // 离地高度（格）
+        final double strength = 0.5;    // 调整力度（值越大响应越快，但可能抖动）
 
         BukkitRunnable hover = new BukkitRunnable() {
             @Override
@@ -951,11 +950,24 @@ public enum Monsters {
                 bottom.setVelocity(velocity);
             }
         };
+        BukkitRunnable dash = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if(top.isDead()){
+                    this.cancel();
+                }
+                if(top.getTarget()!= null){
+                    LivingEntity t = top.getTarget();
+                    k.knockBack(bottom,t.getLocation(),-0.1);
+                }
+            }
+        };
+        dash.runTaskTimer(plugin,0L,20L);
         bossBar.runTaskTimer(plugin,0L,2L);
         getTarget.runTaskTimer(plugin, 0L, 100L);
         particle.runTaskTimer(plugin, 0L, 10L);
         attack.runTaskTimer(plugin,20L,80L);
-        hover.runTaskTimer(plugin, 0L, 1L); // 每 tick 执行
+//        hover.runTaskTimer(plugin, 0L, 1L); // 每 tick 执行
     }
     public void dukeShoot(LivingEntity l){
         World w = l.getWorld();

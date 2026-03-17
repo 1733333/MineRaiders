@@ -575,7 +575,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(1.5));
+            nade.setVelocity(shootVec.multiply(2));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
@@ -586,8 +586,8 @@ public class GadgetListener implements Listener {
                 @Override
                 public void run() {
                     w.spawnParticle(Particle.CRIT, nade.getLocation(), 0);
-                    if (bounce < 2) {
-                        if(k.dikBounce(nade,0.5)){
+                    if (bounce < 3){
+                        if(k.dikBounce(nade,0.2)){
                             bounce ++;
                         }
                     }
@@ -609,7 +609,7 @@ public class GadgetListener implements Listener {
                             @Override
                             public void run() {
                                 w.spawnParticle(Particle.EXPLOSION_EMITTER, nade.getLocation(), 1);
-                                k.explode(p, nade, 18, 1.5, 5, 1);
+                                k.explode(p, nade, 16, 1.5, 5, 1);
                                 for (int i = 0; i < 20; i++) {
                                     Vector shootVec = new Vector(r.nextDouble() - r.nextDouble(),
                                             r.nextDouble() - r.nextDouble(), r.nextDouble() - r.nextDouble());
@@ -628,7 +628,7 @@ public class GadgetListener implements Listener {
                     }
                 }
             };
-            hit.runTaskTimer(plugin, 2L, 1L);
+            hit.runTaskTimer(plugin, 0L, 1L);
         }
     }
     public void gasGrenade(Player p, ItemStack hand) {

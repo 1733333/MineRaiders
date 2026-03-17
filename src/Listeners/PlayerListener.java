@@ -81,7 +81,7 @@ public class PlayerListener implements Listener {
                 damageEvent.setCancelled(true);
                 return;
             }
-            if (type != DamageType.FALL && type != DamageType.STARVE) {
+            if (type != DamageType.FALL && type != DamageType.STARVE && !p.isBlocking()) {
                 if (playerStats.isShieldOn(p)) {
                     if (playerStats.hasShield(p)) {
                         Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, -damage));

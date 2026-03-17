@@ -1,5 +1,6 @@
 package Commands;
 
+import OtherStuff.KiryuKazuma;
 import Universal.*;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -10,6 +11,8 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -23,6 +26,15 @@ public class DebugCommand implements CommandExecutor {
     Random r = new Random();
     Monsters m = Monsters.INSTANCE;
     Kit k = Kit.INSTANCE;
+    JavaPlugin plugin;
+    KiryuKazuma kiryuKazuma;
+
+    public DebugCommand(JavaPlugin plugin) {
+        this.plugin = plugin;
+        kiryuKazuma = new KiryuKazuma(plugin);
+        plugin.getServer().getPluginManager().registerEvents(kiryuKazuma,plugin);
+    }
+
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         if (commandSender instanceof Player p) {
@@ -48,6 +60,14 @@ public class DebugCommand implements CommandExecutor {
                         case 7->m.dukeMinion(p.getLocation(),false);
                         case 8->m.duke(p.getLocation());
                         case 9->mimic(p.getLocation(),hand);
+                        case 10->{
+                            new BukkitRunnable(){
+                                @Override
+                                public void run() {
+                                    kiryuKazuma.spawnBoss(p.getLocation());
+                                }
+                            }.runTaskLater(plugin,20L);
+                        }
                     }
                 }
             } catch (Exception ignored) {
@@ -65,19 +85,6 @@ public class DebugCommand implements CommandExecutor {
         s.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(0);
         s.getAttribute(Attribute.MAX_HEALTH).setBaseValue(100);
         s.setHealth(100);
-    }
-    public void boss(Location loc){
-        World w = loc.getWorld();
-        Vex v = (Vex) w.spawnEntity(loc,EntityType.VEX);
-        Zombie z = (Zombie) w.spawnEntity(loc,EntityType.ZOMBIE);
-        v.setSilent(true);
-        z.setSilent(true);
-        z.getEquipment().clear();
-        z.getEquipment().setHelmet(new ItemStack(Material.LODESTONE));
-        z.getAttribute(Attribute.SCALE).setBaseValue(3);
-        z.setInvisible(true);
-        v.setInvisible(true);
-        v.addPassenger(z);
     }
     public ItemStack flute(){
         ItemStack item = new ItemStack(Material.STICK);

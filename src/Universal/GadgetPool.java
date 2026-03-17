@@ -253,7 +253,7 @@ public enum GadgetPool {
         return item;
     }
     public ItemStack fragNade(){
-        ItemStack item = new ItemStack(Material.CREEPER_SPAWN_EGG);
+        ItemStack item = new ItemStack(Material.BROWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "闪爆手雷");
         itemMeta.setMaxStackSize(4);

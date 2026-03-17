@@ -1,4 +1,5 @@
 import Listeners.*;
+import OtherStuff.KiryuKazuma;
 import Universal.BoxPool;
 import Universal.Kit;
 import Universal.Monsters;
@@ -21,7 +22,7 @@ public class MR extends JavaPlugin {
 
         PluginManager manager = this.getServer().getPluginManager();
 
-        DebugCommand debugCommand = new DebugCommand();
+        DebugCommand debugCommand = new DebugCommand(this);
         LootCommand lootCommand =  new LootCommand();
         GadgetCommand gadgetCommand = new GadgetCommand();
         WeaponCommand weaponCommand = new WeaponCommand();
