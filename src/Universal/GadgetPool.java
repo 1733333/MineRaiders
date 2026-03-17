@@ -77,12 +77,38 @@ public enum GadgetPool {
             deadLine(),
             mendingPowder(),
     };
+    public ItemStack[] boxGadgets ={
+            snowGolem(),
+            ironGolem(),
+            wolfGolem(),
+            zombieGolem(),
+            speedNeedle(),
+            healNeedle(),
+            soup(),
+            meat(),
+            energyDrink(),
+            baitNade(),
+            gasNade(),
+            pyroNade(),
+            smokeNade(),
+            fireCamp(),
+            glowCamp(),
+            explodeMine(),
+            pyroMine(),
+            gasMine(),
+            slowMine(),
+            mendingPowder(),
+    };
     public ItemStack[] getGadgets() {
         return gadgets.clone();
     }
 
     public ItemStack[] getRecipeGadgets() {
         return recipeGadgets.clone();
+    }
+
+    public ItemStack[] getBoxGadgets() {
+        return boxGadgets.clone();
     }
 
     public ItemStack snowGolem(){
@@ -229,13 +255,14 @@ public enum GadgetPool {
     public ItemStack fragNade(){
         ItemStack item = new ItemStack(Material.CREEPER_SPAWN_EGG);
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.AQUA + "破片手雷");
+        itemMeta.setDisplayName(ChatColor.AQUA + "闪爆手雷");
         itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
-        lore.add(ChatColor.WHITE + "破片手雷");
+        lore.add(ChatColor.WHITE + "闪爆手雷");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "投掷");
         lore.add(ChatColor.WHITE + "投掷后经过一段时间引爆并释放破片");
+        lore.add(ChatColor.WHITE + "顾名思义，先闪后爆");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -250,7 +277,7 @@ public enum GadgetPool {
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "投掷");
         lore.add(ChatColor.WHITE + "投掷后碰到障碍物引爆");
-        lore.add(ChatColor.WHITE + "释放范围持续性伤害的毒气");
+        lore.add(ChatColor.WHITE + "毒气范围内的玩家会持续扣除饱食度");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -271,17 +298,17 @@ public enum GadgetPool {
         return item;
     }
     public ItemStack glitchNade(){
-        ItemStack item = new ItemStack(Material.PHANTOM_SPAWN_EGG);
+        ItemStack item = new ItemStack(Material.BLUE_EGG);
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.AQUA + "紊乱手雷");
+        itemMeta.setDisplayName(ChatColor.AQUA + "耀眼明星");
         itemMeta.setMaxStackSize(4);
         ArrayList<String> lore = new ArrayList<>();
-        lore.add(ChatColor.WHITE + "紊乱手雷");
+        lore.add(ChatColor.WHITE + "耀眼明星");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "投掷");
-        lore.add(ChatColor.WHITE + "投掷后碰到障碍物引爆");
+        lore.add(ChatColor.WHITE + "投掷后碰到障碍物延迟引爆");
         lore.add(ChatColor.WHITE + "影响范围内生物的视角");
-        lore.add(ChatColor.WHITE + "会对玩家的护盾造成大量伤害");
+        lore.add(ChatColor.WHITE + "并对范围内的生物造成电击效果");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -504,7 +531,7 @@ public enum GadgetPool {
         lore.add(ChatColor.WHITE + "黄金电池");
         lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键"
                 + ChatColor.WHITE + "使用");
-        lore.add(ChatColor.WHITE + "使用后稍慢回复多量的护盾");
+        lore.add(ChatColor.WHITE + "使用后稍慢回复较多的护盾");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

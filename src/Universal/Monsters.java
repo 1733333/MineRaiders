@@ -797,6 +797,7 @@ public enum Monsters {
         bottom.addPassenger(top);
         bottom.setInvisible(true);
         bottom.setSilent(true);
+        bottom.setAnger(10);
         top.getEquipment().clear();
         top.getEquipment().setHelmet(new ItemStack(Material.DISPENSER));
         top.getEquipment().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
@@ -982,7 +983,7 @@ public enum Monsters {
                 w.playSound(l.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,2);
                 for(int i = 0;i < 20;i++){
                     Arrow a = w.spawnArrow(shootLoc,shootVec,2,25);
-                    a.setDamage(1);
+                    a.setDamage(2);
                     a.setShooter(l);
                     a.setTicksLived(1200);
                     a.setPierceLevel(10);

@@ -453,6 +453,12 @@ public enum BoxPool {
     public ItemStack goodSoup(){
         ItemStack soup = new ItemStack(Material.SUSPICIOUS_STEW);
         SuspiciousStewMeta meta = (SuspiciousStewMeta) soup.getItemMeta();
+        meta.setDisplayName(ChatColor.RED + "十"
+                + ChatColor.YELLOW + "全"
+                + ChatColor.GREEN + "大"
+                + ChatColor.AQUA+ "补"
+                + ChatColor.LIGHT_PURPLE + "汤"
+        );
         meta.addCustomEffect(new PotionEffect(PotionEffectType.NIGHT_VISION
                 ,200,0,false),false);
         meta.addCustomEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE

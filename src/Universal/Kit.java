@@ -4,6 +4,7 @@ import Events.PlayerShieldAmountChangeEvent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
@@ -11,6 +12,8 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
@@ -305,47 +308,27 @@ public enum Kit {
         };
         smoking.runTaskTimer(plugin,0L,10L);
     }
-    public void glitch(Player p,Entity jar,int duration,int radius){
-        World w = p.getWorld();
-        Location loc = jar.getLocation();
-        AreaEffectCloud cloud = (AreaEffectCloud) w.spawnEntity(loc,EntityType.AREA_EFFECT_CLOUD);
-        cloud.setDuration(duration * 40);
-        Particle.DustOptions dust = new Particle.DustOptions(Color.BLUE,0.7f);
-        cloud.setParticle(Particle.DUST,dust);
-        cloud.setRadius((float) radius);
-        cloud.setCustomName(p.getName() + "的紊乱云");
-        BukkitRunnable glitching = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if(cloud.isDead()){
-                    this.cancel();
-                    return;
+
+    public void electric(Entity jar, double radius){
+        World w = jar.getWorld();
+        w.playSound(jar.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1, 1);
+        w.spawnParticle(Particle.ELECTRIC_SPARK,jar.getLocation(), (int) (20 * radius)
+        ,radius / 2,radius / 2,radius / 2);
+        for (Entity e : jar.getNearbyEntities(radius, radius, radius)) {
+            if (e instanceof LivingEntity l) {
+                if (e instanceof Player player) {
+                    player.sendTitle(" ", ChatColor.AQUA + "！被电击！", 10, 40, 10);
+                    w.playSound(player.getLocation(),Sound.ENTITY_ARMOR_STAND_BREAK,1,1);
+                    Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(player, -20));
                 }
-                Collection<Entity> entities = w.getNearbyEntities(loc,radius,radius,radius);
-                for(Entity e : entities){
-                    if(distance(jar,e) > radius)continue;
-                    if(e instanceof Player player){
-                        if(player.getGameMode() == GameMode.SPECTATOR)continue;
-                        player.sendTitle(" ",ChatColor.AQUA + "！被紊乱！",0,20,10);
-                        w.playSound(player.getLocation(),Sound.ENTITY_ARMOR_STAND_BREAK,1,1);
-                        Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, -12));
-                    }
-                    if(e instanceof LivingEntity l){
-                        if(l.getName().contains("滑索"))continue;
-                        if(l instanceof Snowman s){
-                            s.setTarget(null);
-                        }
-                        Location loc = l.getLocation();
-                        loc.setPitch(r.nextInt(180) - 90);
-                        loc.setYaw(r.nextInt(180) - 90);
-                        l.teleport(loc);
-                    }
-                }
-                Particle.DustOptions dust = new Particle.DustOptions(Color.BLUE,1);
-                w.spawnParticle(Particle.DUST,loc,150,radius/2,radius/2,radius/2,0.1,dust);
+                l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2));
+                l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 100, 4));
+                Location loc = l.getLocation();
+                loc.setPitch(r.nextInt(180) - 90);
+                loc.setYaw(r.nextInt(180) - 90);
+                l.teleport(loc);
             }
-        };
-        glitching.runTaskTimer(plugin,0L,40L);
+        }
     }
     public void bait(Player p,Entity jar,double health,double amp){
         World w = p.getWorld();
@@ -373,17 +356,18 @@ public enum Kit {
         };
         damage.runTaskTimer(plugin,0L,20L);
     }
-    public boolean hitBallBlock(Entity e){
+    public boolean hitBallBlock(Entity e,double radius){
         World w = e.getWorld();
         Location loc = e.getLocation();
-        for(int x =-1;x<=1;x++) {
-            for (int y = -1; y <= 1; y++) {
-                for (int z = -1; z <= 1; z++) {
-                    if (x * x + y * y + z * z <= 1) {
+        double add = Math.min(radius,1);
+        for(double x =-radius;x<=radius;x += add) {
+            for (double y = -radius; y <= radius; y += add) {
+                for (double z = -radius; z <= radius; z += add) {
+                    if (x * x + y * y + z * z <= radius) {
                         int blockX = loc.getBlockX();
                         int blockY = loc.getBlockY();
                         int blockZ = loc.getBlockZ();
-                        Block nearbyBlock = w.getBlockAt(blockX + x, blockY + y, blockZ + z);
+                        Block nearbyBlock = w.getBlockAt(new Location(w,blockX + x, blockY + y, blockZ + z));
                         if (isFullBlock(nearbyBlock)) {
                             return true;
                         }
@@ -392,6 +376,9 @@ public enum Kit {
             }
         }
         return false;
+    }
+    public boolean hitBallBlock(Entity e){
+        return hitBallBlock(e,1);
     }
     public boolean isFullBlock(Block b){
         Material type = b.getType();
@@ -466,6 +453,38 @@ public enum Kit {
                     }
                 }
             }
+        }
+        return false;
+    }
+    public boolean dikBounce(Entity e, double amp) {
+        World world = e.getWorld();
+        Location start = e.getLocation();
+        Vector velocity = e.getVelocity();
+
+        // 忽略速度过小的实体（防止误判）
+        if (velocity.lengthSquared() < 0.01) {
+            return false;
+        }
+
+        // 沿速度方向进行射线检测，长度等于当前速度大小（即一 tick 的移动距离）
+        RayTraceResult result = world.rayTraceBlocks(start, velocity, velocity.length(),
+                FluidCollisionMode.NEVER, true);
+
+        if (result != null && result.getHitBlock() != null && result.getHitBlockFace() != null) {
+            BlockFace face = result.getHitBlockFace();          // 撞击面
+            Vector normal = face.getDirection();                // 法线向量
+
+            // 将实体精确移动到撞击点（防止卡入方块）
+            Location hitLoc = result.getHitPosition().toLocation(world);
+            e.teleport(hitLoc);
+
+            // 反射公式：R = V - 2*(V·N)*N
+            double dot = velocity.dot(normal);
+            Vector reflected = velocity.clone().subtract(normal.clone().multiply(2 * dot));
+            reflected.multiply(amp);   // 应用反弹系数（例如 0.8 模拟能量损失）
+
+            e.setVelocity(reflected);
+            return true;
         }
         return false;
     }

@@ -582,7 +582,7 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(16);
         meta.setDisplayName(ChatColor.GRAY + "【普通】面包");
-        lore.add(ChatColor.WHITE + "食用价值比卖的价值高");
+        lore.add(ChatColor.WHITE + "方便携带的干粮");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -894,7 +894,7 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(8);
         meta.setDisplayName(ChatColor.GREEN + "【寻常】铜锭");
-        lore.add(ChatColor.WHITE + "铜制成的金属锭，比较不错的材料");
+        lore.add(ChatColor.WHITE + "铜制成的金属锭，最基础的金属材料");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -918,7 +918,7 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(8);
         meta.setDisplayName(ChatColor.GREEN + "【寻常】萤石粉");
-        lore.add(ChatColor.WHITE + "可以用来做炼药材料");
+        lore.add(ChatColor.WHITE + "亮晶晶的粉末");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -1058,7 +1058,7 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】铁锭");
-        lore.add(ChatColor.WHITE + "由铁制成的金属锭，非常不错的材料");
+        lore.add(ChatColor.WHITE + "由铁制成的金属锭，很实用的金属材料");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -1070,7 +1070,7 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】金锭");
-        lore.add(ChatColor.WHITE + "不是很实用，但是有些人应该会喜欢");
+        lore.add(ChatColor.WHITE + "亮闪闪的，很受人们欢迎");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -1095,7 +1095,8 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】树脂团");
-        lore.add(ChatColor.WHITE + "一团树脂，应该能有用处");
+        lore.add(ChatColor.WHITE + "一团树脂，黏糊糊的");
+        lore.add(ChatColor.WHITE + "丢出去的时候有可能会黏在手上");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -1120,6 +1121,7 @@ public enum LootPool {
         meta.setMaxStackSize(1);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】不死图腾");
         lore.add(ChatColor.WHITE + "关键时刻可以救你一命");
+        lore.add(ChatColor.WHITE + "放在副手可以抵挡一次致命伤害");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -1256,7 +1258,7 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】青金石");
-        lore.add(ChatColor.WHITE + "可以用来附魔");
+        lore.add(ChatColor.WHITE + "蕴含魔力的矿物");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -1306,7 +1308,7 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(2);
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】恶魂之泪");
-        lore.add(ChatColor.WHITE + "高级炼药材料");
+        lore.add(ChatColor.WHITE + "一滴散发着不详气息的眼泪");
         lore.add(ChatColor.WHITE + "见鬼去吧！");
         meta.setLore(lore);
         i.setItemMeta(meta);
@@ -1319,7 +1321,8 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】幻翼膜");
-        lore.add(ChatColor.WHITE + "高级炼药材料");
+        lore.add(ChatColor.WHITE + "拥有特殊纹理的一层膜");
+        lore.add(ChatColor.WHITE + "结实又轻便");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -1552,7 +1555,7 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(1);
         meta.setDisplayName(ChatColor.GOLD + "【珍奇】回响碎片");
-        lore.add(ChatColor.WHITE + "收藏价值比实用价值高");
+        lore.add(ChatColor.WHITE + "制作顶级武器的材料");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -1688,7 +1691,8 @@ public enum LootPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(1);
         meta.setDisplayName(ChatColor.RED + "【典藏】指南针");
-        lore.add(ChatColor.WHITE + "在没有红石的世界里，指南针的收藏价值极高");
+        lore.add(ChatColor.WHITE + "在没有红石的世界里");
+        lore.add(ChatColor.WHITE + "指南针的收藏价值极高");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();

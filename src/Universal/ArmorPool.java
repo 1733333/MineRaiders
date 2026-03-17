@@ -528,7 +528,7 @@ public enum ArmorPool {
         ((LeatherArmorMeta)itemMeta).setColor(Color.GREEN);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "仙人掌头盔");
-        lore.add(ChatColor.WHITE + "穿的时候小心点");
+        lore.add(ChatColor.WHITE + "小心不要穿反了");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -545,7 +545,7 @@ public enum ArmorPool {
         ((LeatherArmorMeta)itemMeta).setColor(Color.GREEN);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "仙人掌胸甲");
-        lore.add(ChatColor.WHITE + "穿的时候小心点");
+        lore.add(ChatColor.WHITE + "小心不要穿反了");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -562,7 +562,7 @@ public enum ArmorPool {
         ((LeatherArmorMeta)itemMeta).setColor(Color.GREEN);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "仙人掌护腿");
-        lore.add(ChatColor.WHITE + "穿的时候小心点");
+        lore.add(ChatColor.WHITE + "小心不要穿反了");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;
@@ -579,7 +579,7 @@ public enum ArmorPool {
         ((LeatherArmorMeta)itemMeta).setColor(Color.GREEN);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "仙人掌靴子");
-        lore.add(ChatColor.WHITE + "穿的时候小心点");
+        lore.add(ChatColor.WHITE + "小心不要穿反了");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);
         return item;

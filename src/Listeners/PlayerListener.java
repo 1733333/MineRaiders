@@ -43,6 +43,7 @@ public class PlayerListener implements Listener {
 
     Kit k = Kit.INSTANCE;
     Recipes re = Recipes.INSTANCE;
+    Random r = new Random();
     PlayerStats playerStats = PlayerStats.INSTANCE;
     HashSet<Player> reviving = new HashSet<>();
     HashSet<Player> beingRevive = new HashSet<>();
@@ -52,6 +53,20 @@ public class PlayerListener implements Listener {
 
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void playerDropItem(PlayerDropItemEvent dropItemEvent){
+        Item i = dropItemEvent.getItemDrop();
+        ItemStack stack = i.getItemStack();
+        World w = i.getWorld();
+        if(stack.getType() == Material.RESIN_CLUMP){
+            if(r.nextInt(5) == 0){
+                dropItemEvent.setCancelled(true);
+                w.playSound(i.getLocation(),Sound.BLOCK_SLIME_BLOCK_BREAK,1,1);
+                w.playSound(i.getLocation(),Sound.BLOCK_SLIME_BLOCK_BREAK,1,1);
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.LOW)

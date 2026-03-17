@@ -115,7 +115,7 @@ public class GadgetListener implements Listener {
                 }
             } else if (hand.getType() != Material.AIR) {
                 switch (tag) {
-                    case "§f破片手雷":
+                    case "§f闪爆手雷":
                         grenade(p, hand);
                         interactEvent.setCancelled(true);
                         break;
@@ -135,7 +135,7 @@ public class GadgetListener implements Listener {
                         smokeGrenade(p, hand);
                         interactEvent.setCancelled(true);
                         break;
-                    case "§f紊乱手雷":
+                    case "§f耀眼明星":
                         glitchGrenade(p, hand);
                         interactEvent.setCancelled(true);
                         break;
@@ -303,7 +303,7 @@ public class GadgetListener implements Listener {
                 loots = bp.getDiscs();
                 break;
             case "§f道具":
-                loots = gp.getGadgets();
+                loots = gp.getBoxGadgets();
                 break;
             case "§f武器":
                 loots = wp.getBoxWeapons();
@@ -537,7 +537,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
@@ -567,6 +567,7 @@ public class GadgetListener implements Listener {
         Material material = hand.getType();
         if (p.getCooldown(material) == 0) {
             p.setCooldown(material, 20);
+            p.swingMainHand();
             if (p.getGameMode() != GameMode.CREATIVE) {
                 int amount = hand.getAmount();
                 hand.setAmount(amount - 1);
@@ -574,27 +575,33 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
             w.playSound(shootLoc, Sound.ENTITY_EGG_THROW, 1, 1);
             BukkitRunnable hit = new BukkitRunnable() {
+                int bounce = 0;
+
                 @Override
                 public void run() {
                     w.spawnParticle(Particle.CRIT, nade.getLocation(), 0);
-                    if (nade.isDead()) {
-                        nade.remove();
-                        w.spawnParticle(Particle.EXPLOSION, nade.getLocation(), 1);
+                    if (bounce < 2) {
+                        if(k.dikBounce(nade,0.5)){
+                            bounce ++;
+                        }
+                    }
+                    if (nade.isDead() || nade.getTicksLived() > 20) {
                         BukkitRunnable flash = new BukkitRunnable() {
                             int count = 0;
+
                             @Override
                             public void run() {
-                                if(count > 5){
+                                if (count > 5) {
                                     this.cancel();
                                     return;
                                 }
-                                w.spawnParticle(Particle.FLASH, nade.getLocation(), 1,Color.RED);
+                                w.spawnParticle(Particle.FLASH, nade.getLocation(), 1, Color.RED);
                                 count += 1;
                             }
                         };
@@ -602,7 +609,7 @@ public class GadgetListener implements Listener {
                             @Override
                             public void run() {
                                 w.spawnParticle(Particle.EXPLOSION_EMITTER, nade.getLocation(), 1);
-                                k.explode(p, nade, 18, 1.5, 5,1);
+                                k.explode(p, nade, 18, 1.5, 5, 1);
                                 for (int i = 0; i < 20; i++) {
                                     Vector shootVec = new Vector(r.nextDouble() - r.nextDouble(),
                                             r.nextDouble() - r.nextDouble(), r.nextDouble() - r.nextDouble());
@@ -612,10 +619,11 @@ public class GadgetListener implements Listener {
                                     a.setTicksLived(1200);
                                 }
                                 w.playSound(nade.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 2, 1);
+                                nade.remove();
                             }
                         };
                         later.runTaskLater(plugin, 30L);
-                        flash.runTaskTimer(plugin,0L,6L);
+                        flash.runTaskTimer(plugin, 0L, 6L);
                         this.cancel();
                     }
                 }
@@ -635,7 +643,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
@@ -668,7 +676,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
@@ -701,7 +709,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
@@ -734,7 +742,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
@@ -765,7 +773,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
@@ -773,11 +781,29 @@ public class GadgetListener implements Listener {
             BukkitRunnable land = new BukkitRunnable() {
                 @Override
                 public void run() {
-                    w.spawnParticle(Particle.CRIT, nade.getLocation(), 0);
-                    if (nade.isDead()) {
+                    w.spawnParticle(Particle.ELECTRIC_SPARK, nade.getLocation(), 0);
+                    if (nade.isDead() || k.hitBallBlock(nade,0.5)) {
+                        BukkitRunnable flash = new BukkitRunnable() {
+                            int count = 0;
+                            @Override
+                            public void run() {
+                                if(count > 5){
+                                    this.cancel();
+                                    return;
+                                }
+                                w.spawnParticle(Particle.FLASH, nade.getLocation(), 1,Color.BLUE);
+                                count += 1;
+                            }
+                        };
+                        BukkitRunnable later = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                k.electric(nade,5);
+                            }
+                        };
+                        later.runTaskLater(plugin, 30L);
+                        flash.runTaskTimer(plugin,0L,6L);
                         this.cancel();
-                        w.playSound(nade.getLocation(), Sound.ENTITY_ARMOR_STAND_BREAK, 2, 1);
-                        k.glitch(p,nade,3,4);
                     }
                 }
             };
@@ -796,7 +822,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
@@ -1037,18 +1063,7 @@ public class GadgetListener implements Listener {
                             BukkitRunnable explode = new BukkitRunnable() {
                                 @Override
                                 public void run() {
-                                    for (Entity e : g.getNearbyEntities(5, 5, 5)) {
-                                        if (e instanceof LivingEntity l) {
-                                            if (e instanceof Player p1) {
-                                                p1.sendTitle(" ", ChatColor.AQUA + "！被电击！", 10, 40, 10);
-                                            }
-                                            l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2));
-                                            l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 100, 4));
-                                        }
-                                    }
-                                    w.playSound(g.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1, 1);
-                                    w.spawnParticle(Particle.EXPLOSION, g.getLocation(), 1);
-                                    w.spawnParticle(Particle.ELECTRIC_SPARK, g.getLocation(), 100, radius / 2, radius / 2, radius / 2);
+                                    k.electric(g,5);
                                     g.remove();
                                 }
                             };
@@ -1141,7 +1156,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);
@@ -1382,7 +1397,7 @@ public class GadgetListener implements Listener {
             Location shootLoc = p.getEyeLocation();
             Vector shootVec = shootLoc.getDirection();
             Snowball nade = (Snowball) w.spawnEntity(shootLoc, EntityType.SNOWBALL);
-            nade.setVelocity(shootVec.multiply(2));
+            nade.setVelocity(shootVec.multiply(1.5));
             nade.setItem(hand);
             nade.setShooter(p);
             nade.setGlowing(true);

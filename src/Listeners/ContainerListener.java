@@ -156,7 +156,7 @@ public class ContainerListener implements Listener {
     @EventHandler
     public void playerInteract(PlayerInteractEvent interactEvent) {
         Player p = interactEvent.getPlayer();
-        if(playerStats.isDying(p)){
+        if(playerStats.isDying(p) || p.getGameMode() == GameMode.SPECTATOR){
             interactEvent.setCancelled(true);
             return;
         }

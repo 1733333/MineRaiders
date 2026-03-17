@@ -22,6 +22,7 @@ public enum DropPool {
             shredderCore(),
             bastionCore(),
             leaperUnit(),
+            dukeCore(),
     };
 
     public ItemStack[] getAllDrops() {
@@ -161,6 +162,18 @@ public enum DropPool {
         lore.add(ChatColor.WHITE + "跳跃者脉冲单元");
         lore.add(ChatColor.WHITE + "可以投掷");
         lore.add(ChatColor.WHITE + "在落点制造一个持续吸引周围实体的奇点");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack dukeCore() {
+        ItemStack i = new ItemStack(Material.TNT_MINECART);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(1);
+        meta.setDisplayName(ChatColor.GOLD + "【珍奇】公爵反应堆");
+        lore.add(ChatColor.WHITE + "不稳定的公爵核心，蕴含巨大能量");
+        lore.add(ChatColor.WHITE + "稍微碰一下都有可能直接炸开");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();

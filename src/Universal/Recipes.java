@@ -633,10 +633,11 @@ public enum Recipes {
         ItemStack i = gp.fragNade();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
         ShapedRecipe r = new ShapedRecipe(w, i);
-        r.shape(" A ", "BCB", " A ");
+        r.shape("DAD", "BCB", "DAD");
         r.setIngredient('A', Material.GUNPOWDER);
         r.setIngredient('B', Material.COPPER_INGOT);
-        r.setIngredient('C', Material.HONEYCOMB);
+        r.setIngredient('C', Material.EMERALD);
+        r.setIngredient('D', Material.IRON_NUGGET);
         recipeKeys.put(i.getItemMeta().getDisplayName(), key);
         key += 1;
         try{
@@ -697,10 +698,11 @@ public enum Recipes {
         ItemStack i = gp.glitchNade();
         NamespacedKey w = new NamespacedKey(plugin, "r" + key);
         ShapedRecipe r = new ShapedRecipe(w, i);
-        r.shape(" A ", "BCB", " A ");
+        r.shape("DAD", "BCB", "DAD");
         r.setIngredient('A', Material.PRISMARINE_CRYSTALS);
         r.setIngredient('B', Material.POPPED_CHORUS_FRUIT);
-        r.setIngredient('C', Material.HONEYCOMB);
+        r.setIngredient('C', Material.EMERALD);
+        r.setIngredient('D', Material.LIGHTNING_ROD);
         recipeKeys.put(i.getItemMeta().getDisplayName(), key);
         key += 1;
         try{
@@ -761,7 +763,7 @@ public enum Recipes {
         ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.GUNPOWDER);
-        r.setIngredient('B', Material.LAPIS_LAZULI);
+        r.setIngredient('B', Material.POPPED_CHORUS_FRUIT);
         r.setIngredient('C', Material.ARMOR_STAND);
         recipeKeys.put(i.getItemMeta().getDisplayName(), key);
         key += 1;
@@ -777,7 +779,7 @@ public enum Recipes {
         ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.ROTTEN_FLESH);
-        r.setIngredient('B', Material.LAPIS_LAZULI);
+        r.setIngredient('B', Material.POPPED_CHORUS_FRUIT);
         r.setIngredient('C', Material.ARMOR_STAND);
         recipeKeys.put(i.getItemMeta().getDisplayName(), key);
         key += 1;
@@ -793,7 +795,7 @@ public enum Recipes {
         ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.GOLD_NUGGET);
-        r.setIngredient('B', Material.LAPIS_LAZULI);
+        r.setIngredient('B', Material.POPPED_CHORUS_FRUIT);
         r.setIngredient('C', Material.ARMOR_STAND);
         recipeKeys.put(i.getItemMeta().getDisplayName(), key);
         key += 1;
@@ -809,7 +811,7 @@ public enum Recipes {
         ShapedRecipe r = new ShapedRecipe(w, i);
         r.shape("AAA", "BCB", "AAA");
         r.setIngredient('A', Material.COAL);
-        r.setIngredient('B', Material.LAPIS_LAZULI);
+        r.setIngredient('B', Material.POPPED_CHORUS_FRUIT);
         r.setIngredient('C', Material.ARMOR_STAND);
         recipeKeys.put(i.getItemMeta().getDisplayName(), key);
         key += 1;
