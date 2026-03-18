@@ -49,7 +49,7 @@ public class PlayerListener implements Listener {
     HashSet<Player> beingRevive = new HashSet<>();
     HashMap<Player, Player> whoIsReviving = new HashMap<>();
     HashMap<String, BukkitRunnable> playerTask = new HashMap<>();
-    HashMap<String, BossBar> playerBar = new HashMap<>();
+    public static HashMap<String, BossBar> playerBar = new HashMap<>();
 
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -339,7 +339,7 @@ public class PlayerListener implements Listener {
             if (i < step) {
                 progress.append("|");
             } else {
-                progress.append(".");
+                progress.append("·");
             }
         }
         return progress.toString();
@@ -382,8 +382,8 @@ public class PlayerListener implements Listener {
                 }
                 if (bar == null) {
                     bar = Bukkit.createBossBar(
-                            ChatColor.AQUA + "" + ChatColor.BOLD + "护盾丨剩余电量：" + String.format("%.2f", maxShield * 1.0),
-                            BarColor.BLUE, BarStyle.SEGMENTED_20);
+                            ChatColor.AQUA + "" + ChatColor.BOLD + "护盾丨电量：" + String.format("%.2f", maxShield * 1.0),
+                            BarColor.BLUE, BarStyle.SEGMENTED_10);
                     bar.addPlayer(p);
                     playerBar.put(p.getName(), bar);
                 }
@@ -421,11 +421,12 @@ public class PlayerListener implements Listener {
             double progress = newShield / maxShield;
             if (progress < 0) {
                 progress = 0;
+                bar.setColor(BarColor.WHITE);
             } else if (progress > 1) {
                 progress = 1;
             }
             bar.setProgress(progress);
-            bar.setTitle(ChatColor.AQUA + "" + ChatColor.BOLD + "护盾丨剩余电量：" + String.format("%.2f", Math.min(Math.max(newShield, 0), maxShield)));
+            bar.setTitle(ChatColor.AQUA + "" + ChatColor.BOLD + "护盾丨电量：" + String.format("%.2f", Math.min(Math.max(newShield, 0), maxShield)));
         }
         if (shield > 0 && newShield <= 0) {
             //play crack effect

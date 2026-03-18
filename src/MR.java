@@ -39,6 +39,7 @@ public class MR extends JavaPlugin {
         ArmorListener armorListener = new ArmorListener();
         ArmorEquipListener armorEquipListener = new ArmorEquipListener();
         WeaponListener weaponListener = new WeaponListener();
+        LocationManagerUI.init(this);
 
         manager.registerEvents(containerListener,this);
         manager.registerEvents(gadgetListener,this);
@@ -58,7 +59,14 @@ public class MR extends JavaPlugin {
         this.getCommand("getfreerecipes").setExecutor(freeRecipeCommand);
         this.getCommand("getdrops").setExecutor(dropCommand);
         this.getCommand("getall").setExecutor(getAllItemsCommand);
-
+        this.getCommand("getlocs").setExecutor((sender, command, label, args) -> {
+            if (sender instanceof Player player) {
+                if(player.isOp()){
+                    LocationManagerUI.openGUI(player);
+                }
+            }
+            return true;
+        });
         containerListener.setPlugin(this);
         gadgetListener.setPlugin(this);
         monsterListener.setPlugin(this);

@@ -7,6 +7,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BossBar;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
@@ -30,6 +32,8 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+
+import static Listeners.PlayerListener.playerBar;
 
 public class GadgetListener implements Listener {
     JavaPlugin plugin;
@@ -273,6 +277,10 @@ public class GadgetListener implements Listener {
                 }else {
                     p.setCooldown(item, 80);
                     Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, 20));
+                    BossBar bar = playerBar.getOrDefault(p.getName(), null);
+                    if(bar != null){
+                        bar.setColor(BarColor.BLUE);
+                    }
                 }
                 break;
             case "§f死线":
@@ -1255,6 +1263,10 @@ public class GadgetListener implements Listener {
     }
     public void battery(Player p,int seconds,double shieldAmount,ItemStack item){
         isChargingShield.add(p);
+        BossBar bar = playerBar.getOrDefault(p.getName(), null);
+        if(bar != null){
+            bar.setColor(BarColor.WHITE);
+        }
         BukkitRunnable recover = new BukkitRunnable() {
             int count = 0;
             int step = seconds * 4;
@@ -1263,6 +1275,9 @@ public class GadgetListener implements Listener {
             public void run() {
                 double shield = playerStats.getShield(p);
                 if(count > step - 1 || shield == 20 || !isChargingShield.contains(p)){
+                    if(bar != null){
+                        bar.setColor(BarColor.BLUE);
+                    }
                     isChargingShield.remove(p);
                     p.setCooldown(item,0);
                     this.cancel();

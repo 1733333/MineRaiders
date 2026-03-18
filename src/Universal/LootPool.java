@@ -320,7 +320,7 @@ public enum LootPool {
         return item;
     }
     public ItemStack close() {
-        ItemStack item = new ItemStack(Material.YELLOW_STAINED_GLASS);
+        ItemStack item = new ItemStack(Material.BARRIER);
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.YELLOW + "返回主菜单");
         ArrayList<String> lore = new ArrayList<>();

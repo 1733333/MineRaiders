@@ -170,54 +170,55 @@ public class InventoryListener implements Listener {
         playerMenuStatus.put(name, PlayerStats.MenuStatus.NOT_MENU);
         playerPage.remove(name);
     }
-
     public void changePage(Player p, ItemStack[] stacks, boolean pageUp, String name, PlayerStats.MenuStatus status) {
+        final int PAGE_SIZE = 51;
+
         int currentPage = playerPage.getOrDefault(p.getName(), 0);
-        int maxPage = lp.getAllLoots().length / 51;
+        int totalItems = stacks.length;
+        int maxPage = (totalItems == 0) ? 0 : (totalItems - 1) / PAGE_SIZE; // 最大页码（从0开始）
+
+        int newPage;
         if (pageUp) {
-            if (currentPage == 0) {
-                p.playSound(p.getEyeLocation(), Sound.ENCHANT_THORNS_HIT, 1, 1);
+            if (currentPage > 0) {
+                newPage = currentPage - 1;
             } else {
-                p.playSound(p.getEyeLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1, 1);
-                Inventory inv = Bukkit.createInventory(p, 54, name);
-                int positiveBound = currentPage * 51;
-                int negativeBound = (currentPage - 1) * 51;
-                int slot = 0;
-                for (int i = negativeBound; i < positiveBound; i++) {
-                    if (i >= stacks.length) break;
-                    inv.setItem(slot, stacks[i]);
-                    slot++;
-                }
-                inv.setItem(51, lp.pageUp());
-                inv.setItem(52, lp.close());
-                inv.setItem(53, lp.pageDown());
-                p.openInventory(inv);
-                currentPage -= 1;
-                playerPage.put(p.getName(), currentPage);
+                p.playSound(p.getEyeLocation(), Sound.ENCHANT_THORNS_HIT, 1, 1);
+                return; // 无法向上翻页，直接返回
             }
         } else {
-            if (currentPage + 1 > maxPage) {
-                p.playSound(p.getEyeLocation(), Sound.ENCHANT_THORNS_HIT, 1, 1);
+            if (currentPage < maxPage) {
+                newPage = currentPage + 1;
             } else {
-                currentPage += 1;
-                p.playSound(p.getEyeLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1, 1);
-                Inventory inv = Bukkit.createInventory(p, 54, name);
-                int positiveBound = (currentPage + 1) * 51;
-                int negativeBound = currentPage * 51;
-                int slot = 0;
-                for (int i = negativeBound; i < positiveBound; i++) {
-                    if (i >= stacks.length) break;
-                    inv.setItem(slot, stacks[i]);
-                    slot++;
-                }
-                inv.setItem(51, lp.pageUp());
-                inv.setItem(52, lp.close());
-                inv.setItem(53, lp.pageDown());
-                p.openInventory(inv);
-                playerPage.put(p.getName(), currentPage);
+                p.playSound(p.getEyeLocation(), Sound.ENCHANT_THORNS_HIT, 1, 1);
+                return; // 无法向下翻页，直接返回
             }
         }
+
+        // 播放翻页音效
+        p.playSound(p.getEyeLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1, 1);
+
+        // 创建新页面库存
+        Inventory inv = createPageInventory(p, stacks, newPage, name);
+        p.openInventory(inv);
+
+        // 更新玩家页码和菜单状态
+        playerPage.put(p.getName(), newPage);
         playerMenuStatus.put(p.getName(), status);
+    }
+
+    private Inventory createPageInventory(Player p, ItemStack[] allStacks, int page, String title) {
+        Inventory inv = Bukkit.createInventory(p, 54, title);
+        int start = page * 51;
+        int end = Math.min(start + 51, allStacks.length);
+        int slot = 0;
+        for (int i = start; i < end; i++) {
+            inv.setItem(slot++, allStacks[i]);
+        }
+        // 放置导航按钮（最后三个槽位）
+        inv.setItem(54 - 3, lp.pageUp());
+        inv.setItem(54 - 2, lp.close());
+        inv.setItem(54 - 1, lp.pageDown());
+        return inv;
     }
 
 }

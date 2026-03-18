@@ -98,6 +98,9 @@ public enum Kit {
             } else {
                 // 视线检测（仅非投掷者）
                 Location shooterEye = jar.getLocation();
+                if(jar instanceof LivingEntity l){
+                    shooterEye = l.getEyeLocation();
+                }
                 Location targetEye = living.getEyeLocation();
                 Vector direction = targetEye.toVector().subtract(shooterEye.toVector());
                 double traceDistance = shooterEye.distance(targetEye);

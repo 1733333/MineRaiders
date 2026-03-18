@@ -8,11 +8,19 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -20,6 +28,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public enum Monsters {
@@ -805,7 +815,6 @@ public enum Monsters {
         top.getAttribute(Attribute.SCALE).setBaseValue(3);
         top.getAttribute(Attribute.ARMOR).setBaseValue(12);
         bottom.getAttribute(Attribute.SCALE).setBaseValue(3);
-        bottom.getAttribute(Attribute.FLYING_SPEED).setBaseValue(0.05);
         top.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
         bottom.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
         top.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);

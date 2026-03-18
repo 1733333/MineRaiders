@@ -34,3 +34,6 @@ commands:
   getall:
     description: open a menu
     usage: /getall
+  getlocs:
+    description: get locations
+    usage: /getlocs

@@ -38,7 +38,6 @@ public class DebugCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         if (commandSender instanceof Player p) {
-            try {
                 if (p.isOp()) {
                     World w = p.getWorld();
                     ItemStack hand = p.getEquipment().getItemInMainHand();
@@ -70,9 +69,6 @@ public class DebugCommand implements CommandExecutor {
                         }
                     }
                 }
-            } catch (Exception ignored) {
-
-            }
         }
         return true;
     }
