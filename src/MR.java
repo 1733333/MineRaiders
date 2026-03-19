@@ -59,14 +59,7 @@ public class MR extends JavaPlugin {
         this.getCommand("getfreerecipes").setExecutor(freeRecipeCommand);
         this.getCommand("getdrops").setExecutor(dropCommand);
         this.getCommand("getall").setExecutor(getAllItemsCommand);
-        this.getCommand("getlocs").setExecutor((sender, command, label, args) -> {
-            if (sender instanceof Player player) {
-                if(player.isOp()){
-                    LocationManagerUI.openGUI(player);
-                }
-            }
-            return true;
-        });
+
         containerListener.setPlugin(this);
         gadgetListener.setPlugin(this);
         monsterListener.setPlugin(this);
@@ -97,5 +90,6 @@ public class MR extends JavaPlugin {
         for (Player p : Bukkit.getOnlinePlayers()){
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP,1,1);
         }
+        LocationManagerUI.saveToConfig();
     }
 }

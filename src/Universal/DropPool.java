@@ -35,7 +35,7 @@ public enum DropPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(16);
         meta.setDisplayName(ChatColor.GRAY + "【普通】腐肉");
-        lore.add(ChatColor.WHITE + "不建议食用");
+        lore.add(ChatColor.WHITE + "已经腐烂的肉，散发着古怪的味道");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -80,7 +80,7 @@ public enum DropPool {
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(16);
         meta.setDisplayName(ChatColor.GRAY + "【普通】蜘蛛眼");
-        lore.add(ChatColor.WHITE + "");
+        lore.add(ChatColor.WHITE + "不建议食用，能不能吃点正常的食物");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();

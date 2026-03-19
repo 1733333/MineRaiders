@@ -60,6 +60,7 @@ public class DebugCommand implements CommandExecutor {
                         case 8->m.duke(p.getLocation());
                         case 9->mimic(p.getLocation(),hand);
                         case 10->{
+                            w.strikeLightningEffect(p.getLocation());
                             new BukkitRunnable(){
                                 @Override
                                 public void run() {

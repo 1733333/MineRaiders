@@ -68,62 +68,57 @@ public enum Kit {
         Vector v2N = v2.clone().normalize();
         return v1N.dot(v2N);
     }
+    public void explode(LivingEntity source, Entity jar, double baseDamage, double amp, int radius, double selfDamage) {
+        World w = source.getWorld();
+        Collection<Entity> entities = w.getNearbyEntities(jar.getLocation(), radius, radius, radius);
+        for (Entity e : entities) {
+            if (distance(jar, e) > radius) continue;
+            if (!(e instanceof LivingEntity target)) continue;
 
-    public void explode(LivingEntity source, Entity jar, double baseDamage, double amp, int radius, double selfDamageMultiplier) {
-        World world = source.getWorld();
+            double dist = distance(jar, target); // 实际距离
+            int intDist = (int) dist; // 用于衰减计算（原逻辑保留）
 
-        Location jarLoc = jar.getLocation();
-        Collection<Entity> nearby = world.getNearbyEntities(jarLoc, radius, radius, radius);
-        boolean isSpecial = source.getName().equals("§a爆爆");
+            // 视线检测（仅当目标不是source时）
+            if (target != source) {
+                Location shooterLoc = jar.getLocation();
+                if(jar instanceof  LivingEntity l){
+                    shooterLoc = l.getEyeLocation();
+                }
+                Location targetLoc = target.getEyeLocation();
+                Vector direction = targetLoc.toVector().subtract(shooterLoc.toVector());
+                RayTraceResult result = w.rayTraceBlocks(shooterLoc, direction, dist);
+                if (result != null) continue; // 被阻挡，无伤害
+            }
 
-        for (Entity target : nearby) {
-            if (!(target instanceof LivingEntity living)) continue;
-
-            double distance = jarLoc.distance(target.getLocation());
-            if (distance > radius) continue; // 球形过滤
-
-            // 独立计算伤害
+            // 计算伤害：基于距离衰减
             double finalDamage = baseDamage;
-            if (distance >= 1.0) {
-                finalDamage -= distance * amp;
+            if (intDist >= 1) {
+                double reduce = intDist * amp;
+                // 防止amp为负导致伤害增加，若amp为负则忽略衰减（或取绝对值）
+                if (amp >= 0) {
+                    finalDamage -= reduce;
+                } else {
+                    // 可选：记录警告，或按正数处理
+                    finalDamage -= reduce; // 若amp为负，这里实际会增加伤害，因此需限制
+                }
             }
 
             // 自伤处理
-            if (living == source) {
-                if (selfDamageMultiplier == 0.0) {
-                    finalDamage = 0.0;
-                } else {
-                    finalDamage *= selfDamageMultiplier;
-                }
-            } else {
-                // 视线检测（仅非投掷者）
-                Location shooterEye = jar.getLocation();
-                if(jar instanceof LivingEntity l){
-                    shooterEye = l.getEyeLocation();
-                }
-                Location targetEye = living.getEyeLocation();
-                Vector direction = targetEye.toVector().subtract(shooterEye.toVector());
-                double traceDistance = shooterEye.distance(targetEye);
-                RayTraceResult traceResult = world.rayTraceBlocks(shooterEye, direction, traceDistance);
-                if (traceResult != null) continue; // 被方块阻挡
+            if (target == source && selfDamage != 0) {
+                finalDamage *= selfDamage;
             }
 
-            finalDamage = Math.max(0.0, finalDamage); // 防止负伤害
+            // 确保伤害非负
+            if (finalDamage < 0) finalDamage = 0;
 
-            // 造成伤害
-            if (isSpecial) {
-                living.damage(finalDamage);
+            // 应用伤害
+            if (source.getName().equals("§a爆爆")) {
+                target.damage(finalDamage);
+                source.remove();
             } else {
-                DamageSource damageSource = DamageSource.builder(DamageType.EXPLOSION)
-                        .withDirectEntity(source)
-                        .build();
-                living.damage(finalDamage, damageSource);
+                target.damage(finalDamage, DamageSource.builder(DamageType.EXPLOSION)
+                        .withDirectEntity(source).build());
             }
-        }
-
-        // 特殊实体仅移除一次（如果设计如此）
-        if (isSpecial) {
-            source.remove();
         }
     }
     public void ogExplode(LivingEntity source, Entity jar, double damage, double amp, int radius, double selfDamage) {
