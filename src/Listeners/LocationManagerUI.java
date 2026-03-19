@@ -20,33 +20,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * 搜打撤模式位置管理器（单类，自动持久化，指令集成）
- * <p>
- * 管理三种类型位置：撤离点、玩家生成点、怪物生成点。
- * 数据自动保存至 config.yml，重启服务器后自动加载。
- * 提供 GUI 查看/传送/删除，以及静态 API 供其他类调用。
- * 指令仅限 OP 使用。
- * </p>
- *
- * <h2>使用方法：</h2>
- * <ol>
- *   <li>在 plugin.yml 中注册命令 {@code mrlocs}。</li>
- *   <li>在主类 onEnable 中调用 {@link #init(JavaPlugin)}。</li>
- *   <li>在主类 onDisable 中调用 {@link #saveToConfig()} 保存数据（可选，但推荐）。</li>
- *   <li>在其他类中通过静态方法操作地点数据或打开 GUI。</li>
- * </ol>
- *
- * <h2>命令列表（仅 OP）：</h2>
- * <ul>
- *   <li>/mrlocs - 显示帮助</li>
- *   <li>/mrlocs gui - 打开 GUI</li>
- *   <li>/mrlocs list [世界] - 列出地点</li>
- *   <li>/mrlocs add &lt;名称&gt; &lt;类型&gt; - 添加地点（类型: player/monster/evacuate）</li>
- *   <li>/mrlocs remove &lt;名称&gt; [世界] - 删除地点</li>
- *   <li>/mrlocs tp &lt;名称&gt; [世界] - 传送至地点</li>
- * </ul>
- */
 public class LocationManagerUI implements Listener, CommandExecutor {
 
     // ==================== 类型定义 ====================

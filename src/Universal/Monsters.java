@@ -39,7 +39,7 @@ public enum Monsters {
     Random r = new Random();
     HashSet<Entity>isShooting = new HashSet<>();
     ArmorPool ap = ArmorPool.INSTANCE;
-    PlayerStats playerStats =  PlayerStats.INSTANCE;
+    static PlayerStats playerStats =  PlayerStats.INSTANCE;
     HashMap<LivingEntity,Player> snitchPlayerMap = new HashMap<>();
     public static HashMap<String,List<Entity>> entityMinionMap = new HashMap<>();
     public void setPlugin(JavaPlugin plugin) {
@@ -70,18 +70,9 @@ public enum Monsters {
                     cancel();
                     return;
                 }
-                w.playSound(s, Sound.ENTITY_PHANTOM_FLAP, 1, 1);
-                if (s.getTarget() == null) {
-                    double radius = 10;
-                    for (Entity e : s.getNearbyEntities(radius, radius, radius)) {
-                        if (e instanceof Player p) {
-                            if (k.distance(s, p) > radius) continue;
-                            if(playerStats.isDying(p))continue;
-                            if (p.getGameMode().equals(GameMode.SURVIVAL)) {
-                                s.setTarget(p);
-                            }
-                        }
-                    }
+                LivingEntity target = findTarget(s, 32, true, true); // 半径20，需要视线，不忽略隐身
+                if (target != null) {
+                    s.setTarget(target);
                 }
             }
         };
@@ -122,7 +113,7 @@ public enum Monsters {
                 }
             }
         };
-        getTarget.runTaskTimer(plugin, 0L, 100L);
+        getTarget.runTaskTimer(plugin, 0L, 50L);
         shoot.runTaskTimer(plugin, 0L, 80L);
         particle.runTaskTimer(plugin, 0L, 10L);
     }
@@ -278,16 +269,9 @@ public enum Monsters {
                     cancel();
                     return;
                 }
-                if (s.getTarget() == null) {
-                    double radius = 10.0D;
-                    for (Entity e : s.getNearbyEntities(radius, radius, radius)) {
-                        if (e instanceof Player p) {
-                            if(playerStats.isDying(p))continue;
-                            if (k.distance(s, p) <= radius &&
-                                    p.getGameMode().equals(GameMode.SURVIVAL))
-                                s.setTarget(p);
-                        }
-                    }
+                LivingEntity target = findTarget(s, 32, true, true); // 半径20，需要视线，不忽略隐身
+                if (target != null) {
+                    s.setTarget(target);
                 }
             }
         };
@@ -308,7 +292,7 @@ public enum Monsters {
                 }
             }
         };
-        getTarget.runTaskTimer(plugin, 0L, 100L);
+        getTarget.runTaskTimer(plugin, 0L, 50L);
         shoot.runTaskTimer(plugin, 0L, 80L);
     }
 
@@ -460,17 +444,9 @@ public enum Monsters {
                     cancel();
                     return;
                 }
-                if (s.getTarget() == null) {
-                    double radius = 20;
-                    for (Entity e : s.getNearbyEntities(radius, radius, radius)) {
-                        if (e instanceof Player p) {
-                            if (k.distance(s, p) > radius) continue;
-                            if(playerStats.isDying(p))continue;
-                            if (p.getGameMode().equals(GameMode.SURVIVAL)) {
-                                s.setTarget(p);
-                            }
-                        }
-                    }
+                LivingEntity target = findTarget(s, 64, true, true); // 半径20，需要视线，不忽略隐身
+                if (target != null) {
+                    s.setTarget(target);
                 }
             }
         };
@@ -502,7 +478,7 @@ public enum Monsters {
                 }
             }
         };
-        getTarget.runTaskTimer(plugin,0L,100L);
+        getTarget.runTaskTimer(plugin,0L,50L);
         leap.runTaskTimer(plugin,0L,20L);
         boom.runTaskTimer(plugin,100L,300L);
     }
@@ -512,14 +488,24 @@ public enum Monsters {
         l.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,30,0));
         l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,PotionEffect.INFINITE_DURATION,0));
         l.setVelocity(new Vector(0,1,0));
+        Location jumpLoc;
+        if(l instanceof Mob m) {
+            Entity target = m.getTarget();
+            if (target != null) {
+                jumpLoc = target.getLocation();
+            } else {
+                jumpLoc = null;
+            }
+        } else {
+            jumpLoc = null;
+        }
         BukkitRunnable later = new BukkitRunnable() {
             @Override
             public void run() {
-                if(l instanceof MagmaCube m) {
-                    Entity target = m.getTarget();
-                    if (target != null) {
-                        k.knockBack(m, target.getLocation(), -1);
-                    }
+                if(jumpLoc != null){
+                    k.knockBack(l,jumpLoc,-1);
+                }else {
+                    l.setVelocity(new Vector(0,-2,0));
                 }
             }
         };
@@ -669,18 +655,10 @@ public enum Monsters {
                     cancel();
                     return;
                 }
-                if (top.getTarget() == null) {
-                    double radius = 64;
-                    for (Entity e : top.getNearbyEntities(radius, radius, radius)) {
-                        if (e instanceof Player p1) {
-                            if (k.distance(top, p1) > radius) continue;
-                            if (playerStats.isDying(p1)) continue;
-                            if (p1.getGameMode().equals(GameMode.SURVIVAL)) {
-                                top.setTarget(p1);
-                                bottom.setTarget(p1);
-                            }
-                        }
-                    }
+                LivingEntity target = findTarget(top, 64, true, true); // 半径20，需要视线，不忽略隐身
+                if (target != null) {
+                    top.setTarget(target);
+                    bottom.setTarget(target);
                 }
             }
         };
@@ -735,7 +713,7 @@ public enum Monsters {
                 }
             }
         };
-        getTarget.runTaskTimer(plugin, 0L, 100L);
+        getTarget.runTaskTimer(plugin, 0L, 50L);
         shooting.runTaskTimer(plugin, 0L, 50L);
     }
     public Entity dukeMinion(Location loc,boolean isMinion){
@@ -768,18 +746,10 @@ public enum Monsters {
                     cancel();
                     return;
                 }
-                if (top.getTarget() == null) {
-                    double radius = 20;
-                    for (Entity e : top.getNearbyEntities(radius, radius, radius)) {
-                        if (e instanceof Player p1) {
-                            if (k.distance(top, p1) > radius) continue;
-                            if (playerStats.isDying(p1)) continue;
-                            if (p1.getGameMode().equals(GameMode.SURVIVAL)) {
-                                top.setTarget(p1);
-                                bottom.setTarget(p1);
-                            }
-                        }
-                    }
+                LivingEntity target = findTarget(top, 64, true, true); // 半径20，需要视线，不忽略隐身
+                if (target != null) {
+                    top.setTarget(target);
+                    bottom.setTarget(target);
                 }
             }
         };
@@ -796,7 +766,7 @@ public enum Monsters {
             }
         };
         dash.runTaskTimer(plugin,0L,20L);
-        getTarget.runTaskTimer(plugin, 0L, 100L);
+        getTarget.runTaskTimer(plugin, 0L, 50L);
         return top;
     }
     public void duke(Location loc) {
@@ -847,25 +817,11 @@ public enum Monsters {
                     cancel();
                     return;
                 }
-                Location bLoc = top.getLocation().clone();
-                int max = 0;
-                while (w.getBlockAt(bLoc).getType() == Material.AIR && max < 100){
-                    bLoc.add(new Vector(0,-1,0));
-                    max++;
-                }
                 w.playSound(top, Sound.ENTITY_PHANTOM_FLAP, 1, 1);
-                if (top.getTarget() == null) {
-                    double radius = 64;
-                    for (Entity e : top.getNearbyEntities(radius, radius, radius)) {
-                        if (e instanceof Player player) {
-                            if (k.distance(top, player) > radius) continue;
-                            if(playerStats.isDying(player))continue;
-                            if (player.getGameMode().equals(GameMode.SURVIVAL)) {
-                                top.setTarget(player);
-                                bottom.setTarget(player);
-                            }
-                        }
-                    }
+                LivingEntity target = findTarget(top, 64, true, true); // 半径20，需要视线，不忽略隐身
+                if (target != null) {
+                    top.setTarget(target);
+                    bottom.setTarget(target);
                 }
             }
         };
@@ -973,7 +929,7 @@ public enum Monsters {
         };
         dash.runTaskTimer(plugin,0L,20L);
         bossBar.runTaskTimer(plugin,0L,2L);
-        getTarget.runTaskTimer(plugin, 0L, 100L);
+        getTarget.runTaskTimer(plugin, 0L, 50L);
         particle.runTaskTimer(plugin, 0L, 10L);
         attack.runTaskTimer(plugin,20L,80L);
 //        hover.runTaskTimer(plugin, 0L, 1L); // 每 tick 执行
@@ -1125,5 +1081,48 @@ public enum Monsters {
             }
         };
         shoot.runTaskLater(plugin, 40L);
+    }/**
+     * 为怪物寻找最优目标（玩家）
+     * @param monster 发起索敌的怪物
+     * @param radius 搜索半径
+     * @param requireSight 是否要求视线无阻挡（true 则只选择可见玩家）
+     * @param ignoreInvisible 是否忽略隐身玩家
+     * @return 最佳目标 LivingEntity，若无则返回 null
+     */
+    public static LivingEntity findTarget(LivingEntity monster, double radius, boolean requireSight, boolean ignoreInvisible) {
+        World world = monster.getWorld();
+
+        List<Entity> nearby = monster.getNearbyEntities(radius, radius, radius);
+        LivingEntity bestTarget = null;
+        double bestScore = Double.MAX_VALUE; // 分数越小越优
+
+        for (Entity entity : nearby) {
+            if (!(entity instanceof Player player)) continue;
+            if (player.getGameMode() != GameMode.SURVIVAL) continue;
+            if (player.isDead()) continue;
+            if (playerStats.isDying(player)) continue; // 假设有死亡标记
+            if (ignoreInvisible && player.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
+
+            double score = monster.getLocation().distance(player.getLocation());
+            if (score > radius) continue;
+
+            // 视线检测（如需）
+            boolean sightClear = true;
+            if (requireSight) {
+                Vector from = monster.getEyeLocation().toVector();
+                Vector to = player.getEyeLocation().toVector();
+                RayTraceResult result = world.rayTraceBlocks(monster.getEyeLocation(), to.subtract(from), score);
+                sightClear = (result == null);
+            }
+
+            if (!sightClear) continue;
+
+            // 评分规则：距离越近越好
+            if (score < bestScore) {
+                bestScore = score;
+                bestTarget = player;
+            }
+        }
+        return bestTarget;
     }
 }

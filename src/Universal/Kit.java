@@ -30,6 +30,24 @@ public enum Kit {
         this.plugin = plugin;
     }
 
+    public void shuffleInt(Integer[] numbers) {
+        for (int i = numbers.length - 1; i > 0; i--) {
+            int randomNum = r.nextInt(i + 1);
+            int num = numbers[randomNum];
+            numbers[randomNum] = numbers[i];
+            numbers[i] = num;
+        }
+    }
+
+    public void shuffleItems(ItemStack[] items) {
+        for (int i = items.length - 1; i > 0; i--) {
+            int randomNum = r.nextInt(i + 1);
+            ItemStack temp = items[randomNum];
+            items[randomNum] = items[i];
+            items[i] = temp;
+        }
+    }
+
     public Block rayTraceBlock(Location loc, Vector vec, int radius){
         Vector eVec = vec.normalize();
         Location bLoc = loc.clone();
@@ -112,12 +130,10 @@ public enum Kit {
             if (finalDamage < 0) finalDamage = 0;
 
             // 应用伤害
+            target.damage(finalDamage, DamageSource.builder(DamageType.EXPLOSION)
+                    .withDirectEntity(source).build());
             if (source.getName().equals("§a爆爆")) {
-                target.damage(finalDamage);
                 source.remove();
-            } else {
-                target.damage(finalDamage, DamageSource.builder(DamageType.EXPLOSION)
-                        .withDirectEntity(source).build());
             }
         }
     }

@@ -1,7 +1,6 @@
 package Listeners;
 
-import Universal.Kit;
-import Universal.PlayerStats;
+import Universal.*;
 import com.sun.nio.sctp.ShutdownNotification;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -13,6 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -22,6 +22,7 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static Universal.Monsters.entityMinionMap;
 
@@ -29,6 +30,10 @@ public class MonsterListener implements Listener {
     JavaPlugin plugin;
     Kit k = Kit.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
+    DropPool dp = DropPool.INSTANCE;
+    LootPool lp = LootPool.INSTANCE;
+    GadgetPool gp = GadgetPool.INSTANCE;
+    Random r = new Random();
 
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -102,19 +107,19 @@ public class MonsterListener implements Listener {
             String aName = attacker.getName();
             switch (aName) {
                 case "§c粉碎者" -> {
-                    if (damageType.equals(DamageType.ARROW)) {
+                    if (!damageType.equals(DamageType.ARROW)) {
                         damageEvent.setCancelled(true);
                         damageEvent.setDamage(0);
                     }
                 }
                 case "§6火球"->{
-                    if (damageType.equals(DamageType.IN_FIRE)) {
+                    if (!damageType.equals(DamageType.IN_FIRE)) {
                         damageEvent.setCancelled(true);
                         damageEvent.setDamage(0);
                     }
                 }
                 case "§7跳跃者" ->{
-                    if (damageType.equals(DamageType.EXPLOSION)) {
+                    if (!damageType.equals(DamageType.EXPLOSION)) {
                         damageEvent.setCancelled(true);
                         damageEvent.setDamage(0);
                     }
@@ -215,9 +220,98 @@ public class MonsterListener implements Listener {
             case "§a跳蚤":
             case "§a爆爆":
             case "§e机魂":
-            case"§c公爵":
+            case "§c公爵":
                 w.playSound(mob.getLocation(),Sound.ENTITY_BREEZE_DEATH,2,0.75f);
                 w.playSound(mob.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,2,1.5f);
+        }
+    }
+    @EventHandler
+    public void mobDeathDrops(EntityDeathEvent deathEvent) {
+        LivingEntity mob = deathEvent.getEntity();
+        World w = mob.getWorld();
+        String dName = mob.getName();
+        List<ItemStack> drops = new ArrayList<>();
+        switch (dName){
+            case "§c粉碎者"->{
+                if(r.nextDouble() < 0.35) {
+                    w.dropItem(mob.getLocation(),dp.shredderCore());
+                }
+                drops.add(dp.blazeRod());
+                drops.add(gp.mendingPowder());
+                drops.add(lp.i55());
+                drops.add(lp.i55());
+                drops.add(lp.i41());
+                drops.add(lp.i41());
+                drops.add(lp.i41());
+            }
+            case "§a跳蚤"->{
+                if(r.nextDouble() < 0.35) {
+                    w.dropItem(mob.getLocation(),dp.tickEye());
+                }
+                drops.add(dp.bone());
+                drops.add(dp.bone());
+                drops.add(lp.i19());
+                drops.add(lp.i19());
+            }
+            case "§a爆爆"->{
+                if(r.nextDouble() < 0.35) {
+                    w.dropItem(mob.getLocation(),dp.popCore());
+                }
+                drops.add(lp.i19());
+                drops.add(lp.i19());
+                drops.add(dp.flint());
+                drops.add(dp.flint());
+            }
+            case "§6火球"->{
+                if(r.nextDouble() < 0.35) {
+                    w.dropItem(mob.getLocation(),dp.fireballCore());
+                }
+                drops.add(lp.i19());
+                drops.add(lp.i19());
+                drops.add(lp.i19());
+                drops.add(lp.i19());
+                drops.add(lp.i19());
+                drops.add(lp.i58());
+                drops.add(dp.gunpowder());
+                drops.add(dp.gunpowder());
+            }
+            case "§7告密者"->{
+                if(r.nextDouble() < 0.35) {
+                    w.dropItem(mob.getLocation(),dp.snitchScanner());
+                }
+                drops.add(lp.i20());
+                drops.add(lp.i20());
+                drops.add(lp.i41());
+                drops.add(lp.i41());
+            }
+            case "§7跳跃者"->{
+                if(r.nextDouble() < 0.35) {
+                    w.dropItem(mob.getLocation(),dp.leaperUnit());
+                }
+
+            }
+            case "§7堡垒炮塔"->{
+                if(r.nextDouble() < 0.35) {
+                    w.dropItem(mob.getLocation(),dp.bastionCore());
+                }
+
+            }
+            case "§e机魂"->{
+
+            }
+            case "§c机魂"->{
+
+            }
+            case "§c公爵"->{
+                w.dropItem(mob.getLocation(),dp.dukeCore());
+            }
+            default ->{
+
+            }
+        }
+        deathEvent.getDrops().clear();
+        for(ItemStack i : drops){
+            w.dropItem(mob.getLocation(),i);
         }
     }
     @EventHandler

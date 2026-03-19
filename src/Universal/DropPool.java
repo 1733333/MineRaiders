@@ -15,11 +15,15 @@ public enum DropPool {
             gunpowder(),
             string(),
             spiderEye(),
+            flint(),
+            quartz(),
             snitchScanner(),
             popCore(),
             fireballCore(),
             tickEye(),
             shredderCore(),
+            blazeRod(),
+            breezeRod(),
             bastionCore(),
             leaperUnit(),
             dukeCore(),
@@ -85,6 +89,30 @@ public enum DropPool {
         i.setItemMeta(meta);
         return i.clone();
     }
+    public ItemStack flint() {
+        ItemStack i = new ItemStack(Material.FLINT);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(16);
+        meta.setDisplayName(ChatColor.GRAY + "【普通】燧石");
+        lore.add(ChatColor.WHITE + "硬度不是那么高的石头");
+        lore.add(ChatColor.WHITE + "和硬物碰撞可以擦出火花");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack quartz() {
+        ItemStack i = new ItemStack(Material.QUARTZ);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(16);
+        meta.setDisplayName(ChatColor.GRAY + "【普通】下界石英");
+        lore.add(ChatColor.WHITE + "拥有特殊性质的矿物");
+        lore.add(ChatColor.WHITE + "通常用在建材或者装饰上");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
     public ItemStack snitchScanner() {
         ItemStack i = new ItemStack(Material.SPYGLASS);
         ItemMeta meta = i.getItemMeta();
@@ -138,6 +166,29 @@ public enum DropPool {
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】粉碎者陀螺仪");
         lore.add(ChatColor.WHITE + "粉碎者的平衡装置");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack blazeRod() {
+        ItemStack i = new ItemStack(Material.BLAZE_ROD);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】烈焰棒");
+        lore.add(ChatColor.WHITE + "腐竹黑市经常会售卖的烧火棍");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack breezeRod() {
+        ItemStack i = new ItemStack(Material.BREEZE_ROD);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】旋风棒");
+        lore.add(ChatColor.WHITE + "轻便但有韧性");
+        lore.add(ChatColor.WHITE + "用来合成武器道具应该不错");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
