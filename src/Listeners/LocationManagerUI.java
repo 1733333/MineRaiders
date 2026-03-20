@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -62,10 +63,16 @@ public class LocationManagerUI implements Listener, CommandExecutor {
     private static final String GUI_TITLE = "§8搜打撤位置管理";
     private static final String CONFIG_PATH = "locations";
 
+    // ==================== 新增：图形化添加菜单相关 ====================
+    private static final String ADD_GUI_TITLE = "§8选择添加地点类型";
+    private static final Map<UUID, LocationType> AWAITING_NAME = new HashMap<>();
+    private static NamespacedKey addTypeKey;
+
     // ==================== 初始化 ====================
     public static void init(JavaPlugin instance) {
         plugin = instance;
         locationKey = new NamespacedKey(plugin, "location_id");
+        addTypeKey = new NamespacedKey(plugin, "add_type"); // 初始化新增的key
 
         // 注册事件监听
         Bukkit.getPluginManager().registerEvents(new LocationManagerUI(), plugin);
@@ -192,10 +199,79 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                 .count();
     }
 
+    // ==================== 新增：打开添加地点类型选择菜单 ====================
+    public static void openAddGUI(Player player) {
+        Inventory gui = Bukkit.createInventory(null, 9, ADD_GUI_TITLE);
+
+        // 撤离点图标
+        ItemStack evacItem = new ItemStack(LocationType.EVACUATION.getIcon());
+        ItemMeta evacMeta = evacItem.getItemMeta();
+        evacMeta.setDisplayName("§b撤离点");
+        evacMeta.setLore(Collections.singletonList("§7点击选择撤离点类型"));
+        evacMeta.getPersistentDataContainer().set(addTypeKey, PersistentDataType.STRING, LocationType.EVACUATION.name());
+        evacItem.setItemMeta(evacMeta);
+        gui.setItem(2, evacItem);
+
+        // 玩家生成点图标
+        ItemStack playerSpawnItem = new ItemStack(LocationType.PLAYER_SPAWN.getIcon());
+        ItemMeta playerMeta = playerSpawnItem.getItemMeta();
+        playerMeta.setDisplayName("§a玩家生成点");
+        playerMeta.setLore(Collections.singletonList("§7点击选择玩家生成点类型"));
+        playerMeta.getPersistentDataContainer().set(addTypeKey, PersistentDataType.STRING, LocationType.PLAYER_SPAWN.name());
+        playerSpawnItem.setItemMeta(playerMeta);
+        gui.setItem(4, playerSpawnItem);
+
+        // 怪物生成点图标
+        ItemStack monsterSpawnItem = new ItemStack(LocationType.MONSTER_SPAWN.getIcon());
+        ItemMeta monsterMeta = monsterSpawnItem.getItemMeta();
+        monsterMeta.setDisplayName("§c怪物生成点");
+        monsterMeta.setLore(Collections.singletonList("§7点击选择怪物生成点类型"));
+        monsterMeta.getPersistentDataContainer().set(addTypeKey, PersistentDataType.STRING, LocationType.MONSTER_SPAWN.name());
+        monsterSpawnItem.setItemMeta(monsterMeta);
+        gui.setItem(6, monsterSpawnItem);
+
+        player.openInventory(gui);
+    }
+
     // ==================== 事件监听 ====================
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!event.getView().getTitle().equals(GUI_TITLE)) return;
+        String title = event.getView().getTitle();
+
+        // 处理添加类型选择菜单
+        if (title.equals(ADD_GUI_TITLE)) {
+            event.setCancelled(true);
+            if (!(event.getWhoClicked() instanceof Player player)) return;
+            if (event.getCurrentItem() == null) return;
+
+            ItemStack clicked = event.getCurrentItem();
+            ItemMeta meta = clicked.getItemMeta();
+            if (meta == null) return;
+
+            String typeName = meta.getPersistentDataContainer().get(addTypeKey, PersistentDataType.STRING);
+            if (typeName == null) return;
+
+            LocationType type;
+            try {
+                type = LocationType.valueOf(typeName);
+            } catch (IllegalArgumentException e) {
+                player.sendMessage("§c无效的地点类型！");
+                return;
+            }
+
+            // 关闭 GUI
+            player.closeInventory();
+
+            // 将玩家加入等待输入状态
+            AWAITING_NAME.put(player.getUniqueId(), type);
+
+            // 提示输入名称
+            player.sendMessage("§a请输入该地点的名称（在聊天框输入），输入 §ccancel §a取消：");
+            return;
+        }
+
+        // 原有管理 GUI 的处理
+        if (!title.equals(GUI_TITLE)) return;
         event.setCancelled(true);
 
         if (!(event.getWhoClicked() instanceof Player player)) return;
@@ -239,6 +315,55 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                 }
             }.runTask(plugin);
         }
+    }
+
+    // ==================== 新增：监听玩家聊天输入名称 ====================
+    @EventHandler
+    public void onPlayerChat(AsyncPlayerChatEvent event) {
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        if (!AWAITING_NAME.containsKey(uuid)) return;
+
+        // 取消聊天事件，防止消息广播
+        event.setCancelled(true);
+
+        String message = event.getMessage().trim();
+        LocationType type = AWAITING_NAME.remove(uuid);
+
+        if (message.equalsIgnoreCase("cancel")) {
+            player.sendMessage("§c已取消添加地点。");
+            return;
+        }
+
+        // 名称不能包含特殊字符（可自定义规则，这里简单限制非空且长度≤30）
+        if (message.isEmpty() || message.length() > 30) {
+            player.sendMessage("§c名称不能为空且长度不能超过30！");
+            // 重新加入等待队列，让玩家再次输入
+            AWAITING_NAME.put(uuid, type);
+            player.sendMessage("§a请重新输入名称（输入 §ccancel §a取消）：");
+            return;
+        }
+
+        // 同步执行添加操作（因为涉及 Bukkit API）
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Location loc = player.getLocation();
+                String worldName = loc.getWorld().getName();
+
+                // 检查是否已存在同名地点（可选）
+                if (getLocation(worldName, message) != null) {
+                    player.sendMessage("§c在当前世界已存在名为 " + message + " 的地点，请使用其他名称。");
+                    AWAITING_NAME.put(uuid, type);
+                    player.sendMessage("§a请重新输入名称（输入 §ccancel §a取消）：");
+                    return;
+                }
+
+                addLocation(worldName, message, loc, type);
+                player.sendMessage("§a成功添加 " + type.getDisplayName() + " §b" + message);
+            }
+        }.runTask(plugin);
     }
 
     // ==================== 持久化 ====================
@@ -330,6 +455,9 @@ public class LocationManagerUI implements Listener, CommandExecutor {
             case "gui":
                 openGUI(player);
                 break;
+            case "addgui":      // 新增子命令
+                openAddGUI(player);
+                break;
             case "list":
                 handleList(player, args);
                 break;
@@ -354,6 +482,7 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         player.sendMessage("§6===== 搜打撤位置管理帮助 =====§r");
         player.sendMessage("§e/mrlocs §7- 显示本帮助");
         player.sendMessage("§e/mrlocs gui §7- 打开图形界面管理位置");
+        player.sendMessage("§e/mrlocs addgui §7- 打开添加位置菜单"); // 新增帮助信息
         player.sendMessage("§e/mrlocs list [世界] §7- 列出所有地点（可指定世界）");
         player.sendMessage("§e/mrlocs add <名称> <类型> §7- 添加当前位置 (类型: player/monster/evacuate)");
         player.sendMessage("§e/mrlocs remove <名称> [世界] §7- 删除地点（默认当前世界）");

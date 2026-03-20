@@ -35,10 +35,9 @@ public class MonsterListener implements Listener {
     GadgetPool gp = GadgetPool.INSTANCE;
     Random r = new Random();
 
-    public void setPlugin(JavaPlugin plugin) {
+    public MonsterListener(JavaPlugin plugin) {
         this.plugin = plugin;
     }
-
 
     @EventHandler
     public void damageEvent(EntityDamageEvent damageEvent) {
@@ -288,12 +287,23 @@ public class MonsterListener implements Listener {
                 if(r.nextDouble() < 0.35) {
                     w.dropItem(mob.getLocation(),dp.leaperUnit());
                 }
-
+                drops.add(dp.quartz());
+                drops.add(dp.quartz());
+                drops.add(lp.i55());
+                drops.add(lp.i55());
+                drops.add(dp.blazeRod());
+                drops.add(gp.mendingPowder());
             }
             case "§7堡垒炮塔"->{
                 if(r.nextDouble() < 0.35) {
                     w.dropItem(mob.getLocation(),dp.bastionCore());
                 }
+                drops.add(lp.i73());
+                drops.add(lp.i73());
+                drops.add(lp.i55());
+                drops.add(lp.i55());
+                drops.add(dp.breezeRod());
+                drops.add(gp.mendingPowder());
 
             }
             case "§e机魂"->{
@@ -304,9 +314,74 @@ public class MonsterListener implements Listener {
             }
             case "§c公爵"->{
                 w.dropItem(mob.getLocation(),dp.dukeCore());
+                drops.add(gp.mendingPowder());
+                drops.add(gp.mendingPowder());
+                drops.add(gp.mendingPowder());
+                drops.add(lp.i68());
+                drops.add(lp.i68());
+                drops.add(lp.i75());
+                drops.add(lp.i75());
+                drops.add(lp.i74());
+                drops.add(dp.ironBlock());
             }
             default ->{
-
+                switch (mob.getType()) {
+                    case ZOMBIE -> {
+                        drops.add(dp.rottenFlesh());
+                    }
+                    case SKELETON -> {
+                        drops.add(dp.bone());
+                    }
+                    case CREEPER -> {
+                        drops.add(dp.gunpowder());
+                    }
+                    case SPIDER -> {
+                        drops.add(dp.string());
+                        if (r.nextBoolean()) {
+                            drops.add(dp.spiderEye());
+                        }
+                    }
+                    case HUSK -> {
+                        drops.add(dp.rottenFlesh());
+                        drops.add(lp.i22());
+                    }
+                    case DROWNED -> {
+                        drops.add(dp.rottenFlesh());
+                        drops.add(lp.i18());
+                    }
+                    case ZOMBIE_VILLAGER -> {
+                        drops.add(dp.rottenFlesh());
+                        if(r.nextInt(4) == 0){
+                            drops.add(lp.i57());
+                        }
+                    }
+                    case ZOMBIFIED_PIGLIN -> {
+                        drops.add(dp.rottenFlesh());
+                        drops.add(lp.i21());
+                    }
+                    case BOGGED -> {
+                        drops.add(dp.bone());
+                        drops.add(dp.grass());
+                    }
+                    case STRAY -> {
+                        drops.add(dp.bone());
+                        if(r.nextInt(4) == 0){
+                            drops.add(lp.i54());
+                        }
+                    }
+                    case PARCHED -> {
+                        drops.add(dp.bone());
+                        drops.add(lp.i8());
+                    }
+                    case WITHER_SKELETON -> {
+                        drops.add(dp.bone());
+                        drops.add(lp.i41());
+                    }
+                    case CAVE_SPIDER -> {
+                        drops.add(dp.string());
+                        drops.add(dp.spiderEye());
+                    }
+                }
             }
         }
         deathEvent.getDrops().clear();

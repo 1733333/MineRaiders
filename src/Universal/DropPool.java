@@ -26,6 +26,7 @@ public enum DropPool {
             breezeRod(),
             bastionCore(),
             leaperUnit(),
+            ironBlock(),
             dukeCore(),
     };
 
@@ -109,6 +110,18 @@ public enum DropPool {
         meta.setDisplayName(ChatColor.GRAY + "【普通】下界石英");
         lore.add(ChatColor.WHITE + "拥有特殊性质的矿物");
         lore.add(ChatColor.WHITE + "通常用在建材或者装饰上");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack grass() {
+        ItemStack i = new ItemStack(Material.SHORT_GRASS);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(16);
+        meta.setDisplayName(ChatColor.GRAY + "【普通】杂草");
+        lore.add(ChatColor.WHITE + "普通的草");
+        lore.add(ChatColor.WHITE + "没什么大用处");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -213,6 +226,18 @@ public enum DropPool {
         lore.add(ChatColor.WHITE + "跳跃者脉冲单元");
         lore.add(ChatColor.WHITE + "可以投掷");
         lore.add(ChatColor.WHITE + "在落点制造一个持续吸引周围实体的奇点");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i.clone();
+    }
+    public ItemStack ironBlock() {
+        ItemStack i = new ItemStack(Material.IRON_BLOCK);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(2);
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】铁块");
+        lore.add(ChatColor.WHITE + "一大块铁");
+        lore.add(ChatColor.WHITE + "可回收为制作材料");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();

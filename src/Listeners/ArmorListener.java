@@ -33,11 +33,9 @@ public class ArmorListener implements Listener {
     Random r = new Random();
     PlayerStats playerStats = PlayerStats.INSTANCE;
 
-    public void setPlugin(JavaPlugin plugin) {
+    public ArmorListener(JavaPlugin plugin){
         this.plugin = plugin;
     }
-
-
     public int hasArmor(Player p, String name) {
         EntityEquipment e = p.getEquipment();
         ItemStack i1 = e.getHelmet();

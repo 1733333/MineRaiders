@@ -15,12 +15,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class MR extends JavaPlugin {
     @Override
     public void onEnable() {
+        PluginManager manager = this.getServer().getPluginManager();
         Recipes recipes = Recipes.INSTANCE;
         BoxPool boxPool = BoxPool.INSTANCE;
         Monsters monsters = Monsters.INSTANCE;
         Kit k = Kit.INSTANCE;
-
-        PluginManager manager = this.getServer().getPluginManager();
 
         DebugCommand debugCommand = new DebugCommand(this);
         LootCommand lootCommand =  new LootCommand();
@@ -31,14 +30,14 @@ public class MR extends JavaPlugin {
         DropCommand dropCommand = new DropCommand();
         FreeRecipeCommand freeRecipeCommand = new FreeRecipeCommand();
         GetAllItemsCommand getAllItemsCommand = new GetAllItemsCommand();
-        ContainerListener containerListener = new ContainerListener();
-        GadgetListener gadgetListener = new GadgetListener();
-        MonsterListener monsterListener = new MonsterListener();
-        InventoryListener inventoryListener = new InventoryListener();
-        PlayerListener playerListener = new PlayerListener();
-        ArmorListener armorListener = new ArmorListener();
         ArmorEquipListener armorEquipListener = new ArmorEquipListener();
-        WeaponListener weaponListener = new WeaponListener();
+        ContainerListener containerListener = new ContainerListener(this);
+        GadgetListener gadgetListener = new GadgetListener(this);
+        MonsterListener monsterListener = new MonsterListener(this);
+        InventoryListener inventoryListener = new InventoryListener(this);
+        PlayerListener playerListener = new PlayerListener(this);
+        ArmorListener armorListener = new ArmorListener(this);
+        WeaponListener weaponListener = new WeaponListener(this);
         LocationManagerUI.init(this);
 
         manager.registerEvents(containerListener,this);
@@ -60,16 +59,9 @@ public class MR extends JavaPlugin {
         this.getCommand("getdrops").setExecutor(dropCommand);
         this.getCommand("getall").setExecutor(getAllItemsCommand);
 
-        containerListener.setPlugin(this);
-        gadgetListener.setPlugin(this);
-        monsterListener.setPlugin(this);
+        k.setPlugin(this);
         recipes.setPlugin(this);
         monsters.setPlugin(this);
-        playerListener.setPlugin(this);
-        armorListener.setPlugin(this);
-        weaponListener.setPlugin(this);
-        inventoryListener.setPlugin(this);
-        k.setPlugin(this);
 
         recipes.registerFreeRecipe();
         recipes.registerRecipe();

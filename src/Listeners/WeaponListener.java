@@ -34,7 +34,7 @@ public class WeaponListener implements Listener {
     JavaPlugin plugin;
     Kit k = Kit.INSTANCE;
     Random r = new Random();
-    public void setPlugin(JavaPlugin plugin) {
+    public WeaponListener(JavaPlugin plugin){
         this.plugin = plugin;
     }
 

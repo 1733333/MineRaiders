@@ -225,7 +225,7 @@ public enum WeaponPool {
         Attribute attribute1 = Attribute.ATTACK_SPEED;
         Attribute attribute2 = Attribute.ATTACK_DAMAGE;
         AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-3.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
-        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
         itemMeta.addAttributeModifier(attribute1,modifier1);
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
@@ -285,7 +285,7 @@ public enum WeaponPool {
         itemMeta.addAttributeModifier(attribute2,modifier2);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "仙人掌剑");
-        lore.add(ChatColor.WHITE + "不是一个好主意");
+        lore.add(ChatColor.WHITE + "非常的“棘手”");
         lore.add(ChatColor.WHITE + "对敌人造成伤害时，自己也会受到伤害");
         itemMeta.setLore(lore);
         item.setItemMeta(itemMeta);

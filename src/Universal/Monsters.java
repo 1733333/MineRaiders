@@ -2,25 +2,16 @@ package Universal;
 
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -28,8 +19,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public enum Monsters {
@@ -44,6 +33,32 @@ public enum Monsters {
     public static HashMap<String,List<Entity>> entityMinionMap = new HashMap<>();
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void randomMobs(Location loc,int amount){
+        World w = loc.getWorld();
+        EntityType[] mobs = new EntityType[]{
+                EntityType.ZOMBIE,
+                EntityType.ZOMBIE,
+                EntityType.HUSK,
+                EntityType.DROWNED,
+                EntityType.ZOMBIE_VILLAGER,
+                EntityType.ZOMBIFIED_PIGLIN,
+                EntityType.SKELETON,
+                EntityType.SKELETON,
+                EntityType.BOGGED,
+                EntityType.STRAY,
+                EntityType.PARCHED,
+                EntityType.WITHER_SKELETON,
+                EntityType.CREEPER,
+                EntityType.CREEPER,
+                EntityType.SPIDER,
+                EntityType.SPIDER,
+                EntityType.CAVE_SPIDER,
+        };
+        for(int i = 0;i < amount;i++){
+            w.spawnEntity(loc,mobs[r.nextInt(mobs.length)]);
+        }
     }
 
     public void shredder(Location loc) {
@@ -794,6 +809,7 @@ public enum Monsters {
         top.setCustomNameVisible(false);
         top.setHealth(maxHealth);
         bottom.setHealth(maxHealth);
+        bottom.getEquipment().clear();
         BossBar bar = Bukkit.createBossBar(top.getCustomName(), BarColor.RED, BarStyle.SOLID, BarFlag.DARKEN_SKY);
         for(Player player : Bukkit.getOnlinePlayers()){
             bar.addPlayer(player);
@@ -879,42 +895,6 @@ public enum Monsters {
                 count ++;
             }
         };
-        final double hoverHeight = 2.0; // 离地高度（格）
-        final double strength = 0.5;    // 调整力度（值越大响应越快，但可能抖动）
-
-        BukkitRunnable hover = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (top.isDead() || bottom.isDead()) {
-                    this.cancel();
-                    return;
-                }
-
-                Location bottomLoc = bottom.getLocation();
-                World world = bottom.getWorld();
-
-                // 向下射线追踪，检测地面
-                // 从底部实体位置开始，向下追踪 10 格（可根据需要调整）
-                RayTraceResult result = world.rayTraceBlocks(bottomLoc, new Vector(0, -1, 0), 10);
-                double groundY;
-                if (result != null && result.getHitBlock() != null) {
-                    // 获取被击中方块的上表面 Y 坐标
-                    groundY = result.getHitBlock().getLocation().getY() + 1.0;
-                } else {
-                    // 没检测到地面（如悬空），保持当前高度不变
-                    groundY = bottomLoc.getY() - hoverHeight; // 假装地面就在下方 hoverHeight 处，实际不会移动
-                }
-
-                double targetY = groundY + hoverHeight;
-                double currentY = bottomLoc.getY();
-                double diff = targetY - currentY;
-
-                // 使用速度调整高度，防止瞬间移动
-                Vector velocity = bottom.getVelocity();
-                velocity.setY(diff * strength);
-                bottom.setVelocity(velocity);
-            }
-        };
         BukkitRunnable dash = new BukkitRunnable() {
             @Override
             public void run() {
@@ -932,7 +912,6 @@ public enum Monsters {
         getTarget.runTaskTimer(plugin, 0L, 50L);
         particle.runTaskTimer(plugin, 0L, 10L);
         attack.runTaskTimer(plugin,20L,80L);
-//        hover.runTaskTimer(plugin, 0L, 1L); // 每 tick 执行
     }
     public void dukeShoot(LivingEntity l){
         World w = l.getWorld();
@@ -1081,7 +1060,8 @@ public enum Monsters {
             }
         };
         shoot.runTaskLater(plugin, 40L);
-    }/**
+    }
+    /**
      * 为怪物寻找最优目标（玩家）
      * @param monster 发起索敌的怪物
      * @param radius 搜索半径

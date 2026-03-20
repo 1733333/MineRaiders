@@ -78,7 +78,7 @@ public class GadgetListener implements Listener {
     };
     int[]musicScore2 = new int[]{};
 
-    public void setPlugin(JavaPlugin plugin) {
+    public GadgetListener(JavaPlugin plugin){
         this.plugin = plugin;
     }
 
@@ -361,9 +361,9 @@ public class GadgetListener implements Listener {
         w.playSound(p.getLocation(), Sound.BLOCK_SNOW_BREAK, 1, 1);
         double maxHealth = 20;
         Snowman turret = (Snowman) w.spawnEntity(p.getLocation(), EntityType.SNOW_GOLEM);
-        turret.getAttribute(Attribute.ATTACK_DAMAGE.MOVEMENT_SPEED).setBaseValue(0);
-        turret.getAttribute(Attribute.ATTACK_DAMAGE.KNOCKBACK_RESISTANCE).setBaseValue(1);
-        turret.getAttribute(Attribute.ATTACK_DAMAGE.MAX_HEALTH).setBaseValue(maxHealth);
+        turret.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0);
+        turret.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
+        turret.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
         turret.setHealth(maxHealth);
         turret.setSilent(true);
         turret.setCustomName(ChatColor.AQUA + p.getName() + "的炮塔");

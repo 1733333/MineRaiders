@@ -86,58 +86,7 @@ public enum Kit {
         Vector v2N = v2.clone().normalize();
         return v1N.dot(v2N);
     }
-    public void explode(LivingEntity source, Entity jar, double baseDamage, double amp, int radius, double selfDamage) {
-        World w = source.getWorld();
-        Collection<Entity> entities = w.getNearbyEntities(jar.getLocation(), radius, radius, radius);
-        for (Entity e : entities) {
-            if (distance(jar, e) > radius) continue;
-            if (!(e instanceof LivingEntity target)) continue;
-
-            double dist = distance(jar, target); // 实际距离
-            int intDist = (int) dist; // 用于衰减计算（原逻辑保留）
-
-            // 视线检测（仅当目标不是source时）
-            if (target != source) {
-                Location shooterLoc = jar.getLocation();
-                if(jar instanceof  LivingEntity l){
-                    shooterLoc = l.getEyeLocation();
-                }
-                Location targetLoc = target.getEyeLocation();
-                Vector direction = targetLoc.toVector().subtract(shooterLoc.toVector());
-                RayTraceResult result = w.rayTraceBlocks(shooterLoc, direction, dist);
-                if (result != null) continue; // 被阻挡，无伤害
-            }
-
-            // 计算伤害：基于距离衰减
-            double finalDamage = baseDamage;
-            if (intDist >= 1) {
-                double reduce = intDist * amp;
-                // 防止amp为负导致伤害增加，若amp为负则忽略衰减（或取绝对值）
-                if (amp >= 0) {
-                    finalDamage -= reduce;
-                } else {
-                    // 可选：记录警告，或按正数处理
-                    finalDamage -= reduce; // 若amp为负，这里实际会增加伤害，因此需限制
-                }
-            }
-
-            // 自伤处理
-            if (target == source && selfDamage != 0) {
-                finalDamage *= selfDamage;
-            }
-
-            // 确保伤害非负
-            if (finalDamage < 0) finalDamage = 0;
-
-            // 应用伤害
-            target.damage(finalDamage, DamageSource.builder(DamageType.EXPLOSION)
-                    .withDirectEntity(source).build());
-            if (source.getName().equals("§a爆爆")) {
-                source.remove();
-            }
-        }
-    }
-    public void ogExplode(LivingEntity source, Entity jar, double damage, double amp, int radius, double selfDamage) {
+    public void explode(LivingEntity source, Entity jar, double damage, double amp, int radius, double selfDamage) {
         World w = source.getWorld();
         Collection<Entity> entities = w.getNearbyEntities(jar.getLocation(), radius, radius, radius);
         for (Entity e : entities) {
@@ -553,32 +502,43 @@ public enum Kit {
             }
         }
     }
-    public void drawBlockOutline(Player player,Block block,Particle particle) {
+    public void drawBlockOutline(Player player, Block block, Particle particle) {
         BoundingBox box = block.getBoundingBox();
         double minX = box.getMinX(), minY = box.getMinY(), minZ = box.getMinZ();
         double maxX = box.getMaxX(), maxY = box.getMaxY(), maxZ = box.getMaxZ();
+
+        // 定义12条边的两个端点
+        double[][][] edges = {
+                {{minX,minY,minZ}, {maxX,minY,minZ}}, // 底面 X 边
+                {{minX,minY,maxZ}, {maxX,minY,maxZ}},
+                {{minX,minY,minZ}, {minX,minY,maxZ}}, // 底面 Z 边
+                {{maxX,minY,minZ}, {maxX,minY,maxZ}},
+                {{minX,maxY,minZ}, {maxX,maxY,minZ}}, // 顶面 X 边
+                {{minX,maxY,maxZ}, {maxX,maxY,maxZ}},
+                {{minX,maxY,minZ}, {minX,maxY,maxZ}}, // 顶面 Z 边
+                {{maxX,maxY,minZ}, {maxX,maxY,maxZ}},
+                {{minX,minY,minZ}, {minX,maxY,minZ}}, // 垂直 X 边
+                {{maxX,minY,minZ}, {maxX,maxY,minZ}},
+                {{minX,minY,maxZ}, {minX,maxY,maxZ}},
+                {{maxX,minY,maxZ}, {maxX,maxY,maxZ}}
+        };
+
         int pointsPerEdge = 5;
         List<double[]> positions = new ArrayList<>();
-        for (int i = 0; i < pointsPerEdge; i++) {
-            double t = i / (double)(pointsPerEdge - 1);
-            double x = minX + t * (maxX - minX);
-            double y = minY + t * (maxY - minY);
-            double z = minZ + t * (maxZ - minZ);
-            positions.add(new double[]{x, minY, minZ});
-            positions.add(new double[]{x, minY, maxZ});
-            positions.add(new double[]{x, maxY, minZ});
-            positions.add(new double[]{x, maxY, maxZ});
-            positions.add(new double[]{minX, y, minZ});
-            positions.add(new double[]{maxX, y, minZ});
-            positions.add(new double[]{minX, y, maxZ});
-            positions.add(new double[]{maxX, y, maxZ});
-            positions.add(new double[]{minX, minY, z});
-            positions.add(new double[]{maxX, minY, z});
-            positions.add(new double[]{minX, maxY, z});
-            positions.add(new double[]{maxX, maxY, z});
+        for (double[][] edge : edges) {
+            double[] start = edge[0], end = edge[1];
+            for (int i = 0; i < pointsPerEdge; i++) {
+                double t = i / (double)(pointsPerEdge - 1);
+                double x = start[0] + t * (end[0] - start[0]);
+                double y = start[1] + t * (end[1] - start[1]);
+                double z = start[2] + t * (end[2] - start[2]);
+                positions.add(new double[]{x, y, z});
+            }
         }
-        positions.sort(Comparator.comparingDouble(p ->
-                Math.sqrt(Math.pow(p[0]-minX,2)+Math.pow(p[1]-minY,2)+Math.pow(p[2]-minZ,2))));
+
+        // 按 Y 坐标排序（从低到高）
+        positions.sort(Comparator.comparingDouble(p -> p[1]));
+
         Iterator<double[]> iter = positions.iterator();
         new BukkitRunnable() {
             public void run() {

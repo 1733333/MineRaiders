@@ -2,6 +2,7 @@ package Listeners;
 import Events.ArmorEquipEvent;
 import Events.PlayerShieldAmountChangeEvent;
 import Events.PlayerShieldBreakEvent;
+import Universal.GameStatus;
 import Universal.Kit;
 import Universal.PlayerStats;
 import Universal.Recipes;
@@ -45,13 +46,14 @@ public class PlayerListener implements Listener {
     Recipes re = Recipes.INSTANCE;
     Random r = new Random();
     PlayerStats playerStats = PlayerStats.INSTANCE;
+    GameStatus gameStatus = GameStatus.INSTANCE;
     HashSet<Player> reviving = new HashSet<>();
     HashSet<Player> beingRevive = new HashSet<>();
     HashMap<Player, Player> whoIsReviving = new HashMap<>();
     HashMap<String, BukkitRunnable> playerTask = new HashMap<>();
     public static HashMap<String, BossBar> playerBar = new HashMap<>();
 
-    public void setPlugin(JavaPlugin plugin) {
+    public PlayerListener(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -582,7 +584,7 @@ public class PlayerListener implements Listener {
     public void highLightContainer(EntityPotionEffectEvent effectEvent) {
         Entity e = effectEvent.getEntity();
         World w = e.getWorld();
-        ContainerListener cl = new ContainerListener();
+        ContainerListener cl = new ContainerListener(plugin);
         if (e instanceof Player p) {
             if (effectEvent.getCause() == EntityPotionEffectEvent.Cause.POTION_DRINK) {
                 PotionEffect effect = effectEvent.getNewEffect();
@@ -600,6 +602,7 @@ public class PlayerListener implements Listener {
                                         for (int c = -radius; c <= radius; c++) {
                                             Location bLoc = p.getLocation().add(a, b, c).clone();
                                             Block block = w.getBlockAt(bLoc);
+                                            if(gameStatus.isEmpty(block))continue;
                                             int rarity = cl.getContainerRarity(block);
                                             if (rarity != -1) {
                                                 Particle particle = switch (rarity) {

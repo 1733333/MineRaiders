@@ -180,7 +180,7 @@ public enum GadgetPool {
     }
     public ItemStack speedNeedle(){
         ItemStack item = Bukkit.getItemFactory().createItemStack(
-                "stick[consumable={consume_seconds:1,animation:\"block\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.trident.hit\"}]},item_model=\"cyan_candle\"]"
+                "stick[consumable={consume_seconds:0.8,animation:\"block\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.trident.hit\"}]},item_model=\"cyan_candle\"]"
         );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "肾上腺素");
@@ -197,7 +197,7 @@ public enum GadgetPool {
     }
     public ItemStack healNeedle() {
         ItemStack item = Bukkit.getItemFactory().createItemStack(
-                "stick[consumable={consume_seconds:1,animation:\"block\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.trident.hit\"}]},item_model=\"orange_candle\"]"
+                "stick[consumable={consume_seconds:0.8,animation:\"block\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.trident.hit\"}]},item_model=\"orange_candle\"]"
         );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "生命针剂");
@@ -376,7 +376,7 @@ public enum GadgetPool {
     }
     public ItemStack slowMine(){
         ItemStack item = Bukkit.getItemFactory().createItemStack(
-                "stick[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"wither_skeleton_skull\"]"
+                "stick[consumable={consume_seconds:0.8,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"wither_skeleton_skull\"]"
         );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "电击地雷");
@@ -395,7 +395,7 @@ public enum GadgetPool {
     }
     public ItemStack gasMine(){
         ItemStack item = Bukkit.getItemFactory().createItemStack(
-                "stick[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"zombie_head\"]"
+                "stick[consumable={consume_seconds:0.8,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"zombie_head\"]"
         );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "毒气地雷");
@@ -414,7 +414,7 @@ public enum GadgetPool {
     }
     public ItemStack explodeMine(){
         ItemStack item = Bukkit.getItemFactory().createItemStack(
-                "stick[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"creeper_head\"]"
+                "stick[consumable={consume_seconds:0.8,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"creeper_head\"]"
         );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "爆炸地雷");
@@ -433,7 +433,7 @@ public enum GadgetPool {
     }
     public ItemStack pyroMine(){
         ItemStack item = Bukkit.getItemFactory().createItemStack(
-                "stick[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"piglin_head\"]"
+                "stick[consumable={consume_seconds:0.8,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"item.armor.equip_leather\"}]},item_model=\"piglin_head\"]"
         );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "火焰地雷");
@@ -490,7 +490,7 @@ public enum GadgetPool {
     }
     public ItemStack copperBattery(){
         ItemStack item = Bukkit.getItemFactory().createItemStack(
-                "copper_nautilus_armor[consumable={consume_seconds:1,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
+                "copper_nautilus_armor[consumable={consume_seconds:0.8,animation:\"bow\",sound:\"intentionally_empty\",has_consume_particles:false,on_consume_effects:[{type:\"minecraft:play_sound\",sound:\"block.enchantment_table.use\"}]}] "
         );
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.GRAY + "铜质电池");

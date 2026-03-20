@@ -77,6 +77,7 @@ public class ContainerListener implements Listener {
     BoxPool bp = BoxPool.INSTANCE;
     WeaponPool wp = WeaponPool.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
+    GameStatus gameStatus = GameStatus.INSTANCE;
     Random r = new Random();
     JavaPlugin plugin;
     HashSet<Block> hasContent = new HashSet<>();
@@ -85,7 +86,7 @@ public class ContainerListener implements Listener {
     HashMap<Block,Integer>doorBreakMap = new HashMap<>();
     HashMap<Player,Block>playerSearchBlockMap = new HashMap<>();
 
-    public void setPlugin(JavaPlugin plugin) {
+    public ContainerListener(JavaPlugin plugin){
         this.plugin = plugin;
     }
 
@@ -222,6 +223,10 @@ public class ContainerListener implements Listener {
     }
     public void openContainer(Player p,Block container) {
         World w = p.getWorld();
+        if(gameStatus.isEmpty(container)){
+            p.sendTitle("", ChatColor.AQUA + "这个容器已经空了", 10, 30, 10);
+            return;
+        }
         Player searcher = blockSearcherMap.getOrDefault(container, null);
         int rarity = getContainerRarity(container);
         if (searcher == null) {
@@ -293,6 +298,7 @@ public class ContainerListener implements Listener {
             hasContent.remove(container);
             blockContent.remove(container);
             blockSearcherMap.remove(container);
+            gameStatus.setEmpty(container);
             return;
         }
         BukkitRunnable check = new BukkitRunnable() {

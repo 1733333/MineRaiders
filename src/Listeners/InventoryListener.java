@@ -31,7 +31,7 @@ public class InventoryListener implements Listener {
     HashMap<String, PlayerStats.MenuStatus> playerPreviousStatus = new HashMap<>();
     JavaPlugin plugin;
 
-    public void setPlugin(JavaPlugin plugin) {
+    public InventoryListener(JavaPlugin plugin){
         this.plugin = plugin;
     }
 
@@ -49,7 +49,8 @@ public class InventoryListener implements Listener {
         ItemStack item = clickEvent.getCurrentItem();
         if (item == null) return;
         if (status != PlayerStats.MenuStatus.NOT_MENU &&
-                status != PlayerStats.MenuStatus.COOKBOOK_MENU) {
+                status != PlayerStats.MenuStatus.COOKBOOK_MENU &&
+        status != PlayerStats.MenuStatus.DEV_MENU) {
             if (slot < 54) {
                 ItemStack[] stack = switch (status) {
                     case LOOT_MENU -> lp.getAllLoots();
@@ -150,6 +151,11 @@ public class InventoryListener implements Listener {
                 }
             };
             later.runTaskLater(plugin, 1L);
+        }
+        if(status == PlayerStats.MenuStatus.DEV_MENU){
+            clickEvent.setCancelled(true);
+            p.closeInventory();
+            p.performCommand("mrd " + slot);
         }
     }
 
