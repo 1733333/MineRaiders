@@ -1,9 +1,5 @@
 import Listeners.*;
-import OtherStuff.KiryuKazuma;
-import Universal.BoxPool;
-import Universal.Kit;
-import Universal.Monsters;
-import Universal.Recipes;
+import Universal.*;
 import Commands.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -19,6 +15,7 @@ public class MR extends JavaPlugin {
         Recipes recipes = Recipes.INSTANCE;
         BoxPool boxPool = BoxPool.INSTANCE;
         Monsters monsters = Monsters.INSTANCE;
+        GameStatus gameStatus = GameStatus.INSTANCE;
         Kit k = Kit.INSTANCE;
 
         DebugCommand debugCommand = new DebugCommand(this);
@@ -68,6 +65,7 @@ public class MR extends JavaPlugin {
         k.setPlugin(this);
         recipes.setPlugin(this);
         monsters.setPlugin(this);
+        gameStatus.registerWorldName();
 
         recipes.registerFreeRecipe();
         recipes.registerRecipe();
