@@ -216,6 +216,13 @@ public enum LootPool {
             i82(),
             i95(),
     };
+    double[] prices = {
+            0.5,1,3,10,35,150
+    };
+
+    public double[] getPrices() {
+        return prices;
+    }
 
     public ItemStack[] getKeys() {
         return keys.clone();

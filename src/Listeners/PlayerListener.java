@@ -1,7 +1,6 @@
 package Listeners;
-import Events.ArmorEquipEvent;
-import Events.PlayerShieldAmountChangeEvent;
-import Events.PlayerShieldBreakEvent;
+
+import Events.*;
 import Universal.GameStatus;
 import Universal.Kit;
 import Universal.PlayerStats;
@@ -23,6 +22,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
@@ -33,7 +34,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -52,6 +52,8 @@ public class PlayerListener implements Listener {
     HashMap<Player, Player> whoIsReviving = new HashMap<>();
     HashMap<String, BukkitRunnable> playerTask = new HashMap<>();
     public static HashMap<String, BossBar> playerBar = new HashMap<>();
+    // 倒地倒计时任务映射
+    private final Map<Player, BukkitRunnable> dyingTimers = new HashMap<>();
 
     public PlayerListener(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -65,8 +67,8 @@ public class PlayerListener implements Listener {
         if(stack.getType() == Material.RESIN_CLUMP){
             if(r.nextInt(5) == 0){
                 dropItemEvent.setCancelled(true);
-                w.playSound(i.getLocation(),Sound.BLOCK_SLIME_BLOCK_BREAK,1,1);
-                w.playSound(i.getLocation(),Sound.BLOCK_SLIME_BLOCK_BREAK,1,1);
+                w.playSound(i.getLocation(), Sound.BLOCK_SLIME_BLOCK_BREAK,1,1);
+                w.playSound(i.getLocation(), Sound.BLOCK_SLIME_BLOCK_BREAK,1,1);
             }
         }
     }
@@ -207,14 +209,46 @@ public class PlayerListener implements Listener {
                             }
                         }
                     }
+
+                    // 启动60秒倒计时，结束后自动撤离失败
+                    BukkitRunnable timer = new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (playerStats.isDying(p)) {
+                                triggerFailExtract(p);
+                            }
+                            dyingTimers.remove(p);
+                        }
+                    };
+                    timer.runTaskLater(plugin, 20 * 60); // 60秒
+                    dyingTimers.put(p, timer);
                 } else {
-                    p.setHealth(20);
-                    playerStats.stopDying(p);
-                    p.removePotionEffect(PotionEffectType.MINING_FATIGUE);
-                    p.removePotionEffect(PotionEffectType.WEAKNESS);
+                    // 玩家已经倒地，再次受到致命伤害 -> 撤离失败
+                    BukkitRunnable timer = dyingTimers.remove(p);
+                    if (timer != null) timer.cancel();
+                    triggerFailExtract(p);
                 }
             }
         }
+    }
+
+    /**
+     * 触发玩家撤离失败（倒地无人救起或主动放弃）
+     */
+    private void triggerFailExtract(Player p) {
+        if (!playerStats.isDying(p)) return;
+        playerStats.stopDying(p);
+        // 移除所有负面效果
+        p.removePotionEffect(PotionEffectType.WEAKNESS);
+        p.removePotionEffect(PotionEffectType.MINING_FATIGUE);
+        // 传送到世界出生点，清空背包，移除游戏状态
+        Location spawn = p.getWorld().getSpawnLocation();
+        p.teleport(spawn);
+        p.getInventory().clear();
+        playerStats.stopInGame(p);
+        p.sendMessage("§c你撤离失败，所有物品已丢失！");
+        // 触发事件，以便 GameListener 进行游戏会话的清理
+        Bukkit.getPluginManager().callEvent(new PlayerFailToExtractEvent(p));
     }
 
     public void sos(final Player p) {
@@ -305,6 +339,9 @@ public class PlayerListener implements Listener {
                         p.removePotionEffect(PotionEffectType.MINING_FATIGUE);
                         p.removePotionEffect(PotionEffectType.WEAKNESS);
                         playerStats.stopDying(p);
+                        // 取消倒地倒计时
+                        BukkitRunnable timer = dyingTimers.remove(p);
+                        if (timer != null) timer.cancel();
                         this.cancel();
                     }
                     if (reviving.contains(reviver)) {
@@ -579,51 +616,70 @@ public class PlayerListener implements Listener {
             }
         }
     }
-
+    // ==================== 倒地菜单相关 ====================
     @EventHandler
-    public void highLightContainer(EntityPotionEffectEvent effectEvent) {
-        Entity e = effectEvent.getEntity();
-        World w = e.getWorld();
-        ContainerListener cl = new ContainerListener(plugin);
-        if (e instanceof Player p) {
-            if (effectEvent.getCause() == EntityPotionEffectEvent.Cause.POTION_DRINK) {
-                PotionEffect effect = effectEvent.getNewEffect();
-                if (effect.getType() == PotionEffectType.NIGHT_VISION) {
-                    if (!p.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
-                        BukkitRunnable highLight = new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                if (!p.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
-                                    this.cancel();
-                                }
-                                int radius = 10;
-                                for (int a = -radius; a <= radius; a++) {
-                                    for (int b = -radius; b <= radius; b++) {
-                                        for (int c = -radius; c <= radius; c++) {
-                                            Location bLoc = p.getLocation().add(a, b, c).clone();
-                                            Block block = w.getBlockAt(bLoc);
-                                            if(gameStatus.isEmpty(block))continue;
-                                            int rarity = cl.getContainerRarity(block);
-                                            if (rarity != -1) {
-                                                Particle particle = switch (rarity) {
-                                                    case -2, -3, -4, -5 -> Particle.HAPPY_VILLAGER;
-                                                    case 0 -> Particle.WAX_OFF;
-                                                    case 1 -> Particle.SCRAPE;
-                                                    case 2 -> Particle.WAX_ON;
-                                                    default -> Particle.ENTITY_EFFECT;
-                                                };
-                                                k.drawBlockOutline(p, block, particle);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        };
-                        highLight.runTaskTimer(plugin, 0L, 70L);
-                    }
-                }
-            }
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) return;
+        if (!playerStats.isDying(player)) return;
+
+        // 只拦截玩家打开自己的背包
+        if (event.getInventory().getType() == InventoryType.PLAYER) {
+            event.setCancelled(true);
+            openDeathMenu(player);
         }
     }
 
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!playerStats.isDying(player)) return;
+
+        String title = event.getView().getTitle();
+        if (!title.equals("§c倒地选择")) return;
+
+        event.setCancelled(true);
+        int slot = event.getSlot();
+        if (slot == 0) { // 放弃
+            player.closeInventory();
+            triggerFailExtract(player);
+        } else if (slot == 8) { // 观战
+            player.closeInventory();
+            player.setGameMode(GameMode.SPECTATOR);
+            triggerFailExtract(player);
+        }
+    }
+
+    private void openDeathMenu(Player player) {
+        Inventory menu = Bukkit.createInventory(null, 9, "§c倒地选择");
+        // 放弃按钮
+        ItemStack giveUp = new ItemStack(Material.RED_STAINED_GLASS_PANE);
+        ItemMeta giveUpMeta = giveUp.getItemMeta();
+        giveUpMeta.setDisplayName("§c放弃");
+        giveUpMeta.setLore(Collections.singletonList("§7点击后立即撤离失败"));
+        giveUp.setItemMeta(giveUpMeta);
+        menu.setItem(0, giveUp);
+        // 观战按钮
+        ItemStack spectate = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
+        ItemMeta spectateMeta = spectate.getItemMeta();
+        spectateMeta.setDisplayName("§f进入观战");
+        spectateMeta.setLore(Collections.singletonList("§7点击后进入观战模式"));
+        spectate.setItemMeta(spectateMeta);
+        menu.setItem(8, spectate);
+        player.openInventory(menu);
+    }
+
+    // ==================== 游戏结束处理 ====================
+    @EventHandler
+    public void onGameEnd(GameEndEvent event) {
+        World world = event.getWorld();
+        Location spawn = world.getSpawnLocation();
+        for (Player p : world.getPlayers()) {
+            // 如果玩家是旁观者模式且未在游戏中，则传送至出生点并切换为生存模式
+            if (p.getGameMode() == GameMode.SPECTATOR && !playerStats.isInGame(p)) {
+                p.teleport(spawn);
+                p.setGameMode(GameMode.SURVIVAL);
+                p.sendMessage("§a游戏结束，你已被传送回出生点。");
+            }
+        }
+    }
 }

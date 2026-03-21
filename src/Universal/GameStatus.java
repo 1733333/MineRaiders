@@ -13,6 +13,14 @@ public enum GameStatus {
     INSTANCE;
     HashMap<String, HashSet<Block>> worldContainers = new HashMap<>();
     HashMap<String, List<Entity>> worldExtractions = new HashMap<>();
+    HashMap<String,String>worldNameMap = new HashMap<>();
+    String[]worlds = new String[]{
+            "test",
+    };
+
+    public void registerWorldName(){
+        worldNameMap.put("test","星辰山(测试版)");
+    }
 
     public boolean isEmpty(Block b) {
         String world = b.getWorld().getName();
@@ -43,5 +51,15 @@ public enum GameStatus {
     }
     public void clearExtractions(World w){
         worldExtractions.remove(w.getName());
+    }
+    public String getWorlds(int id){
+        if(id >= worlds.length || id < 0){
+            return "";
+        }else {
+            return worlds[id];
+        }
+    }
+    public String getWorldName(String s){
+        return worldNameMap.getOrDefault(s,"锈带外围的未知区域");
     }
 }

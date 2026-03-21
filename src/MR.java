@@ -38,6 +38,9 @@ public class MR extends JavaPlugin {
         PlayerListener playerListener = new PlayerListener(this);
         ArmorListener armorListener = new ArmorListener(this);
         WeaponListener weaponListener = new WeaponListener(this);
+        GameListener gameListener = new GameListener(this);
+        GameStartCommand gameStartCommand = new GameStartCommand();
+        GameEndCommand gameEndCommand = new GameEndCommand();
         LocationManagerUI.init(this);
 
         manager.registerEvents(containerListener,this);
@@ -48,6 +51,7 @@ public class MR extends JavaPlugin {
         manager.registerEvents(armorListener,this);
         manager.registerEvents(armorEquipListener,this);
         manager.registerEvents(weaponListener,this);
+        manager.registerEvents(gameListener,this);
 
         this.getCommand("mineraidersdebug").setExecutor(debugCommand);
         this.getCommand("getloots").setExecutor(lootCommand);
@@ -58,6 +62,8 @@ public class MR extends JavaPlugin {
         this.getCommand("getfreerecipes").setExecutor(freeRecipeCommand);
         this.getCommand("getdrops").setExecutor(dropCommand);
         this.getCommand("getall").setExecutor(getAllItemsCommand);
+        this.getCommand("gamestart").setExecutor(gameStartCommand);
+        this.getCommand("gameend").setExecutor(gameEndCommand);
 
         k.setPlugin(this);
         recipes.setPlugin(this);

@@ -1,5 +1,6 @@
 package Commands;
 
+import Listeners.InventoryListener;
 import OtherStuff.KiryuKazuma;
 import Universal.*;
 import org.bukkit.*;
@@ -17,6 +18,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.Random;
+
+import static Universal.PlayerStats.playerMenuStatus;
 
 public class DebugCommand implements CommandExecutor {
     WeaponPool wp = WeaponPool.INSTANCE;
@@ -97,6 +100,7 @@ public class DebugCommand implements CommandExecutor {
         inv.addItem(mrd13());
         inv.addItem(mrd14());
         p.openInventory(inv);
+        playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.DEV_MENU);
     }
     public ItemStack mrd0(){
         ItemStack item = new ItemStack(Material.STICK);

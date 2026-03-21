@@ -1,5 +1,7 @@
 package Listeners;
 
+import Events.GameEndEvent;
+import Events.GameStartEvent;
 import Universal.*;
 import org.bukkit.*;
 import org.bukkit.entity.Item;
@@ -27,6 +29,7 @@ public class InventoryListener implements Listener {
     DropPool dp = DropPool.INSTANCE;
     Kit k = Kit.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
+    GameStatus gameStatus = GameStatus.INSTANCE;
     HashMap<String, Integer> playerPage = new HashMap<>();
     HashMap<String, PlayerStats.MenuStatus> playerPreviousStatus = new HashMap<>();
     JavaPlugin plugin;
@@ -48,9 +51,48 @@ public class InventoryListener implements Listener {
         int slot = clickEvent.getRawSlot();
         ItemStack item = clickEvent.getCurrentItem();
         if (item == null) return;
-        if (status != PlayerStats.MenuStatus.NOT_MENU &&
-                status != PlayerStats.MenuStatus.COOKBOOK_MENU &&
-        status != PlayerStats.MenuStatus.DEV_MENU) {
+        if(status == PlayerStats.MenuStatus.MAP_MENU){
+            clickEvent.setCancelled(true);
+            World world = Bukkit.getWorld(gameStatus.getWorlds(slot));
+            if(world != null) {
+                Bukkit.getPluginManager().callEvent(new GameStartEvent(world));
+                Bukkit.broadcastMessage(ChatColor.AQUA + "正在返回上层......");
+            }else {
+                Bukkit.broadcastMessage(ChatColor.RED + "世界不存在！请联系管理员寻求帮助");
+            }
+            return;
+        }
+        if (status == PlayerStats.MenuStatus.COOKBOOK_MENU) {
+            clickEvent.setCancelled(true);
+            p.closeInventory();
+            BukkitRunnable later = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    String command = switch (slot) {
+                        case 0 -> "getarmors";
+                        case 1 -> "getweapons";
+                        case 2 -> "getgadgets";
+                        case 3 -> "getdrops";
+                        case 4 -> "getloots";
+                        case 5 -> "getrecipes";
+                        case 6 -> "getfreerecipes";
+                        default -> "";
+                    };
+                    if (!command.isEmpty()) {
+                        p.performCommand(command);
+                    }
+                }
+            };
+            later.runTaskLater(plugin, 1L);
+            return;
+        }
+        if(status == PlayerStats.MenuStatus.DEV_MENU){
+            clickEvent.setCancelled(true);
+            p.closeInventory();
+            p.performCommand("mrd " + slot);
+            return;
+        }
+        if (status != PlayerStats.MenuStatus.NOT_MENU) {
             if (slot < 54) {
                 ItemStack[] stack = switch (status) {
                     case LOOT_MENU -> lp.getAllLoots();
@@ -128,34 +170,6 @@ public class InventoryListener implements Listener {
                     }
                 }
             }
-        }
-        if (status == PlayerStats.MenuStatus.COOKBOOK_MENU) {
-            clickEvent.setCancelled(true);
-            p.closeInventory();
-            BukkitRunnable later = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    String command = switch (slot) {
-                        case 0 -> "getarmors";
-                        case 1 -> "getweapons";
-                        case 2 -> "getgadgets";
-                        case 3 -> "getdrops";
-                        case 4 -> "getloots";
-                        case 5 -> "getrecipes";
-                        case 6 -> "getfreerecipes";
-                        default -> "";
-                    };
-                    if (!command.isEmpty()) {
-                        p.performCommand(command);
-                    }
-                }
-            };
-            later.runTaskLater(plugin, 1L);
-        }
-        if(status == PlayerStats.MenuStatus.DEV_MENU){
-            clickEvent.setCancelled(true);
-            p.closeInventory();
-            p.performCommand("mrd " + slot);
         }
     }
 

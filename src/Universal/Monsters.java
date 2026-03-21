@@ -60,6 +60,24 @@ public enum Monsters {
             w.spawnEntity(loc,mobs[r.nextInt(mobs.length)]);
         }
     }
+    public void randomArc(Location loc,int amount){
+        for(int i = 0;i < amount;i++){
+           summonArc(loc,r.nextInt(1,5));
+        }
+    }
+
+    public void summonArc(Location loc,int id) {
+        switch (id) {
+            case 0 -> shredder(loc);
+            case 1 -> flea(loc);
+            case 2 -> pop(loc);
+            case 3 -> fireBall(loc);
+            case 4 -> snitch(loc);
+            case 5 -> leaper(loc);
+            case 6 -> bastion(loc);
+            case 7 -> duke(loc);
+        }
+    }
 
     public void shredder(Location loc) {
         World w = loc.getWorld();
@@ -132,7 +150,6 @@ public enum Monsters {
         shoot.runTaskTimer(plugin, 0L, 80L);
         particle.runTaskTimer(plugin, 0L, 10L);
     }
-
     public void shredderShoot(LivingEntity shooter) {
         World w = shooter.getWorld();
         shooter.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 200, 10));
@@ -310,7 +327,6 @@ public enum Monsters {
         getTarget.runTaskTimer(plugin, 0L, 50L);
         shoot.runTaskTimer(plugin, 0L, 80L);
     }
-
     public void fireBallShoot(LivingEntity shooter) {
         final World w = shooter.getWorld();
         shooter.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 200, 10));

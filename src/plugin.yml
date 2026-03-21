@@ -40,3 +40,12 @@ commands:
     aliases:
       - mrl
       - mrloc
+  lobby:
+    description: 打开大厅
+    usage: /lobby
+  gamestart:
+    description: 开始游戏
+    usage: /gamestart
+  gameend:
+    description: 强制停止游戏
+    usage: /gameend
