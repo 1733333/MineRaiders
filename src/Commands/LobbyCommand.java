@@ -167,14 +167,13 @@ public class LobbyCommand implements CommandExecutor, Listener {
                 player.sendMessage("§c游戏尚未开始，无法观战！");
                 return;
             }
-            // 设置观战状态
-            PlayerStats.INSTANCE.setSpectating(player);
+            // 获取世界ID并存储观战状态
+            int worldId = gameStatus.getWorldId(worldName);
+            PlayerStats.INSTANCE.setSpectating(player, worldId);
             player.setGameMode(org.bukkit.GameMode.SPECTATOR);
-            // 传送到世界出生点（或随机玩家位置，这里传送到出生点）
             Location spawn = world.getSpawnLocation();
             player.teleport(spawn);
             player.sendMessage("§a你已进入观战模式，正在观看 " + worldName + " 的游戏。");
-            // 关闭菜单
             player.closeInventory();
         } else {
             // 准备/加入模式

@@ -62,4 +62,12 @@ public enum GameStatus {
     public String getWorldName(String s){
         return worldNameMap.getOrDefault(s,"锈带外围的未知区域");
     }
+    public int getWorldId(String worldName) {
+        for (int i = 0; i < worlds.length; i++) {
+            if (worlds[i].equals(worldName)) {
+                return i;
+            }
+        }
+        return -1; // 未找到
+    }
 }

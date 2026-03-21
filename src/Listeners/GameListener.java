@@ -180,6 +180,21 @@ public class GameListener implements Listener {
             for (IronGolem golem : evacuationGolems) {
                 golem.remove();
             }
+            // 强制所有在游戏中的玩家撤离失败（使用副本避免并发修改）
+            for (Player p : new ArrayList<>(players)) {
+                handleExtract(p, false, this);
+            }
+            // 处理观战本世界的玩家
+            int worldId = GameStatus.INSTANCE.getWorldId(world.getName());
+            for (Player p : world.getPlayers()) {
+                if (PlayerStats.INSTANCE.isSpectating(p) && PlayerStats.INSTANCE.getSpectatingStatus(p) == worldId) {
+                    Location spawn = world.getSpawnLocation();
+                    p.teleport(spawn);
+                    p.setGameMode(org.bukkit.GameMode.SURVIVAL);
+                    PlayerStats.INSTANCE.stopSpectating(p);
+                    p.sendMessage("§c游戏结束，返回上层。");
+                }
+            }
             Bukkit.getPluginManager().callEvent(new GameEndEvent(world));
             for (Entity e : world.getEntities()) {
                 if (!(e instanceof Player)) {
@@ -579,7 +594,7 @@ public class GameListener implements Listener {
     }
 
     // ========================= 辅助方法 =========================
-    private void handleExtract(Player player, boolean success, GameSession session) {
+    private static void handleExtract(Player player, boolean success, GameSession session) {
         World world = session.world;
         Location spawn = world.getSpawnLocation();
 

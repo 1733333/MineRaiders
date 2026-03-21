@@ -30,7 +30,7 @@ public enum PlayerStats {
     HashSet<Player> isDying = new HashSet<>();
     HashSet<Player> isInGame = new HashSet<>();
     HashSet<Player> isShieldOn = new HashSet<>();
-    HashSet<Player> isSpectating = new HashSet<>(); // 新增：观战状态集合
+    HashMap<Player,Integer> PlayerSpectatingStatus = new HashMap<>();
     HashMap<Player, Integer> playerReadyStatus = new HashMap<>();
 
     public int getMaxShield() {
@@ -93,12 +93,15 @@ public enum PlayerStats {
     }
     // 观战状态相关方法
     public boolean isSpectating(Player p) {
-        return isSpectating.contains(p);
+        return PlayerSpectatingStatus.containsKey(p);
     }
-    public void setSpectating(Player p) {
-        isSpectating.add(p);
+    public int getSpectatingStatus(Player p) {
+        return PlayerSpectatingStatus.getOrDefault(p, -1);
+    }
+    public void setSpectating(Player p, int worldId) {
+        PlayerSpectatingStatus.put(p, worldId);
     }
     public void stopSpectating(Player p) {
-        isSpectating.remove(p);
+        PlayerSpectatingStatus.remove(p);
     }
 }
