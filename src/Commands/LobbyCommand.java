@@ -25,7 +25,7 @@ import java.util.*;
 
 public class LobbyCommand implements CommandExecutor, Listener {
     private final JavaPlugin plugin;
-    private static final String MENU_TITLE = "§6选择世界";
+    private static final String MENU_TITLE = "§6大厅菜单，点击地图即可加入对应大厅";
     // 记录玩家当前的观战模式状态
     private final Map<UUID, Boolean> spectatorMode = new HashMap<>();
     GameStatus gameStatus = GameStatus.INSTANCE;
