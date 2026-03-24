@@ -1,4 +1,4 @@
-package Listeners;
+package Commands;
 
 import org.bukkit.*;
 import org.bukkit.command.Command;
@@ -107,12 +107,8 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         // 注册事件监听
         Bukkit.getPluginManager().registerEvents(new LocationManagerUI(), plugin);
 
-        // 注册命令执行器
-        if (plugin.getCommand("mrlocs") != null) {
-            plugin.getCommand("mrlocs").setExecutor(new LocationManagerUI());
-        } else {
-            plugin.getLogger().warning("命令 'mrlocs' 未在 plugin.yml 中注册！");
-        }
+        // 注意：不再注册 /mrlocs 命令，完全通过 /mr locs 子命令调用
+        // 命令执行器由 MineRaidersCommand 负责调用，因此不需要在此处注册
 
         loadFromConfig();
     }
@@ -437,6 +433,10 @@ public class LocationManagerUI implements Listener, CommandExecutor {
     // ==================== 持久化（使用独立 location.yml）====================
     public static void loadFromConfig() {
         LOCATIONS.clear();
+        if (!locationFile.exists()) {
+            // 文件不存在，不加载任何数据
+            return;
+        }
         if (locationConfig == null) {
             plugin.getLogger().warning("locationConfig 未初始化，无法加载配置！");
             return;
@@ -514,6 +514,10 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         }
 
         try {
+            // 确保父目录存在
+            if (!locationFile.getParentFile().exists()) {
+                locationFile.getParentFile().mkdirs();
+            }
             locationConfig.save(locationFile);
         } catch (IOException e) {
             plugin.getLogger().severe("无法保存 location.yml: " + e.getMessage());
@@ -566,16 +570,16 @@ public class LocationManagerUI implements Listener, CommandExecutor {
     }
 
     private void sendHelp(Player player) {
-        player.sendMessage("§6===== MineRaiders位置管理帮助 =====§r");
-        player.sendMessage("§e/mrlocs §7- 显示本帮助");
-        player.sendMessage("§e/mrlocs gui §7- 打开图形界面管理位置");
-        player.sendMessage("§e/mrlocs addgui §7- 打开添加位置菜单");
-        player.sendMessage("§e/mrlocs list [世界] §7- 列出所有地点（可指定世界）");
-        player.sendMessage("§e/mrlocs add <名称> <类型> [id] §7- 添加当前位置");
+        player.sendMessage("§6===== MineRaiders 地点管理帮助 =====");
+        player.sendMessage("§e/mr locs §7- 显示本帮助");
+        player.sendMessage("§e/mr locs gui §7- 打开图形界面管理地点");
+        player.sendMessage("§e/mr locs addgui §7- 打开添加地点菜单");
+        player.sendMessage("§e/mr locs list [世界] §7- 列出所有地点（可指定世界）");
+        player.sendMessage("§e/mr locs add <名称> <类型> [id] §7- 添加当前位置");
         player.sendMessage("   类型: player / monster / evacuate / special_evac / special_monster");
         player.sendMessage("   special_monster 需要额外指定 id");
-        player.sendMessage("§e/mrlocs remove <名称> [世界] §7- 删除地点（默认当前世界）");
-        player.sendMessage("§e/mrlocs tp <名称> [世界] §7- 传送到地点");
+        player.sendMessage("§e/mr locs remove <名称> [世界] §7- 删除地点（默认当前世界）");
+        player.sendMessage("§e/mr locs tp <名称> [世界] §7- 传送到地点");
     }
 
     private void handleList(Player player, String[] args) {
@@ -596,7 +600,7 @@ public class LocationManagerUI implements Listener, CommandExecutor {
 
     private void handleAdd(Player player, String[] args) {
         if (args.length < 3) {
-            player.sendMessage("§c用法: /mrlocs add <名称> <类型> [id]");
+            player.sendMessage("§c用法: /mr locs add <名称> <类型> [id]");
             return;
         }
         String name = args[1];
@@ -636,7 +640,7 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         Integer extraId = null;
         if (type == LocationType.SPECIAL_MONSTER_SPAWN) {
             if (args.length < 4) {
-                player.sendMessage("§c特殊怪物点需要指定ID！用法: /mrlocs add <名称> special_monster <ID>");
+                player.sendMessage("§c特殊怪物点需要指定ID！用法: /mr locs add <名称> special_monster <ID>");
                 return;
             }
             try {
@@ -656,7 +660,7 @@ public class LocationManagerUI implements Listener, CommandExecutor {
 
     private void handleRemove(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage("§c用法: /mrlocs remove <名称> [世界]");
+            player.sendMessage("§c用法: /mr locs remove <名称> [世界]");
             return;
         }
         String name = args[1];
@@ -670,7 +674,7 @@ public class LocationManagerUI implements Listener, CommandExecutor {
 
     private void handleTeleport(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage("§c用法: /mrlocs tp <名称> [世界]");
+            player.sendMessage("§c用法: /mr locs tp <名称> [世界]");
             return;
         }
         String name = args[1];

@@ -51,6 +51,29 @@ public class InventoryListener implements Listener {
         int slot = clickEvent.getRawSlot();
         ItemStack item = clickEvent.getCurrentItem();
         if (item == null) return;
+        if (status == PlayerStats.MenuStatus.MAIN_MENU) {
+            clickEvent.setCancelled(true);
+            String displayName = ChatColor.stripColor(item.getItemMeta().getDisplayName());
+            switch (displayName) {
+                case "装备图鉴" -> p.performCommand("mr armor");
+                case "武器图鉴" -> p.performCommand("mr weapon");
+                case "道具图鉴" -> p.performCommand("mr gadget");
+                case "掉落物图鉴" -> p.performCommand("mr drop");
+                case "战利品图鉴" -> p.performCommand("mr loot");
+                case "配方图鉴" -> p.performCommand("mr recipe");
+                case "免费配方图鉴" -> p.performCommand("mr freerecipe");
+                case "物品总览" -> p.performCommand("mr getallitems");
+                case "开始游戏" -> p.performCommand("mr gamestart");
+                case "大厅" -> p.performCommand("mr lobby");
+                case "强制结束游戏" -> p.performCommand("mr gameend");
+                case "调试菜单" -> p.performCommand("mr debug");
+                case "伤害测试假人" -> p.performCommand("mr summondamagetester");
+                case "地点管理" -> p.performCommand("mr locs gui");
+                case "帮助" ->
+                        p.sendMessage("§e使用 §f/mr <子命令> §e查看详细用法，子命令包括: armor, weapon, gadget, drop, loot, recipe, freerecipe, getallitems, gamestart, lobby, gameend, debug, summondamagetester");
+            }
+            return;
+        }
         if(status == PlayerStats.MenuStatus.MAP_MENU){
             clickEvent.setCancelled(true);
             World world = Bukkit.getWorld(gameStatus.getWorlds(slot));

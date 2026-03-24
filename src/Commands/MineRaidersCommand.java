@@ -1,5 +1,6 @@
 package Commands;
 
+import Listeners.InventoryListener;
 import OtherStuff.KiryuKazuma;
 import Universal.*;
 import org.bukkit.*;
@@ -34,6 +35,7 @@ public class MineRaidersCommand implements CommandExecutor {
         subCommands.put("recipe", new RecipeCommand());
         subCommands.put("weapon", new WeaponCommand());
         subCommands.put("summondamagetester", new SummonDamageTester());
+        subCommands.put("locs", new LocationManagerUI()); // 新增地点管理子命令
     }
 
     @Override
@@ -88,6 +90,7 @@ public class MineRaidersCommand implements CommandExecutor {
         inv.setItem(12, createMenuItem(Material.COMMAND_BLOCK, "§d调试菜单", "打开调试功能菜单 (OP)"));
         inv.setItem(13, createMenuItem(Material.ARMOR_STAND, "§e伤害测试假人", "在脚下召唤一个伤害测试假人"));
         inv.setItem(14, createMenuItem(Material.BOOK, "§7帮助", "查看命令帮助"));
+        inv.setItem(15, createMenuItem(Material.COMPASS, "§b地点管理", "管理游戏地点（OP）"));
 
         p.openInventory(inv);
         PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.MAIN_MENU);
@@ -154,8 +157,8 @@ public class MineRaidersCommand implements CommandExecutor {
             case 12 -> m.duke(p.getLocation());
             case 13 -> mimic(p.getLocation(), hand);
             case 14 -> {
-                w.strikeLightningEffect(p.getLocation());
                 KiryuKazuma kiryuKazuma = new KiryuKazuma(plugin);
+                w.strikeLightningEffect(p.getLocation());
                 kiryuKazuma.spawnBoss(p.getLocation());
             }
             default -> p.sendMessage(ChatColor.RED + "无效的数字参数！");
