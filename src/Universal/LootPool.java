@@ -3,179 +3,131 @@ package Universal;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public enum LootPool {
     INSTANCE;
     Random r = new Random();
     ItemStack[] commonItem = {
-            i0(),
-            i0(),
-            i1(),
-            i1(),
-            i2(),
-            i2(),
-            i3(),
-            i3(),
-            i4(),
-            i4(),
-            i5(),
-            i5(),
-            i6(),
-            i6(),
-            i7(),
-            i7(),
-            i8(),
-            i8(),
-            i9(),
-            i9(),
-            i10(),
-            i10(),
-            i11(),
-            i11(),
-            i12(),
-            i12(),
-            i13(),
-            i13(),
-            i14(),
-            i14(),
-            i15(),
-            i15(),
-            i16(),
-            i17(),
-            i18(),
-            i19(),
-            i20(),
+            i0(),i0(),i0(),i0(),i0(),
+            i1(),i1(),i1(),i1(),i1(),
+            i2(),i2(),i2(),i2(),i2(),
+            i3(),i3(),i3(),i3(),i3(),
+            i4(),i4(),i4(),i4(),i4(),
+            i5(),i5(),i5(),i5(),i5(),
+            i6(),i6(),i6(),i6(),i6(),
+            i7(),i7(),i7(),i7(),i7(),
+            i8(),i8(),i8(),i8(),i8(),
+            i9(),i9(),i9(),i9(),i9(),
+            i10(),i10(),i10(),i10(),i10(),
+            i11(),i11(),i11(),i11(),i11(),
+            i12(),i12(),i12(),i12(),i12(),
+            i13(),i13(),i13(),i13(),i13(),
+            i14(),i14(),i14(),i14(),i14(),
+            i15(),i15(),i15(),i15(),i15(),
+            i16(),i16(),
+            i17(),i17(),i17(),i17(),
+            i18(),i18(),i18(),i18(),
+            i19(),i19(),i19(),
+            i20(),i20(),
             i21(),
-            i22(),
-            i22(),
-            i23(),
-            i23(),
-            i24(),
-            i24(),
-            i25(),
-            i25(),
-            i26(),
-            i26(),
+            i22(),i22(),i22(),i22(),
+            i23(),i23(),i23(),i23(),
+            i24(),i24(),
+            i25(),i25(),i25(),i25(),
+            i26(),i26(),i26(),
     };
     ItemStack[] uncommonItem = {
-            i27(),
-            i27(),
-            i28(),
-            i28(),
-            i29(),
-            i29(),
-            i30(),
-            i30(),
-            i31(),
-            i31(),
-            i32(),
-            i32(),
-            i33(),
-            i33(),
-            i34(),
-            i34(),
-            i35(),
-            i35(),
-            i36(),
-            i36(),
-            i37(),
-            i37(),
+            i27(), i27(), i27(), i27(), i27(),
+            i28(), i28(), i28(), i28(), i28(),
+            i29(), i29(), i29(), i29(), i29(),
+            i30(), i30(), i30(), i30(), i30(),
+            i31(), i31(), i31(), i31(), i31(),
+            i32(), i32(), i32(), i32(), i32(),
+            i33(), i33(), i33(), i33(), i33(),
+            i34(), i34(), i34(), i34(), i34(),
+            i35(), i35(), i35(), i35(), i35(),
+            i36(), i36(), i36(), i36(), i36(),
+            i37(), i37(), i37(), i37(), i37(),
             i38(),
-            i39(),
-            i40(),
-            i40(),
-            i41(),
-            i42(),
-            i43(),
-            i44(),
-            i45(),
-            i46(),
-            i47(),
+            i39(), i39(),
+            i40(), i40(), i40(), i40(),
+            i41(), i41(),
+            i42(), i42(), i42(),
+            i43(), i43(), i43(), i43(),
+            i44(), i44(), i44(),
+            i45(), i45(), i45(), i45(),
+            i46(), i46(), i46(),
+            i47(), i47(), i47(), i47(), i47(),
             i48(),
-            i49(),
-            i50(),
-            i51(),
+            i49(), i49(), i49(),
+            i50(), i50(), i50(), i50(),
+            i51(), i51(),
             i52(),
-            i53(),
-            i104(),
-            i105(),
-            i106(),
-            i107(),
-            i110(),
-            i110(),
-            i111(),
-            i111(),
+            i53(), i53(), i53(),
+            i104(), i104(), i104(), i104(),
+            i105(), i105(), i105(), i105(),
+            i106(), i106(), i106(),
+            i107(), i107(),
+            i110(), i110(), i110(), i110(),
+            i111(), i111(), i111(), i111()
     };
     ItemStack[] rareItem = {
-            i54(),
-            i54(),
-            i54(),
-            i55(),
-            i55(),
-            i56(),
-            i56(),
-            i57(),
-            i57(),
-            i58(),
-            i58(),
-            i59(),
+            i54(), i54(), i54(), i54(), i54(),
+            i55(), i55(), i55(),
+            i56(), i56(), i56(),
+            i57(), i57(),
+            i58(), i58(), i58(), i58(),
+            i75(),
+            i108(), i108(),
+            i59(), i59(), i59(), i59(),
             i60(),
-            i61(),
+            i61(), i61(), i61(),
             i62(),
-            i63(),
+            i63(), i63(), i63(), i63(),
             i64(),
             i65(),
             i66(),
-            i67(),
-            i67(),
-            i67(),
-            i75(),
-            i108(),
+            i67(), i67(), i67(), i67(), i67(), i67(), i67(), i67()
     };
     ItemStack[] epicItem = {
-            i68(),
-            i68(),
+            i68(), i68(),
             i69(),
-            i69(),
-            i70(),
-            i70(),
+            i70(), i70(), i70(), i70(), i70(), i70(), i70(), i70(), i70(), i70(),
             i71(),
             i72(),
-            i73(),
-            i74(),
-            i76(),
-            i77(),
-            i78(),
-            i79(),
-            i80(),
-            i81(),
+            i73(), i73(), i73(), i73(), i73(), i73(), i73(), i73(),
+            i74(), i74(), i74(), i74(),
+            i76(), i76(), i76(), i76(), i76(),
+            i77(), i77(), i77(), i77(), i77(),
+            i78(), i78(), i78(), i78(),
+            i79(), i79(), i79(), i79(), i79(), i79(),
+            i80(), i80(), i80(), i80(), i80(), i80(),
+            i81(), i81(), i81(), i81(), i81(), i81(),
             i82(),
-            i109(),
+            i109()
     };
     ItemStack[] legendaryItem = {
-            i83(),
-            i84(),
-            i85(),
+            i83(), i83(), i83(),
+            i84(), i84(),
+            i85(), i85(), i85(), i85(), i85(), i85(), i85(), i85(), i85(), i85(),
             i86(),
-            i87(),
-            i88(),
-            i88(),
-            i89(),
-            i89(),
-            i90(),
-            i90(),
-            i91(),
-            i92(),
-            i93(),
-            i93(),
+            i87(), i87(), i87(), i87(), i87(),
+            i88(), i88(), i88(), i88(), i88(), i88(), i88(), i88(), i88(), i88(),
+            i89(), i89(), i89(), i89(), i89(), i89(), i89(), i89(), i89(), i89(),
+            i90(), i90(), i90(), i90(), i90(), i90(), i90(), i90(), i90(), i90(),
+            i91(), i91(), i91(),
+            i92(), i92(), i92(),
+            i93(), i93(), i93(), i93(), i93(), i93(), i93(), i93(),
             i94(),
-            i95(),
+            i95(), i95(), i95(), i95(), i95(), i95(), i95()
     };
     ItemStack[] mysticItem = {
             i96(),
@@ -189,15 +141,9 @@ public enum LootPool {
     };
     ItemStack[] keys = {
             i62(),
-            k0(),
-            k0(),
-            k0(),
-            k0(),
-            k1(),
-            k1(),
-            k1(),
-            k2(),
-            k2(),
+            k0(), k0(), k0(), k0(),
+            k1(), k1(), k1(),
+            k2(), k2(),
             k3(),
     };
     ItemStack[] boxes = {
@@ -217,7 +163,7 @@ public enum LootPool {
             i95(),
     };
     double[] prices = {
-            0.5,1,3,10,35,150
+            5,15,50,125,350,1500
     };
 
     public double[] getPrices() {
@@ -253,17 +199,109 @@ public enum LootPool {
         }
         return -1;
     }
-    public ItemStack[] getAllLoots(){
-        List<ItemStack> content = new ArrayList<>();
-        content.addAll(List.of(commonItem));
-        content.addAll(List.of(uncommonItem));
-        content.addAll(List.of(rareItem));
-        content.addAll(List.of(epicItem));
-        content.addAll(List.of(legendaryItem));
-        content.addAll(List.of(mysticItem));
-        content.add(i112());
-        content.add(i113());
-        return content.toArray(new ItemStack[0]).clone();
+    /**
+     * 获取合并后的战利品列表，相同物品只保留第一个出现的顺序，权数累加并写入 lore
+     * @return 按稀有度顺序排列的物品数组
+     */
+    public ItemStack[] getAllLoots() {
+        // 使用 LinkedHashMap 保持插入顺序（即稀有度顺序）
+        Map<ItemKey, Integer> totalMap = new LinkedHashMap<>();
+
+        // 按稀有度顺序添加所有物品，并统计总数
+        processArray(commonItem, totalMap);
+        processArray(uncommonItem, totalMap);
+        processArray(rareItem, totalMap);
+        processArray(epicItem, totalMap);
+        processArray(legendaryItem, totalMap);
+        processArray(mysticItem, totalMap);
+        processItem(i112(), totalMap);
+        processItem(i113(), totalMap);
+
+        // 构建结果列表，保持原有顺序
+        List<ItemStack> result = new ArrayList<>(totalMap.size());
+        for (Map.Entry<ItemKey, Integer> entry : totalMap.entrySet()) {
+            ItemStack template = entry.getKey().getSample(); // 从键中获得一个克隆模板
+            int totalWeight = entry.getValue();
+
+            // 创建最终物品（数量为1，权数写入 lore）
+            ItemStack finalItem = template.clone();
+            finalItem.setAmount(1);
+
+            ItemMeta meta = finalItem.getItemMeta();
+            List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+            // 更新或追加权数行
+            boolean found = false;
+            for (int i = 0; i < lore.size(); i++) {
+                if (lore.get(i).startsWith("权数: ")) {
+                    lore.set(i, "权数: " + totalWeight);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                lore.add(ChatColor.BLACK + ".");
+                lore.add(ChatColor.YELLOW + "权数: " + totalWeight);
+            }
+            meta.setLore(lore);
+            finalItem.setItemMeta(meta);
+
+            result.add(finalItem);
+        }
+
+        return result.toArray(new ItemStack[0]);
+    }
+
+    // 处理数组中的所有物品（非空、非空气）
+    private void processArray(ItemStack[] items, Map<ItemKey, Integer> map) {
+        if (items == null) return;
+        for (ItemStack item : items) {
+            if (item != null && item.getType() != Material.AIR) {
+                processItem(item, map);
+            }
+        }
+    }
+
+    // 处理单个物品
+    private void processItem(ItemStack item, Map<ItemKey, Integer> map) {
+        if (item == null || item.getType() == Material.AIR) return;
+        ItemKey key = new ItemKey(item);
+        map.merge(key, item.getAmount(), Integer::sum);
+    }
+
+    /**
+     * 高效的物品键，用于 HashMap 合并
+     * 存储一个克隆的示例物品用于后续重建
+     */
+    private static final class ItemKey {
+        private final Material material;
+        private final String metaData;   // 完整的元数据序列化字符串
+        private final ItemStack sample;  // 克隆的示例物品（用于构建最终物品）
+
+        ItemKey(ItemStack item) {
+            this.material = item.getType();
+            // 克隆一份用于重建，确保原物品不受影响
+            this.sample = item.clone();
+            // 生成唯一标识：若无 meta 则为空字符串
+            this.metaData = item.hasItemMeta() ? item.getItemMeta().getAsString() : "";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ItemKey)) return false;
+            ItemKey other = (ItemKey) o;
+            return material == other.material && metaData.equals(other.metaData);
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * material.hashCode() + metaData.hashCode();
+        }
+
+        public ItemStack getSample() {
+            return sample.clone();
+        }
+
     }
 
     public ItemStack[] getContent(int counts, float[] weights) {

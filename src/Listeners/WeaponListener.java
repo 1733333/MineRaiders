@@ -68,7 +68,12 @@ public class WeaponListener implements Listener {
                             w.spawnParticle(Particle.GUST, pr.getLocation(), 1);
                             double radius = 3;
                             for (Entity e : pr.getNearbyEntities(radius, radius, radius)) {
-                                k.knockBack(e, pr.getLocation(), -1 * (shootBowEvent.getForce() / 3));
+                                double force = 1;
+                                if(e instanceof LivingEntity l){
+                                    double KBR = l.getAttribute(Attribute.KNOCKBACK_RESISTANCE).getValue();
+                                    force = Math.max(force - KBR,0);
+                                }
+                                k.knockBack(e, pr.getLocation(), -1 * (shootBowEvent.getForce() / 3) * force);
                             }
                             this.cancel();
                         }
@@ -133,32 +138,30 @@ public class WeaponListener implements Listener {
                 }
             }
             case "§f深渊十字弩" -> {
-                if (shootBowEvent.getForce() >= 1) {
-                    pr.remove();
-                    w.playSound(p.getLocation(), Sound.ENTITY_WARDEN_SONIC_BOOM, 2, 1);
-                    if(p instanceof Player) {
-                        ((Player) p).setCooldown(bow.getType(), 30);
-                    }
-                    Location pLoc = shootLoc.clone();
-                    HashSet<Entity> damaged = new HashSet<>();
-                    for (int i = 0; i < 48; i++) {
-                        Block b = w.getBlockAt(pLoc);
-                        if (b.getType() != Material.AIR) break;
-                        w.spawnParticle(Particle.SONIC_BOOM, pLoc, 1);
-                        for (Entity entity : w.getNearbyEntities(pLoc, 1, 1, 1)) {
-                            if (entity instanceof LivingEntity l) {
-                                if (l instanceof Player p1) {
-                                    if (p == p1) continue;
-                                }
-                                if (damaged.contains(l)) continue;
-                                double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
-                                l.damage(3 + max * 0.05, DamageSource.builder(DamageType.SONIC_BOOM)
-                                        .withDirectEntity(p).build());
-                                damaged.add(l);
+                pr.remove();
+                w.playSound(p.getLocation(), Sound.ENTITY_WARDEN_SONIC_BOOM, 2, 1);
+                if (p instanceof Player) {
+                    ((Player) p).setCooldown(bow.getType(), 30);
+                }
+                Location pLoc = shootLoc.clone();
+                HashSet<Entity> damaged = new HashSet<>();
+                for (int i = 0; i < 48; i++) {
+                    Block b = w.getBlockAt(pLoc);
+                    if (b.getType() != Material.AIR) break;
+                    w.spawnParticle(Particle.SONIC_BOOM, pLoc, 1);
+                    for (Entity entity : w.getNearbyEntities(pLoc, 1, 1, 1)) {
+                        if (entity instanceof LivingEntity l) {
+                            if (l instanceof Player p1) {
+                                if (p == p1) continue;
                             }
+                            if (damaged.contains(l)) continue;
+                            double max = l.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+                            l.damage(3 + max * 0.05, DamageSource.builder(DamageType.SONIC_BOOM)
+                                    .withDirectEntity(p).build());
+                            damaged.add(l);
                         }
-                        pLoc.add(shootVec.multiply(1));
                     }
+                    pLoc.add(shootVec.multiply(1));
                 }
             }
             case "§f费洛" -> {

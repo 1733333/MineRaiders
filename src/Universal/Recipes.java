@@ -12,7 +12,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jspecify.annotations.NonNull;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public enum Recipes {
     INSTANCE;
@@ -34,6 +36,7 @@ public enum Recipes {
             wp.flintSword(),
             wp.broom(),
             wp.ferro(),
+            wp.raiderTool(),
             gp.energyDrink(),
             gp.copperBattery(),
             gp.ironBattery(),

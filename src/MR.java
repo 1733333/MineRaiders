@@ -38,6 +38,7 @@ public class MR extends JavaPlugin {
         GameListener gameListener = new GameListener(this);
         GameStartCommand gameStartCommand = new GameStartCommand();
         GameEndCommand gameEndCommand = new GameEndCommand();
+        LobbyCommand lobbyCommand = new LobbyCommand(this);
         LocationManagerUI.init(this);
 
         manager.registerEvents(containerListener,this);
@@ -49,6 +50,7 @@ public class MR extends JavaPlugin {
         manager.registerEvents(armorEquipListener,this);
         manager.registerEvents(weaponListener,this);
         manager.registerEvents(gameListener,this);
+        manager.registerEvents(lobbyCommand,this);
 
         this.getCommand("mineraidersdebug").setExecutor(debugCommand);
         this.getCommand("getloots").setExecutor(lootCommand);
@@ -61,11 +63,11 @@ public class MR extends JavaPlugin {
         this.getCommand("getall").setExecutor(getAllItemsCommand);
         this.getCommand("gamestart").setExecutor(gameStartCommand);
         this.getCommand("gameend").setExecutor(gameEndCommand);
+        this.getCommand("mrlobby").setExecutor(lobbyCommand);
 
         k.setPlugin(this);
         recipes.setPlugin(this);
         monsters.setPlugin(this);
-        gameStatus.registerWorldName();
 
         recipes.registerFreeRecipe();
         recipes.registerRecipe();

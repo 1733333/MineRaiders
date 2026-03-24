@@ -16,7 +16,6 @@ public enum DropPool {
             string(),
             spiderEye(),
             flint(),
-            quartz(),
             snitchScanner(),
             popCore(),
             fireballCore(),
@@ -98,18 +97,6 @@ public enum DropPool {
         meta.setDisplayName(ChatColor.GRAY + "【普通】燧石");
         lore.add(ChatColor.WHITE + "硬度不是那么高的石头");
         lore.add(ChatColor.WHITE + "和硬物碰撞可以擦出火花");
-        meta.setLore(lore);
-        i.setItemMeta(meta);
-        return i.clone();
-    }
-    public ItemStack quartz() {
-        ItemStack i = new ItemStack(Material.QUARTZ);
-        ItemMeta meta = i.getItemMeta();
-        ArrayList<String> lore = new ArrayList<>();
-        meta.setMaxStackSize(16);
-        meta.setDisplayName(ChatColor.GRAY + "【普通】下界石英");
-        lore.add(ChatColor.WHITE + "拥有特殊性质的矿物");
-        lore.add(ChatColor.WHITE + "通常用在建材或者装饰上");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i.clone();
@@ -198,8 +185,8 @@ public enum DropPool {
         ItemStack i = new ItemStack(Material.BREEZE_ROD);
         ItemMeta meta = i.getItemMeta();
         ArrayList<String> lore = new ArrayList<>();
-        meta.setMaxStackSize(4);
-        meta.setDisplayName(ChatColor.AQUA + "【稀有】旋风棒");
+        meta.setMaxStackSize(2);
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】旋风棒");
         lore.add(ChatColor.WHITE + "轻便但有韧性");
         lore.add(ChatColor.WHITE + "用来合成武器道具应该不错");
         meta.setLore(lore);

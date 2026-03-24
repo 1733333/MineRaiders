@@ -177,7 +177,8 @@ public enum Monsters {
                         if (distance > radius) continue;
                         if (e == shooter) continue;
                         if (e instanceof Player p) {
-                            if (!p.getGameMode().equals(GameMode.SURVIVAL)) continue;
+                            if (p.getGameMode() == GameMode.SPECTATOR) continue;
+                            if (p.getGameMode() == GameMode.CREATIVE) continue;
                         }
                         Location shooterLoc = shooter.getEyeLocation();
                         Location targetLoc = l.getEyeLocation();
@@ -211,7 +212,8 @@ public enum Monsters {
                                         if (distance > 0.5) continue;
                                         if (e == shooter) continue;
                                         if (e instanceof Player p) {
-                                            if (!p.getGameMode().equals(GameMode.SURVIVAL)) continue;
+                                            if (p.getGameMode() == GameMode.SPECTATOR) continue;
+                                            if (p.getGameMode() == GameMode.CREATIVE) continue;
                                         }
                                         l.damage(10, DamageSource.builder(DamageType.ARROW)
                                                 .withDirectEntity(shooter).build());
@@ -416,18 +418,18 @@ public enum Monsters {
                         if (e instanceof LivingEntity l1) {
                             if (k.distance(l, l1) > radius) continue;
                             if (l1 instanceof Player p) {
-                                if(playerStats.isDying(p))continue;
-                                if(p.getGameMode().equals(GameMode.SURVIVAL)){
-                                    Vector pVec = p.getEyeLocation().toVector();
-                                    Vector lVec = l.getEyeLocation().toVector();
-                                    Vector trace = pVec.subtract(lVec);
-                                    RayTraceResult result = w.rayTraceBlocks(l.getEyeLocation(),trace,k.distance(l,p));
-                                    if(result == null) {
-                                        snitchPlayerMap.put(l, p);
-                                        p.sendTitle("", ChatColor.GRAY + "！被告密者标记了！", 10, 40, 10);
-                                        k.particleLineColors(l, p, Color.AQUA, Color.YELLOW);
-                                        break;
-                                    }
+                                if (playerStats.isDying(p)) continue;
+                                if (p.getGameMode() == GameMode.SPECTATOR) continue;
+                                if (p.getGameMode() == GameMode.CREATIVE) continue;
+                                Vector pVec = p.getEyeLocation().toVector();
+                                Vector lVec = l.getEyeLocation().toVector();
+                                Vector trace = pVec.subtract(lVec);
+                                RayTraceResult result = w.rayTraceBlocks(l.getEyeLocation(), trace, k.distance(l, p));
+                                if (result == null) {
+                                    snitchPlayerMap.put(l, p);
+                                    p.sendTitle("", ChatColor.GRAY + "！被告密者标记了！", 10, 40, 10);
+                                    k.particleLineColors(l, p, Color.AQUA, Color.YELLOW);
+                                    break;
                                 }
                             }
                         }
@@ -606,7 +608,7 @@ public enum Monsters {
                             if(e instanceof Monster)continue;
                             if (e instanceof Player p) {
                                 if(playerStats.isDying(p))continue;
-                                if (p.getGameMode() != GameMode.SURVIVAL) continue;
+                                if (p.getGameMode() == GameMode.SPECTATOR) continue;
                             }
                             Location shooterLoc = l.getEyeLocation();
                             Location targetLoc = l1.getEyeLocation();
@@ -660,8 +662,6 @@ public enum Monsters {
     public void bastion(Location loc) {
         World w = loc.getWorld();
         Ravager bottom = (Ravager) w.spawnEntity(loc, EntityType.RAVAGER);
-        Pillager top = (Pillager) w.spawnEntity(loc, EntityType.PILLAGER);
-        bottom.addPassenger(top);
         double max = 700;
         double scale = 1.35;
         bottom.getAttribute(Attribute.SCALE).setBaseValue(scale);
@@ -673,79 +673,86 @@ public enum Monsters {
         bottom.setSilent(true);
         bottom.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 2));
         bottom.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 10));
-        top.getAttribute(Attribute.SCALE).setBaseValue(scale);
-        top.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max);
-        top.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
-        top.setHealth(max);
-        top.setCustomName(ChatColor.GRAY + "堡垒炮塔");
-        top.setSilent(true);
-        BukkitRunnable getTarget = new BukkitRunnable() {
+        new BukkitRunnable(){
             @Override
             public void run() {
-                if (top.isDead()) {
-                    cancel();
-                    return;
-                }
-                LivingEntity target = findTarget(top, 64, true, true); // 半径20，需要视线，不忽略隐身
-                if (target != null) {
-                    top.setTarget(target);
-                    bottom.setTarget(target);
-                }
-            }
-        };
-        BukkitRunnable shooting = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (top.isDead()) {
-                    cancel();
-                    return;
-                }
-                Color c = Color.AQUA;
-                if (top.getTarget() != null) {
-                    c = Color.RED;
-                    if (!top.hasPotionEffect(PotionEffectType.LUCK)) {
-                        BukkitRunnable shoot = new BukkitRunnable() {
-                            int count = 0;
-
-                            @Override
-                            public void run() {
-                                if (top.isDead() || count > 50) {
-                                    if (count > 50) {
-                                        top.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 80, 0));
-                                    }
-                                    this.cancel();
-                                }
-                                w.playSound(top.getLocation(), Sound.ENTITY_CREAKING_ACTIVATE, 1, 1.5f);
-                                Location shootLoc = top.getEyeLocation();
-                                Vector shootVec = shootLoc.getDirection();
-                                if (top.getTarget() != null) {
-                                    LivingEntity target = top.getTarget();
-                                    Vector lVec = target.getEyeLocation().toVector();
-                                    Vector sVec = shootLoc.toVector();
-                                    shootVec = (lVec.subtract(sVec)).normalize();
-                                }
-                                Arrow a = w.spawnArrow(shootLoc, shootVec, 2.5f, 5);
-                                a.setTicksLived(1200);
-                                a.setDamage(0.75);
-                                a.setCritical(true);
-                                a.setShooter(top);
-                                count += 1;
-                            }
-                        };
-                        shoot.runTaskTimer(plugin, 0L, 1L);
+                Pillager top = (Pillager) w.spawnEntity(loc, EntityType.PILLAGER);
+                top.getAttribute(Attribute.SCALE).setBaseValue(scale);
+                top.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max);
+                top.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(1);
+                top.setHealth(max);
+                top.setCustomName(ChatColor.GRAY + "堡垒炮塔");
+                top.setSilent(true);
+                bottom.addPassenger(top);
+                BukkitRunnable getTarget = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (top.isDead()) {
+                            cancel();
+                            return;
+                        }
+                        LivingEntity target = findTarget(top, 64, true, true); // 半径20，需要视线，不忽略隐身
+                        if (target != null) {
+                            top.setTarget(target);
+                            bottom.setTarget(target);
+                        }
                     }
-                }
-                Location subLoc = top.getEyeLocation();
-                Vector subVec = top.getEyeLocation().getDirection();
-                Particle.DustOptions dust = new Particle.DustOptions(c, 1);
-                for (int i = 0; i < 40; i++) {
-                    w.spawnParticle(Particle.DUST, subLoc, 1, dust);
-                    subLoc.add(subVec.clone().normalize().multiply(0.5));
-                }
+                };
+                BukkitRunnable shooting = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (top.isDead()) {
+                            cancel();
+                            return;
+                        }
+                        Color c = Color.AQUA;
+                        if (top.getTarget() != null) {
+                            c = Color.RED;
+                            if (!top.hasPotionEffect(PotionEffectType.LUCK)) {
+                                BukkitRunnable shoot = new BukkitRunnable() {
+                                    int count = 0;
+
+                                    @Override
+                                    public void run() {
+                                        if (top.isDead() || count > 50) {
+                                            if (count > 50) {
+                                                top.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 80, 0));
+                                            }
+                                            this.cancel();
+                                        }
+                                        w.playSound(top.getLocation(), Sound.ENTITY_CREAKING_ACTIVATE, 1, 1.5f);
+                                        Location shootLoc = top.getEyeLocation();
+                                        Vector shootVec = shootLoc.getDirection();
+                                        if (top.getTarget() != null) {
+                                            LivingEntity target = top.getTarget();
+                                            Vector lVec = target.getEyeLocation().toVector();
+                                            Vector sVec = shootLoc.toVector();
+                                            shootVec = (lVec.subtract(sVec)).normalize();
+                                        }
+                                        Arrow a = w.spawnArrow(shootLoc, shootVec, 2.5f, 5);
+                                        a.setTicksLived(1200);
+                                        a.setDamage(0.75);
+                                        a.setCritical(true);
+                                        a.setShooter(top);
+                                        count += 1;
+                                    }
+                                };
+                                shoot.runTaskTimer(plugin, 0L, 1L);
+                            }
+                        }
+                        Location subLoc = top.getEyeLocation();
+                        Vector subVec = top.getEyeLocation().getDirection();
+                        Particle.DustOptions dust = new Particle.DustOptions(c, 1);
+                        for (int i = 0; i < 40; i++) {
+                            w.spawnParticle(Particle.DUST, subLoc, 1, dust);
+                            subLoc.add(subVec.clone().normalize().multiply(0.5));
+                        }
+                    }
+                };
+                getTarget.runTaskTimer(plugin, 0L, 50L);
+                shooting.runTaskTimer(plugin, 0L, 50L);
             }
-        };
-        getTarget.runTaskTimer(plugin, 0L, 50L);
-        shooting.runTaskTimer(plugin, 0L, 50L);
+        }.runTaskLater(plugin,1L);
     }
     public Entity dukeMinion(Location loc,boolean isMinion){
         World w = loc.getWorld();
@@ -1094,7 +1101,7 @@ public enum Monsters {
 
         for (Entity entity : nearby) {
             if (!(entity instanceof Player player)) continue;
-            if (player.getGameMode() != GameMode.SURVIVAL) continue;
+            if (player.getGameMode() == GameMode.SPECTATOR) continue;
             if (player.isDead()) continue;
             if (playerStats.isDying(player)) continue; // 假设有死亡标记
             if (ignoreInvisible && player.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;

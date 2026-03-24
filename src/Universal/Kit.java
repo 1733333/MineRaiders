@@ -283,13 +283,13 @@ public enum Kit {
                     player.sendTitle(" ", ChatColor.AQUA + "！被电击！", 10, 40, 10);
                     w.playSound(player.getLocation(),Sound.ENTITY_ARMOR_STAND_BREAK,1,1);
                     Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(player, -20));
+                    Location loc = l.getLocation();
+                    loc.setPitch(r.nextInt(180) - 90);
+                    loc.setYaw(r.nextInt(180) - 90);
+                    l.teleport(loc);
                 }
                 l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2));
                 l.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 100, 4));
-                Location loc = l.getLocation();
-                loc.setPitch(r.nextInt(180) - 90);
-                loc.setYaw(r.nextInt(180) - 90);
-                l.teleport(loc);
             }
         }
     }
@@ -551,6 +551,9 @@ public enum Kit {
         }.runTaskTimer(plugin, 0L, 1L);
     }
     public void spawnCircleParticles(Location center, double radius, int points) {
+        spawnCircleParticles(center,radius,points,Particle.FLAME);
+    }
+    public void spawnCircleParticles(Location center, double radius, int points,Particle particle) {
         World world = center.getWorld();
         double y = center.getY();
         double step = 2 * Math.PI / points;
@@ -558,7 +561,7 @@ public enum Kit {
             double angle = i * step;
             double x = center.getX() + radius * Math.cos(angle);
             double z = center.getZ() + radius * Math.sin(angle);
-            world.spawnParticle(Particle.FLAME, x, y, z, 1, 0, 0, 0, 0);
+            world.spawnParticle(particle, x, y, z, 1, 0, 0, 0, 0);
         }
     }
 }

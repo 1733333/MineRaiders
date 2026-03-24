@@ -29,15 +29,10 @@ public class LobbyCommand implements CommandExecutor, Listener {
     // 记录玩家当前的观战模式状态
     private final Map<UUID, Boolean> spectatorMode = new HashMap<>();
     GameStatus gameStatus = GameStatus.INSTANCE;
+    Random r = new Random();
+
     public LobbyCommand(JavaPlugin plugin) {
         this.plugin = plugin;
-        Bukkit.getPluginManager().registerEvents(this, plugin);
-
-        if (plugin.getCommand("lobby") != null) {
-            plugin.getCommand("lobby").setExecutor(this);
-        } else {
-            plugin.getLogger().warning("命令 'lobby' 未在 plugin.yml 中注册！");
-        }
     }
 
     @Override
@@ -60,8 +55,8 @@ public class LobbyCommand implements CommandExecutor, Listener {
             return;
         }
 
-        // 计算需要的菜单大小（每行9格，世界数量 + 1 个观战模式切换按钮）
-        int size = ((worldNames.size() + 1) / 9 + 1) * 9;
+        // 计算需要的菜单大小（每行9格，世界数量 + 2：取消准备按钮 + 观战模式切换按钮）
+        int size = ((worldNames.size() + 2) / 9 + 1) * 9;
         Inventory inv = Bukkit.createInventory(null, size, MENU_TITLE);
 
         // 添加世界按钮
@@ -70,21 +65,25 @@ public class LobbyCommand implements CommandExecutor, Listener {
             World world = Bukkit.getWorld(worldName);
             if (world == null) continue;
 
+            int mapId = gameStatus.getWorldId(worldName);
             ItemStack item = new ItemStack(Material.LODESTONE);
             ItemMeta meta = item.getItemMeta();
-            String innerWorldName = gameStatus.getWorldName(worldName);
 
+            String innerWorldName = gameStatus.getWorldNameByID(mapId);
             meta.setDisplayName("§b" + innerWorldName);
 
             // 获取游戏状态信息
             boolean isActive = GameListener.isGameActive(world);
             int playerCount = GameListener.getPlayerCount(world);
+            int readyCount = gameStatus.getReadyCount(worldName); // 获取准备人数（来自 GameStatus）
+
             List<String> lore = new ArrayList<>();
             if (isActive) {
                 lore.add("§a游戏中 §7(§e玩家数量：" + playerCount);
                 lore.add("§7点击加入进行中的游戏");
             } else {
                 lore.add("§c等待中");
+                lore.add("§7准备人数: §e" + readyCount);
                 lore.add("§7点击准备加入游戏");
             }
             meta.setLore(lore);
@@ -93,7 +92,23 @@ public class LobbyCommand implements CommandExecutor, Listener {
             slot++;
         }
 
-        // 最后一格：观战模式切换按钮（放在最后一个格子）
+        // 倒数第二格：取消准备按钮（如果玩家已准备则显示可点击，否则显示灰色提示）
+        int cancelSlot = inv.getSize() - 2;
+        int currentReadyMap = PlayerStats.INSTANCE.getReadyStatus(player);
+        boolean isReady = currentReadyMap != -1;
+        ItemStack cancelItem = new ItemStack(isReady ? Material.BARRIER : Material.GRAY_DYE);
+        ItemMeta cancelMeta = cancelItem.getItemMeta();
+        if (isReady) {
+            cancelMeta.setDisplayName("§c取消准备");
+            cancelMeta.setLore(Collections.singletonList("§7点击取消当前世界的准备"));
+        } else {
+            cancelMeta.setDisplayName("§8未准备");
+            cancelMeta.setLore(Collections.singletonList("§7没有正在准备的世界"));
+        }
+        cancelItem.setItemMeta(cancelMeta);
+        inv.setItem(cancelSlot, cancelItem);
+
+        // 最后一格：观战模式切换按钮
         boolean isSpectating = spectatorMode.getOrDefault(player.getUniqueId(), false);
         ItemStack modeItem = new ItemStack(isSpectating ? Material.ENDER_EYE : Material.COMPASS);
         ItemMeta modeMeta = modeItem.getItemMeta();
@@ -105,7 +120,6 @@ public class LobbyCommand implements CommandExecutor, Listener {
             modeMeta.setLore(Collections.singletonList("§7点击开启观战模式"));
         }
         modeItem.setItemMeta(modeMeta);
-        // 放在最后一格（菜单最后）
         inv.setItem(inv.getSize() - 1, modeItem);
 
         player.openInventory(inv);
@@ -116,7 +130,6 @@ public class LobbyCommand implements CommandExecutor, Listener {
      */
     private List<String> getAvailableWorlds() {
         Set<String> worlds = new HashSet<>();
-        // 遍历所有世界，检查是否配置了玩家生成点
         for (World world : Bukkit.getWorlds()) {
             Map<String, Location> spawns = LocationManagerUI.getLocationsByType(world.getName(), LocationManagerUI.LocationType.PLAYER_SPAWN);
             if (!spawns.isEmpty()) {
@@ -130,13 +143,29 @@ public class LobbyCommand implements CommandExecutor, Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player)) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
         if (!event.getView().getTitle().equals(MENU_TITLE)) return;
         event.setCancelled(true);
 
-        Player player = (Player) event.getWhoClicked();
         int slot = event.getSlot();
+        int cancelSlot = event.getInventory().getSize() - 2;
         int lastSlot = event.getInventory().getSize() - 1;
+
+        // 点击取消准备按钮
+        if (slot == cancelSlot) {
+            int currentReadyMap = PlayerStats.INSTANCE.getReadyStatus(player);
+            if (currentReadyMap != -1) {
+                String worldName = gameStatus.getWorlds(currentReadyMap); // 通过ID获取世界名
+                gameStatus.removeReadyPlayer(worldName, player.getUniqueId());
+                PlayerStats.INSTANCE.stopReady(player); // 清除 PlayerStats 中的准备状态
+                player.sendMessage("§a已取消准备。");
+                Bukkit.broadcastMessage("§e" + player.getName() + "§a取消了准备");
+            } else {
+                player.sendMessage("§c你还没有准备任何世界！");
+            }
+            openWorldMenu(player); // 刷新菜单
+            return;
+        }
 
         // 点击观战模式切换按钮
         if (slot == lastSlot) {
@@ -148,10 +177,9 @@ public class LobbyCommand implements CommandExecutor, Listener {
 
         // 获取点击的世界名称（通过槽位对应的世界）
         List<String> worlds = getAvailableWorlds();
-        int worldIndex = slot;
-        if (worldIndex >= worlds.size()) return; // 无效槽位
+        if (slot >= worlds.size() || slot < 0) return; // 无效槽位
 
-        String worldName = worlds.get(worldIndex);
+        String worldName = worlds.get(slot);
         World world = Bukkit.getWorld(worldName);
         if (world == null) {
             player.sendMessage("§c世界不存在！");
@@ -167,36 +195,52 @@ public class LobbyCommand implements CommandExecutor, Listener {
                 player.sendMessage("§c游戏尚未开始，无法观战！");
                 return;
             }
-            // 获取世界ID并存储观战状态
             int worldId = gameStatus.getWorldId(worldName);
             PlayerStats.INSTANCE.setSpectating(player, worldId);
             player.setGameMode(org.bukkit.GameMode.SPECTATOR);
-            Location spawn = world.getSpawnLocation();
-            player.teleport(spawn);
-            player.sendMessage("§a你已进入观战模式，正在观看 " + worldName + " 的游戏。");
+            List<Player>playerList = new ArrayList<>();
+            for (Player playing : world.getPlayers()){
+                if(PlayerStats.INSTANCE.getReadyStatus(playing) == worldId){
+                    playerList.add(playing);
+                }
+            }
+            player.teleport(playerList.get(r.nextInt(playerList.size())));
+            String innerWorldName = gameStatus.getWorldNameByID(worldId);
+            player.sendMessage("§a你已进入观战模式，正在观看 " + innerWorldName + " 的游戏。");
             player.closeInventory();
         } else {
-            // 准备/加入模式
+            // 非观战模式
             if (isGameActive) {
                 // 游戏进行中，尝试中途加入
                 Bukkit.getPluginManager().callEvent(new PlayerJoinMidgameEvent(world, player));
                 player.closeInventory();
             } else {
-                // 游戏未开始，准备加入
-                // 使用世界名 hash 作为地图ID（确保与其他地方一致）
-                int mapId = getMapId(worldName);
-                PlayerStats.INSTANCE.setReady(player, mapId);
-                player.sendMessage("§a你已准备加入世界 " + worldName + "，等待游戏开始...");
-                player.closeInventory();
+                // 游戏未开始，设置准备
+                int mapId = gameStatus.getWorldId(worldName);
+                if (mapId >= 0) {
+                    int currentReadyMap = PlayerStats.INSTANCE.getReadyStatus(player);
+                    if (currentReadyMap == mapId) {
+                        player.sendMessage("§e你已经准备加入这个地图了！");
+                    } else {
+                        // 如果玩家已有其他世界的准备，先移除旧准备
+                        if (currentReadyMap != -1) {
+                            String oldWorld = gameStatus.getWorlds(currentReadyMap);
+                            gameStatus.removeReadyPlayer(oldWorld, player.getUniqueId());
+                        }
+                        // 设置新准备
+                        int readyCount = gameStatus.getReadyCount(worldName);
+                        PlayerStats.INSTANCE.setReady(player, mapId);
+                        String innerWorldName = gameStatus.getWorldNameByID(mapId);
+                        player.sendMessage("§a你已准备加入地图 " + innerWorldName + "，等待游戏开始...");
+                        gameStatus.addReadyPlayer(worldName, player.getUniqueId());
+                        Bukkit.broadcastMessage("§b" + player.getName() + "§a准备加入地图§e" + innerWorldName
+                                +"§a，当前准备人数：§e" + (readyCount + 1));
+                    }
+                    openWorldMenu(player); // 刷新菜单
+                } else {
+                    player.sendMessage("§c世界ID无效，请联系管理员！");
+                }
             }
         }
-    }
-
-    /**
-     * 根据世界名返回地图ID（用于 PlayerStats 存储）
-     */
-    private int getMapId(String worldName) {
-        // 简单使用世界名的 hashCode 作为 ID，实际应统一管理
-        return Math.abs(worldName.hashCode());
     }
 }

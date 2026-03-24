@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,6 +19,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,8 +31,8 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         EVACUATION("撤离点", Material.END_PORTAL_FRAME),
         PLAYER_SPAWN("玩家生成点", Material.PLAYER_HEAD),
         MONSTER_SPAWN("怪物生成点", Material.ZOMBIE_HEAD),
-        SPECIAL_EVACUATION("特殊撤离点", Material.END_CRYSTAL),      // 新类型
-        SPECIAL_MONSTER_SPAWN("特殊怪物点", Material.CREEPER_HEAD); // 新类型
+        SPECIAL_EVACUATION("特殊撤离点", Material.END_CRYSTAL),
+        SPECIAL_MONSTER_SPAWN("特殊怪物点", Material.CREEPER_HEAD);
 
         private final String displayName;
         private final Material icon;
@@ -43,9 +46,6 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         public Material getIcon() { return icon; }
     }
 
-    /**
-     * 位置数据记录（包含位置、类型和可选的特殊ID）
-     */
     public record LocationData(Location location, LocationType type, Integer extraId) {
         public LocationData(Location location, LocationType type, Integer extraId) {
             this.location = location.clone();
@@ -63,20 +63,23 @@ public class LocationManagerUI implements Listener, CommandExecutor {
     private static final Map<String, Map<String, LocationData>> LOCATIONS = new ConcurrentHashMap<>();
     private static JavaPlugin plugin;
     private static NamespacedKey locationKey;
-    private static final String GUI_TITLE = "§8搜打撤位置管理";
+    private static final String GUI_TITLE = "§8MineRaiders位置管理";
     private static final String CONFIG_PATH = "locations";
 
-    // ==================== 图形化添加菜单相关 ====================
+    // 图形化添加菜单相关
     private static final String ADD_GUI_TITLE = "§8选择添加地点类型";
     private static final Map<UUID, AddState> AWAITING_INPUT = new HashMap<>();
     private static NamespacedKey addTypeKey;
 
-    // 添加流程状态
+    // 独立配置文件
+    private static FileConfiguration locationConfig;
+    private static File locationFile;
+
     private enum AddStep { WAITING_NAME, WAITING_ID }
     private static class AddState {
         LocationType type;
         AddStep step;
-        String name; // 仅在 WAITING_ID 时有效
+        String name;
 
         AddState(LocationType type, AddStep step) {
             this.type = type;
@@ -89,6 +92,17 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         plugin = instance;
         locationKey = new NamespacedKey(plugin, "location_id");
         addTypeKey = new NamespacedKey(plugin, "add_type");
+
+        // 初始化独立配置文件
+        locationFile = new File(plugin.getDataFolder(), "location.yml");
+        if (!locationFile.exists()) {
+            try {
+                locationFile.createNewFile();
+            } catch (IOException e) {
+                plugin.getLogger().severe("无法创建 location.yml: " + e.getMessage());
+            }
+        }
+        locationConfig = YamlConfiguration.loadConfiguration(locationFile);
 
         // 注册事件监听
         Bukkit.getPluginManager().registerEvents(new LocationManagerUI(), plugin);
@@ -104,16 +118,10 @@ public class LocationManagerUI implements Listener, CommandExecutor {
     }
 
     // ==================== 公开 API ====================
-    /**
-     * 添加地点（无特殊ID）
-     */
     public static void addLocation(String worldName, String locationName, Location location, LocationType type) {
         addLocation(worldName, locationName, location, type, null);
     }
 
-    /**
-     * 添加地点（带特殊ID，仅对特殊怪物点有效）
-     */
     public static void addLocation(String worldName, String locationName, Location location, LocationType type, Integer extraId) {
         LOCATIONS.computeIfAbsent(worldName, k -> new ConcurrentHashMap<>())
                 .put(locationName, new LocationData(location, type, extraId));
@@ -283,7 +291,6 @@ public class LocationManagerUI implements Listener, CommandExecutor {
     public void onInventoryClick(InventoryClickEvent event) {
         String title = event.getView().getTitle();
 
-        // 处理添加类型选择菜单
         if (title.equals(ADD_GUI_TITLE)) {
             event.setCancelled(true);
             if (!(event.getWhoClicked() instanceof Player player)) return;
@@ -306,13 +313,11 @@ public class LocationManagerUI implements Listener, CommandExecutor {
 
             player.closeInventory();
 
-            // 进入等待名称状态
             AWAITING_INPUT.put(player.getUniqueId(), new AddState(type, AddStep.WAITING_NAME));
             player.sendMessage("§a请输入该地点的名称（在聊天框输入），输入 §ccancel §a取消：");
             return;
         }
 
-        // 原有管理 GUI 的处理
         if (!title.equals(GUI_TITLE)) return;
         event.setCancelled(true);
 
@@ -359,7 +364,6 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         }
     }
 
-    // 监听玩家聊天输入名称和ID
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
@@ -378,13 +382,11 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         }
 
         if (state.step == AddStep.WAITING_NAME) {
-            // 验证名称
             if (message.isEmpty() || message.length() > 30) {
                 player.sendMessage("§c名称不能为空且长度不能超过30！请重新输入（输入 §ccancel §a取消）：");
                 return;
             }
 
-            // 检查同名
             String worldName = player.getWorld().getName();
             if (getLocation(worldName, message) != null) {
                 player.sendMessage("§c在当前世界已存在名为 " + message + " 的地点，请使用其他名称。");
@@ -392,7 +394,6 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                 return;
             }
 
-            // 如果是特殊怪物点，需要进一步输入ID
             if (state.type == LocationType.SPECIAL_MONSTER_SPAWN) {
                 state.name = message;
                 state.step = AddStep.WAITING_ID;
@@ -400,7 +401,6 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                 player.sendMessage("§a请输入该特殊怪物点的ID（整数），输入 §ccancel §a取消：");
                 return;
             } else {
-                // 其他类型直接添加（无ID）
                 new BukkitRunnable() {
                     @Override
                     public void run() {
@@ -413,7 +413,6 @@ public class LocationManagerUI implements Listener, CommandExecutor {
             }
         }
 
-        // 等待ID输入
         if (state.step == AddStep.WAITING_ID && state.type == LocationType.SPECIAL_MONSTER_SPAWN) {
             int id;
             try {
@@ -423,7 +422,6 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                 return;
             }
 
-            // 可选：检查ID是否重复（这里简单允许重复，因为ID可以相同）
             final int finalId = id;
             new BukkitRunnable() {
                 @Override
@@ -436,11 +434,14 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         }
     }
 
-    // ==================== 持久化 ====================
+    // ==================== 持久化（使用独立 location.yml）====================
     public static void loadFromConfig() {
         LOCATIONS.clear();
-        FileConfiguration config = plugin.getConfig();
-        ConfigurationSection root = config.getConfigurationSection(CONFIG_PATH);
+        if (locationConfig == null) {
+            plugin.getLogger().warning("locationConfig 未初始化，无法加载配置！");
+            return;
+        }
+        ConfigurationSection root = locationConfig.getConfigurationSection(CONFIG_PATH);
         if (root == null) return;
 
         for (String worldName : root.getKeys(false)) {
@@ -484,8 +485,11 @@ public class LocationManagerUI implements Listener, CommandExecutor {
     }
 
     public static void saveToConfig() {
-        FileConfiguration config = plugin.getConfig();
-        config.set(CONFIG_PATH, null);
+        if (locationConfig == null) {
+            plugin.getLogger().warning("locationConfig 未初始化，无法保存配置！");
+            return;
+        }
+        locationConfig.set(CONFIG_PATH, null);
 
         for (Map.Entry<String, Map<String, LocationData>> worldEntry : LOCATIONS.entrySet()) {
             String worldName = worldEntry.getKey();
@@ -495,24 +499,28 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                 Location loc = data.location();
 
                 String path = CONFIG_PATH + "." + worldName + "." + locName;
-                config.set(path + ".x", loc.getX());
-                config.set(path + ".y", loc.getY());
-                config.set(path + ".z", loc.getZ());
-                config.set(path + ".yaw", (double) loc.getYaw());
-                config.set(path + ".pitch", (double) loc.getPitch());
-                config.set(path + ".type", data.type().name());
+                locationConfig.set(path + ".x", loc.getX());
+                locationConfig.set(path + ".y", loc.getY());
+                locationConfig.set(path + ".z", loc.getZ());
+                locationConfig.set(path + ".yaw", (double) loc.getYaw());
+                locationConfig.set(path + ".pitch", (double) loc.getPitch());
+                locationConfig.set(path + ".type", data.type().name());
                 if (data.extraId() != null) {
-                    config.set(path + ".extraId", data.extraId());
+                    locationConfig.set(path + ".extraId", data.extraId());
                 } else {
-                    config.set(path + ".extraId", null);
+                    locationConfig.set(path + ".extraId", null);
                 }
             }
         }
 
-        plugin.saveConfig();
+        try {
+            locationConfig.save(locationFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("无法保存 location.yml: " + e.getMessage());
+        }
     }
 
-    // ==================== 命令处理（仅 OP）====================
+    // ==================== 命令处理 ====================
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -558,7 +566,7 @@ public class LocationManagerUI implements Listener, CommandExecutor {
     }
 
     private void sendHelp(Player player) {
-        player.sendMessage("§6===== 搜打撤位置管理帮助 =====§r");
+        player.sendMessage("§6===== MineRaiders位置管理帮助 =====§r");
         player.sendMessage("§e/mrlocs §7- 显示本帮助");
         player.sendMessage("§e/mrlocs gui §7- 打开图形界面管理位置");
         player.sendMessage("§e/mrlocs addgui §7- 打开添加位置菜单");
@@ -597,7 +605,6 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         try {
             type = LocationType.valueOf(typeStr);
         } catch (IllegalArgumentException e) {
-            // 允许简写
             switch (typeStr.toLowerCase()) {
                 case "player":
                 case "p":
@@ -638,7 +645,7 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                 player.sendMessage("§cID必须是整数！");
                 return;
             }
-        } else if (args.length >= 4 && (type == LocationType.SPECIAL_EVACUATION || type == LocationType.EVACUATION || type == LocationType.PLAYER_SPAWN || type == LocationType.MONSTER_SPAWN)) {
+        } else if (args.length >= 4) {
             player.sendMessage("§c非特殊怪物点不需要ID参数，已忽略。");
         }
 

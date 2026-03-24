@@ -33,7 +33,6 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-import static Listeners.PlayerListener.playerBar;
 
 public class GadgetListener implements Listener {
     JavaPlugin plugin;
@@ -110,14 +109,17 @@ public class GadgetListener implements Listener {
         String tag = k.getLore(hand);
         String tag1 = k.getLore(offHand);
         if (rightClick) {
+            boolean handled = false;
             if (offHand.getType() != Material.AIR) {
                 switch (tag1) {
                     case "§f可以修复物品的粉末":
                         mendingPowder(p,offHand);
                         interactEvent.setCancelled(true);
+                        handled = true;
                         break;
                 }
-            } else if (hand.getType() != Material.AIR) {
+            }
+            if (!handled && hand.getType() != Material.AIR) {
                 switch (tag) {
                     case "§f闪爆手雷":
                         grenade(p, hand);
@@ -277,7 +279,7 @@ public class GadgetListener implements Listener {
                 }else {
                     p.setCooldown(item, 80);
                     Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, 20));
-                    BossBar bar = playerBar.getOrDefault(p.getName(), null);
+                    BossBar bar = PlayerStats.playerShieldBar.getOrDefault(p.getName(), null);
                     if(bar != null){
                         bar.setColor(BarColor.BLUE);
                     }
@@ -876,6 +878,7 @@ public class GadgetListener implements Listener {
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
+                        if (p1.getGameMode() == GameMode.SPECTATOR) continue;
                     }
                     if (e instanceof LivingEntity l) {
                         if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
@@ -934,6 +937,7 @@ public class GadgetListener implements Listener {
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
+                        if (p1.getGameMode() == GameMode.SPECTATOR) continue;
                     }
                     if (e instanceof LivingEntity l) {
                         if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
@@ -994,6 +998,7 @@ public class GadgetListener implements Listener {
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
+                        if (p1.getGameMode() == GameMode.SPECTATOR) continue;
                     }
                     if (e instanceof LivingEntity l) {
                         if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
@@ -1055,6 +1060,7 @@ public class GadgetListener implements Listener {
                 for (Entity e : g.getNearbyEntities(radius, radius, radius)) {
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
+                        if (p1.getGameMode() == GameMode.SPECTATOR) continue;
                     }
                     if (e instanceof LivingEntity l) {
                         if (l.hasPotionEffect(PotionEffectType.INVISIBILITY)) continue;
@@ -1204,10 +1210,10 @@ public class GadgetListener implements Listener {
                                             Vector arrowLocVector = a.getLocation().toVector();
                                             Vector entityVector = (nearest.getEyeLocation().toVector()).subtract(arrowLocVector);
                                             a.setVelocity(entityVector.normalize());
-                                            distance = k.distance(a,nearest);
+                                            distance = k.locDistance(a.getLocation(),nearest.getEyeLocation());
                                         }
-                                        if ((distance > 0 && distance < 2) || a.isDead()) {
-                                            if ((distance > 0 && distance < 2)) {
+                                        if ((distance > 0 && distance < 3) || a.isDead()) {
+                                            if ((distance > 0 && distance < 3)) {
                                                 int count = 0;
                                                 for (Entity e : a.getNearbyEntities(5, 5, 5)) {
                                                     if (e instanceof Arrow a1) {
@@ -1263,14 +1269,13 @@ public class GadgetListener implements Listener {
     }
     public void battery(Player p,int seconds,double shieldAmount,ItemStack item){
         isChargingShield.add(p);
-        BossBar bar = playerBar.getOrDefault(p.getName(), null);
+        BossBar bar = PlayerStats.playerShieldBar.getOrDefault(p.getName(), null);
         if(bar != null){
             bar.setColor(BarColor.WHITE);
         }
         BukkitRunnable recover = new BukkitRunnable() {
             int count = 0;
             int step = seconds * 4;
-            //add here?
             @Override
             public void run() {
                 double shield = playerStats.getShield(p);
@@ -1356,6 +1361,9 @@ public class GadgetListener implements Listener {
                                 if (result != null) continue;
                                 l.damage(250);
                             }
+                        }
+                        if(g.getVehicle() instanceof LivingEntity l1){
+                            l1.damage(250);
                         }
                     }
                     this.cancel();
@@ -1500,36 +1508,72 @@ public class GadgetListener implements Listener {
         }
     }
     public void mendingPowder(Player p, ItemStack hand) {
-        World w = p.getWorld();
-        EntityEquipment e = p.getEquipment();
-        Material material = hand.getType();
-        ItemStack mainHand = e.getItemInMainHand();
-        boolean repaired = false;
-        if (p.getCooldown(material) == 0) {
-            p.setCooldown(material, 20);
-            if (mainHand.getType() != Material.AIR) {
-                ItemMeta meta = mainHand.getItemMeta();
-                if(meta instanceof Damageable d){
-                    int maxDamage = d.getMaxDamage();
-                    int damage = d.getDamage();
-                    d.setDamage((int) Math.max(0,damage - (maxDamage * 0.2)));
-                    mainHand.setItemMeta(d);
-                    e.setItemInMainHand(mainHand);
-                    w.playSound(p.getLocation(),Sound.BLOCK_ENCHANTMENT_TABLE_USE,1,1);
-                    repaired = true;
-                }
-            }
-        }
-        if(repaired) {
-            if (p.getGameMode() != GameMode.CREATIVE) {
-                int amount = hand.getAmount();
-                hand.setAmount(amount - 1);
-            }
+        // 检查修复粉末冷却
+        if (p.getCooldown(hand.getType()) != 0) {
             p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                    TextComponent.fromLegacy(ChatColor.AQUA + "修理成功！"));
-        }else {
-            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                    TextComponent.fromLegacy(ChatColor.RED + "修理失败！主手没有物品或者主手物品无法被修理"));
+                    TextComponent.fromLegacy(ChatColor.RED + "修复粉末冷却中！"));
+            return;
         }
+
+        // 获取主手物品
+        ItemStack mainHand = p.getInventory().getItemInMainHand();
+        if (mainHand == null || mainHand.getType() == Material.AIR) {
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    TextComponent.fromLegacy(ChatColor.RED + "主手没有物品！"));
+            return;
+        }
+
+        // 检查物品是否可损坏
+        ItemMeta meta = mainHand.getItemMeta();
+        if (!(meta instanceof Damageable damageable)) {
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    TextComponent.fromLegacy(ChatColor.RED + "该物品无法修理！"));
+            return;
+        }
+        // 检查物品是否具有最大耐久度（有些 Damageable 物品可能没有）
+        if (!damageable.hasMaxDamage()) {
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    TextComponent.fromLegacy(ChatColor.RED + "该物品无法修理！"));
+            return;
+        }
+
+        int maxDamage = damageable.getMaxDamage();
+        if (maxDamage <= 0) {
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    TextComponent.fromLegacy(ChatColor.RED + "该物品无法修理！"));
+            return;
+        }
+
+        int currentDamage = damageable.getDamage();
+        int repairAmount = (int) Math.ceil(maxDamage * 0.2); // 至少修复1点
+        int newDamage = Math.max(0, currentDamage - repairAmount);
+
+        // 如果无需修理（已满耐久）
+        if (newDamage == currentDamage) {
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    TextComponent.fromLegacy(ChatColor.RED + "物品无需修理！"));
+            return;
+        }
+
+        // 应用修理
+        damageable.setDamage(newDamage);
+        mainHand.setItemMeta(damageable);
+        p.getInventory().setItemInMainHand(mainHand);
+
+        // 播放效果
+        World world = p.getWorld();
+        world.playSound(p.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1, 1);
+
+        // 消耗修复粉末（非创造模式）
+        if (p.getGameMode() != GameMode.CREATIVE) {
+            hand.setAmount(hand.getAmount() - 1);
+        }
+
+        // 设置冷却
+        p.setCooldown(hand.getType(), 20);
+
+        // 成功消息
+        p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                TextComponent.fromLegacy(ChatColor.AQUA + "修理成功！"));
     }
 }

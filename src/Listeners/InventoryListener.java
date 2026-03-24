@@ -164,6 +164,7 @@ public class InventoryListener implements Listener {
                         }
                     } else if (status != PlayerStats.MenuStatus.CRAFTING_MENU) {
                         if (p.isOp()) {
+                            item.setAmount(1);
                             Item i = w.dropItem(p.getLocation(), item);
                             i.setPickupDelay(0);
                         }

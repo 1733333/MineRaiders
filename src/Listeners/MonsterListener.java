@@ -102,6 +102,12 @@ public class MonsterListener implements Listener {
         World w = damageEvent.getDamager().getWorld();
         Entity a = damageEvent.getDamager();
         Entity d = damageEvent.getEntity();
+        if(!(a instanceof Player)){
+            if(a == d){
+                damageEvent.setCancelled(true);
+                return;
+            }
+        }
         if (a instanceof LivingEntity attacker) {
             String aName = attacker.getName();
             switch (aName) {
@@ -287,8 +293,8 @@ public class MonsterListener implements Listener {
                 if(r.nextDouble() < 0.35) {
                     w.dropItem(mob.getLocation(),dp.leaperUnit());
                 }
-                drops.add(dp.quartz());
-                drops.add(dp.quartz());
+                drops.add(lp.i43());
+                drops.add(lp.i43());
                 drops.add(lp.i55());
                 drops.add(lp.i55());
                 drops.add(dp.blazeRod());
@@ -326,15 +332,9 @@ public class MonsterListener implements Listener {
             }
             default ->{
                 switch (mob.getType()) {
-                    case ZOMBIE -> {
-                        drops.add(dp.rottenFlesh());
-                    }
-                    case SKELETON -> {
-                        drops.add(dp.bone());
-                    }
-                    case CREEPER -> {
-                        drops.add(dp.gunpowder());
-                    }
+                    case ZOMBIE -> drops.add(dp.rottenFlesh());
+                    case SKELETON -> drops.add(dp.bone());
+                    case CREEPER -> drops.add(dp.gunpowder());
                     case SPIDER -> {
                         drops.add(dp.string());
                         if (r.nextBoolean()) {
@@ -395,6 +395,7 @@ public class MonsterListener implements Listener {
         World w = e.getWorld();
         if(damageEvent.getDamage() > 3) {
             if (e instanceof LivingEntity d) {
+                if(e == damageEvent.getDamager())return;
                 String dName = d.getName();
                 Sound s = switch (dName){
                     case "§7堡垒底盘" ->Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR;

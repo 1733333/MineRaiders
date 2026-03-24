@@ -51,9 +51,8 @@ public class PlayerListener implements Listener {
     HashSet<Player> beingRevive = new HashSet<>();
     HashMap<Player, Player> whoIsReviving = new HashMap<>();
     HashMap<String, BukkitRunnable> playerTask = new HashMap<>();
-    public static HashMap<String, BossBar> playerBar = new HashMap<>();
-    // 倒地倒计时任务映射
-    private final Map<Player, BukkitRunnable> dyingTimers = new HashMap<>();
+    // 倒地倒计时任务映射（改为 public static，以便外部事件监听器访问）
+    public static final Map<Player, BukkitRunnable> dyingTimers = new HashMap<>();
 
     public PlayerListener(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -81,6 +80,7 @@ public class PlayerListener implements Listener {
         double aDamage = damageEvent.getOriginalDamage(EntityDamageEvent.DamageModifier.ARMOR);
         DamageType type = damageEvent.getDamageSource().getDamageType();
         if (damaged instanceof Player p) {
+            if(!playerStats.isInGame(p))return;
             if (p.getNoDamageTicks() > 10) {
                 damageEvent.setCancelled(true);
                 return;
@@ -138,10 +138,12 @@ public class PlayerListener implements Listener {
                 && p.isSneaking()
                 && p.isOnGround()
                 && p.getCooldown(Material.LIGHT) == 0) {
-            int food = p.getFoodLevel();
-            p.setFoodLevel(Math.max(0, food - 2));
-            p.setCooldown(Material.LIGHT, 20);
             p.setVelocity(slide.multiply(0.9));
+            p.setCooldown(Material.LIGHT, 20);
+            if(!playerStats.isInGame(p)) {
+                int food = p.getFoodLevel();
+                p.setFoodLevel(Math.max(0, food - 2));
+            }
         }
     }
 
@@ -178,6 +180,7 @@ public class PlayerListener implements Listener {
         }
         Entity entity = damageEvent.getEntity();
         if (entity instanceof Player p) {
+            if(!playerStats.isInGame(p))return;
             World w = p.getWorld();
             if (damage >= p.getHealth()) {
                 damageEvent.setCancelled(true);
@@ -212,20 +215,26 @@ public class PlayerListener implements Listener {
 
                     // 启动60秒倒计时，结束后自动撤离失败
                     BukkitRunnable timer = new BukkitRunnable() {
+                        int count = 0;
                         @Override
                         public void run() {
-                            if (playerStats.isDying(p)) {
-                                triggerFailExtract(p);
+                            if(count >= 60) {
+                                if (playerStats.isDying(p)) {
+                                    triggerFailExtract(p);
+                                }
+                                dyingTimers.remove(p);
+                                this.cancel();
+                                return;
                             }
-                            dyingTimers.remove(p);
+                            p.sendTitle("",ChatColor.RED + "" +  (60 - count),0,10,10);
+                            p.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_HAT,1,1);
+                            count ++;
                         }
                     };
-                    timer.runTaskLater(plugin, 20 * 60); // 60秒
+                    timer.runTaskTimer(plugin, 0,20L); // 60秒
                     dyingTimers.put(p, timer);
                 } else {
                     // 玩家已经倒地，再次受到致命伤害 -> 撤离失败
-                    BukkitRunnable timer = dyingTimers.remove(p);
-                    if (timer != null) timer.cancel();
                     triggerFailExtract(p);
                 }
             }
@@ -234,20 +243,14 @@ public class PlayerListener implements Listener {
 
     /**
      * 触发玩家撤离失败（倒地无人救起或主动放弃）
+     * 只负责取消倒计时并触发事件，具体清理由事件监听器完成
      */
     private void triggerFailExtract(Player p) {
         if (!playerStats.isDying(p)) return;
-        playerStats.stopDying(p);
-        // 移除所有负面效果
-        p.removePotionEffect(PotionEffectType.WEAKNESS);
-        p.removePotionEffect(PotionEffectType.MINING_FATIGUE);
-        // 传送到世界出生点，清空背包，移除游戏状态
-        Location spawn = p.getWorld().getSpawnLocation();
-        p.teleport(spawn);
-        p.getInventory().clear();
-        playerStats.stopInGame(p);
-        p.sendMessage("§c你撤离失败，所有物品已丢失！");
-        // 触发事件，以便 GameListener 进行游戏会话的清理
+        // 取消倒地倒计时
+        BukkitRunnable timer = dyingTimers.remove(p);
+        if (timer != null) timer.cancel();
+        // 触发事件，由事件监听器完成后续清理
         Bukkit.getPluginManager().callEvent(new PlayerFailToExtractEvent(p));
     }
 
@@ -296,6 +299,7 @@ public class PlayerListener implements Listener {
         Player p = interact.getPlayer();
         Entity clicked = interact.getRightClicked();
         if (clicked instanceof Player p1) {
+            if(p.getGameMode() == GameMode.SPECTATOR)return;
             if (p.isSneaking()) {
                 if (playerStats.isDying(p1) && !playerStats.isDying(p)) {
                     Player reviver = whoIsReviving.getOrDefault(p1, null);
@@ -396,21 +400,21 @@ public class PlayerListener implements Listener {
             BukkitRunnable later = new BukkitRunnable() {
                 @Override
                 public void run() {
-                    BossBar bar = playerBar.getOrDefault(p.getName(), null);
+                    BossBar bar = PlayerStats.playerShieldBar.get(p.getName());
                     if (!k.isArmored(p)) {
                         if (playerStats.isShieldOn(p)) {
                             playerStats.closeShield(p);
                         }
                         if (bar != null) {
                             bar.removeAll();
-                            playerBar.remove(p.getName());
+                            PlayerStats.playerShieldBar.remove(p.getName());
                         }
                     }
                 }
             };
             later.runTaskLater(plugin, 1L);
         } else {
-            BossBar bar = playerBar.getOrDefault(p.getName(), null);
+            BossBar bar = PlayerStats.playerShieldBar.get(p.getName());
             if (shield == -1 || !playerStats.isShieldOn(p)) {
                 if (shield == -1) {
                     playerStats.setShield(p, maxShield);
@@ -424,7 +428,7 @@ public class PlayerListener implements Listener {
                             ChatColor.AQUA + "" + ChatColor.BOLD + "护盾丨电量：" + String.format("%.2f", maxShield * 1.0),
                             BarColor.BLUE, BarStyle.SEGMENTED_10);
                     bar.addPlayer(p);
-                    playerBar.put(p.getName(), bar);
+                    PlayerStats.playerShieldBar.put(p.getName(), bar);
                 }
                 double progress = shield / maxShield;
                 if (progress < 0) {
@@ -455,7 +459,7 @@ public class PlayerListener implements Listener {
         } else {
             playerStats.setShield(p, Math.min(maxShield, newShield));
         }
-        BossBar bar = playerBar.getOrDefault(p.getName(), null);
+        BossBar bar = PlayerStats.playerShieldBar.get(p.getName());
         if (bar != null) {
             double progress = newShield / maxShield;
             if (progress < 0) {
@@ -486,6 +490,9 @@ public class PlayerListener implements Listener {
                                 w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE_FAR, 1, 0.8f);
                                 w.playSound(p.getLocation(), Sound.ITEM_TRIDENT_RIPTIDE_3, 1, 0.7f);
                                 w.playSound(p.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 0.3f, 1);
+                                w.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
+                                w.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
+                                w.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
                             }
                             w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1, 2 - (0.1f * count));
                         } else if (count > 10) {
@@ -591,7 +598,7 @@ public class PlayerListener implements Listener {
             List<String> freeRecipeString = Arrays.stream(re.getFreeRecipes()).toList();
             Inventory inv = p.getInventory();
             if (resultMeta.hasDisplayName()) {
-                String resultName = resultMeta.getDisplayName();
+                String resultName = k.getLore(result);
                 int key = keyMap.getOrDefault(resultName, -1);
                 if (key != -1) {
                     if (!freeRecipeString.contains(resultName)) {

@@ -1,5 +1,6 @@
 package Universal;
 
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -10,6 +11,7 @@ public enum PlayerStats {
     public final int maxShield = 20;
     public static HashMap<String, MenuStatus> playerMenuStatus = new HashMap<>();
     public static HashMap<String, Double> playerShield = new HashMap<>();
+    public static HashMap<String, BossBar> playerShieldBar = new HashMap<>();
 
     public enum MenuStatus {
         NOT_MENU,
@@ -24,7 +26,6 @@ public enum PlayerStats {
         COOKBOOK_MENU,
         DEV_MENU,
         MAP_MENU,
-        LOBBY_MENU,
     }
 
     HashSet<Player> isDying = new HashSet<>();
@@ -104,4 +105,5 @@ public enum PlayerStats {
     public void stopSpectating(Player p) {
         PlayerSpectatingStatus.remove(p);
     }
+
 }

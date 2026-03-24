@@ -85,6 +85,12 @@ public class ContainerListener implements Listener {
     HashMap<Block,Player>blockSearcherMap = new HashMap<>();
     HashMap<Block,Integer>doorBreakMap = new HashMap<>();
     HashMap<Player,Block>playerSearchBlockMap = new HashMap<>();
+    Material[]interactBlocks = new Material[]{
+        Material.CRAFTING_TABLE,
+        Material.ANVIL,
+        Material.ENCHANTING_TABLE,
+        Material.ENDER_CHEST,
+    };
 
     public ContainerListener(JavaPlugin plugin){
         this.plugin = plugin;
@@ -109,9 +115,12 @@ public class ContainerListener implements Listener {
 
     public float[] getContainerValue(Block b) {
         return switch (getContainerRarity(b)) {
-            case 0 -> new float[]{5f, 3f, 1.25f, 0.45f, 0.035f, 0.015f};
-            case 1 -> new float[]{3.75f, 2.75f, 1.75f, 1.5f, 0.15f, 0.1f};
-            case 2 -> new float[]{2f, 2f, 2f, 2f, 1.25f, 0.75f};
+            //普通容器概率，稀有度从低到高
+            case 0 -> new float[]{5f, 3.3f, 1.5f, 0.15f, 0.049f, 0.001f};
+            //中等容器概率，稀有度从低到高
+            case 1 -> new float[]{3.75f, 3f, 2.25f, 0.7f, 0.25f, 0.05f};
+            //高级容器概率，稀有度从低到高
+            case 2 -> new float[]{2f, 2f, 2f, 2.25f, 1.5f, 0.25f};
             default -> new float[0];
         };
     }
@@ -123,7 +132,7 @@ public class ContainerListener implements Listener {
             case 0:{
                 count = 1;
                 max = 4;
-                chance = 0.90;
+                chance = 0.9;
             }
             break;
             case 1:{
@@ -157,7 +166,8 @@ public class ContainerListener implements Listener {
     @EventHandler
     public void playerInteract(PlayerInteractEvent interactEvent) {
         Player p = interactEvent.getPlayer();
-        if(playerStats.isDying(p) || p.getGameMode() == GameMode.SPECTATOR){
+        if(!playerStats.isInGame(p))return;
+        if(playerStats.isDying(p) || p.getGameMode() == GameMode.SPECTATOR) {
             interactEvent.setCancelled(true);
             return;
         }
@@ -193,6 +203,7 @@ public class ContainerListener implements Listener {
                         Door door = (Door) b.getBlockData();
                         door.setOpen(true);
                         b.setBlockData(door);
+                        gameStatus.addDoor(w,b);
                         if(b1.getType() == Material.IRON_DOOR){
                             Door door1 = (Door) b1.getBlockData();
                             door1.setOpen(true);
@@ -217,6 +228,13 @@ public class ContainerListener implements Listener {
                                 TextComponent.fromLegacy("门松动了一些，再试试吧"));
                         w.spawnParticle(Particle.LARGE_SMOKE,b.getLocation(),10,0.5,0.5,0.5,0.05);
                     }
+                }else {
+                    Material type = b.getType();
+                    if(type.name().contains("BUTTON"))return;
+                    List<Material> whitelist = Arrays.stream(interactBlocks).toList();
+                    if(!whitelist.contains(type)){
+                        interactEvent.setCancelled(true);
+                    }
                 }
             }
         }
@@ -239,22 +257,22 @@ public class ContainerListener implements Listener {
                         content = lp.getContent(count, weights);
                     } else {
                         switch (rarity) {
-                            case -2 -> {
-                                content = smithContent();
-                            }
-                            case -3 -> {
-                                content = arrowContent();
-                            }
-                            case -4 -> {
-                                content = loomContent();
-                            }
-                            case -5 -> {
-                                content = potionContent();
-                            }
+                            case -2 -> content = smithContent();
+                            case -3 -> content = arrowContent();
+                            case -4 -> content = loomContent();
+                            case -5 -> content = potionContent();
                         }
                     }
                     hasContent.add(container);
                     blockContent.put(container, content);
+                    Block b1 = w.getBlockAt(container.getLocation().add(0,1,0));
+                    Block b2 = w.getBlockAt(container.getLocation().add(0,-1,0));
+                    if(b1.getType().name().contains("DOOR")){
+                        blockContent.put(b1, content);
+                    }
+                    if(b2.getType().name().contains("DOOR")){
+                        blockContent.put(b2, content);
+                    }
                 }
                 Sound s = switch (rarity) {
                     case 0 -> Sound.BLOCK_CHEST_OPEN;
@@ -299,6 +317,20 @@ public class ContainerListener implements Listener {
             blockContent.remove(container);
             blockSearcherMap.remove(container);
             gameStatus.setEmpty(container);
+            Block b1 = w.getBlockAt(container.getLocation().add(0,1,0));
+            Block b2 = w.getBlockAt(container.getLocation().add(0,-1,0));
+            if(b1.getType().name().contains("DOOR")){
+                hasContent.remove(b1);
+                blockContent.remove(b1);
+                blockSearcherMap.remove(b1);
+                gameStatus.setEmpty(b1);
+            }
+            if(b2.getType().name().contains("DOOR")){
+                hasContent.remove(b2);
+                blockContent.remove(b2);
+                blockSearcherMap.remove(b2);
+                gameStatus.setEmpty(b2);
+            }
             return;
         }
         BukkitRunnable check = new BukkitRunnable() {
@@ -390,6 +422,14 @@ public class ContainerListener implements Listener {
                     ItemStack[] newContent = new ItemStack[content.length - 1];
                     System.arraycopy(content, 1, newContent, 0, newContent.length);
                     blockContent.put(container, newContent);
+                    Block b1 = w.getBlockAt(container.getLocation().add(0,1,0));
+                    Block b2 = w.getBlockAt(container.getLocation().add(0,-1,0));
+                    if(b1.getType().name().contains("DOOR")){
+                        blockContent.put(b1, newContent);
+                    }
+                    if(b2.getType().name().contains("DOOR")){
+                        blockContent.put(b2, newContent);
+                    }
                     checkContainer(p, container,isUsingCrowbar);
                     this.cancel();
                 }
