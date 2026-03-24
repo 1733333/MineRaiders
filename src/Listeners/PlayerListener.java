@@ -220,9 +220,10 @@ public class PlayerListener implements Listener {
                     // 启动60秒倒计时，结束后自动撤离失败
                     BukkitRunnable timer = new BukkitRunnable() {
                         int count = 0;
+                        int maxTime = 90;
                         @Override
                         public void run() {
-                            if(count >= 60) {
+                            if(count >= maxTime) {
                                 if (playerStats.isDying(p)) {
                                     triggerFailExtract(p);
                                 }
@@ -230,7 +231,7 @@ public class PlayerListener implements Listener {
                                 this.cancel();
                                 return;
                             }
-                            p.sendTitle("",ChatColor.RED + "" +  (60 - count),0,10,10);
+                            p.sendTitle("",ChatColor.RED + "" +  (maxTime - count),0,10,10);
                             p.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_HAT,1,1);
                             count ++;
                         }
@@ -621,57 +622,6 @@ public class PlayerListener implements Listener {
                 }
             }
         }
-    }
-    // ==================== 倒地菜单相关 ====================
-    @EventHandler
-    public void onPlayerOpenInventory(InventoryOpenEvent event) {
-        if (!(event.getPlayer() instanceof Player player)) return;
-        if (!playerStats.isDying(player)) return;
-
-        // 只拦截玩家打开自己的背包
-        if (event.getInventory().getType() == InventoryType.PLAYER) {
-            event.setCancelled(true);
-            openDeathMenu(player);
-        }
-    }
-
-    @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (!playerStats.isDying(player)) return;
-
-        String title = event.getView().getTitle();
-        if (!title.equals("§c倒地选择")) return;
-
-        event.setCancelled(true);
-        int slot = event.getSlot();
-        if (slot == 0) { // 放弃
-            player.closeInventory();
-            triggerFailExtract(player);
-        } else if (slot == 8) { // 观战
-            player.closeInventory();
-            player.setGameMode(GameMode.SPECTATOR);
-            triggerFailExtract(player);
-        }
-    }
-
-    private void openDeathMenu(Player player) {
-        Inventory menu = Bukkit.createInventory(null, 9, "§c倒地选择");
-        // 放弃按钮
-        ItemStack giveUp = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-        ItemMeta giveUpMeta = giveUp.getItemMeta();
-        giveUpMeta.setDisplayName("§c放弃");
-        giveUpMeta.setLore(Collections.singletonList("§7点击后立即撤离失败"));
-        giveUp.setItemMeta(giveUpMeta);
-        menu.setItem(0, giveUp);
-        // 观战按钮
-        ItemStack spectate = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-        ItemMeta spectateMeta = spectate.getItemMeta();
-        spectateMeta.setDisplayName("§f进入观战");
-        spectateMeta.setLore(Collections.singletonList("§7点击后进入观战模式"));
-        spectate.setItemMeta(spectateMeta);
-        menu.setItem(8, spectate);
-        player.openInventory(menu);
     }
 
     // ==================== 游戏结束处理 ====================
