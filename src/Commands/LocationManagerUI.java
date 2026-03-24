@@ -517,6 +517,27 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         }
     }
 
+    public static void backupLocationConfig() {
+        if (plugin == null) return;
+        File dataFolder = plugin.getDataFolder();
+        File backupDir = new File(dataFolder, "backup");
+        if (!backupDir.exists()) {
+            backupDir.mkdirs();
+        }
+        String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmm").format(new java.util.Date());
+        File locationFile = new File(dataFolder, "location.yml");
+        if (locationFile.exists()) {
+            File backupFile = new File(backupDir, "location_" + timestamp + ".yml");
+            try {
+                java.nio.file.Files.copy(locationFile.toPath(), backupFile.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                plugin.getLogger().info("已备份 location.yml 到 " + backupFile.getName());
+            } catch (IOException e) {
+                plugin.getLogger().warning("备份 location.yml 失败: " + e.getMessage());
+            }
+        }
+    }
+
     // ==================== 命令处理 ====================
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

@@ -66,5 +66,6 @@ public class MR extends JavaPlugin {
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP,1,1);
         }
         LocationManagerUI.saveToConfig();
+        LocationManagerUI.backupLocationConfig();
     }
 }
