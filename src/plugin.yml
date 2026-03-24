@@ -4,48 +4,7 @@ author: YaoGuai
 main: MR
 api-version: 1.21
 commands:
-  mineraidersdebug:
-    description: debug command
-    aliases:
-      - mrd
-      - mrdebug
-    usage: /mineraidersdebug [index]
-  getloots:
-    description: get all loots
-    usage: /getloots
-  getgadgets:
-    description: get all gadgets
-    usage: /getgadgets
-  getweapons:
-    description: get all weapons
-    usage: /getweapons
-  getarmors:
-    description: get all armors
-    usage: /getarmors
-  getrecipes:
-    description: get all recipes
-    usage: /getrecipes
-  getfreerecipes:
-    description: get all free recipes
-    usage: /getfreerecipes
-  getdrops:
-    description: get all drops
-    usage: /getdrops
-  getall:
-    description: open a menu
-    usage: /getall
-  mrlocs:
-    description: 搜打撤位置管理指令
-    usage: /mrlocs <子命令>
-    aliases:
-      - mrl
-      - mrloc
-  mrlobby:
-    description: 打开大厅
-    usage: /mrlobby
-  gamestart:
-    description: 开始游戏
-    usage: /gamestart
-  gameend:
-    description: 强制停止游戏
-    usage: /gameend
+  mineraiders:
+    description: 主命令，用于访问所有游戏功能
+    usage: /<command> [子命令]
+    aliases: [mr]

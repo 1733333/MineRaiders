@@ -633,6 +633,8 @@ public class GameListener implements Listener {
             t.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,20,0));
             t.playSound(t.getLocation(),Sound.ENTITY_ENDERMAN_TELEPORT,1,1);
             t.setGameMode(GameMode.ADVENTURE);
+            t.setHealth(20);
+            t.setFoodLevel(20);
         }
 
         // 为每个玩家添加容器高亮任务
@@ -800,13 +802,6 @@ public class GameListener implements Listener {
         GameSession session = activeGames.get(world);
         if (session == null) return;
         if (!session.players.contains(player)) return;
-
-        // 倒地状态无法交互
-        if (PlayerStats.INSTANCE.isDying(player)) {
-            player.sendMessage("§c你已倒地，无法进行操作！");
-            event.setCancelled(true);
-            return;
-        }
 
         Entity clicked = event.getRightClicked();
         if (!(clicked instanceof Snowman golem)) return;
@@ -1166,6 +1161,8 @@ public class GameListener implements Listener {
         player.getInventory().clear();
         player.teleport(world.getSpawnLocation());
         player.sendMessage("§c你撤离失败，所有物品已丢失！");
+        player.setHealth(20);
+        player.setFoodLevel(20);
 
         // 生成遗物盔甲架（如果有物品）
         boolean hasItems = false;

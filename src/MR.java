@@ -15,18 +15,8 @@ public class MR extends JavaPlugin {
         Recipes recipes = Recipes.INSTANCE;
         BoxPool boxPool = BoxPool.INSTANCE;
         Monsters monsters = Monsters.INSTANCE;
-        GameStatus gameStatus = GameStatus.INSTANCE;
         Kit k = Kit.INSTANCE;
 
-        DebugCommand debugCommand = new DebugCommand(this);
-        LootCommand lootCommand =  new LootCommand();
-        GadgetCommand gadgetCommand = new GadgetCommand();
-        WeaponCommand weaponCommand = new WeaponCommand();
-        ArmorCommand armorCommand = new ArmorCommand();
-        RecipeCommand recipeCommand = new RecipeCommand();
-        DropCommand dropCommand = new DropCommand();
-        FreeRecipeCommand freeRecipeCommand = new FreeRecipeCommand();
-        GetAllItemsCommand getAllItemsCommand = new GetAllItemsCommand();
         ArmorEquipListener armorEquipListener = new ArmorEquipListener();
         ContainerListener containerListener = new ContainerListener(this);
         GadgetListener gadgetListener = new GadgetListener(this);
@@ -36,8 +26,6 @@ public class MR extends JavaPlugin {
         ArmorListener armorListener = new ArmorListener(this);
         WeaponListener weaponListener = new WeaponListener(this);
         GameListener gameListener = new GameListener(this);
-        GameStartCommand gameStartCommand = new GameStartCommand();
-        GameEndCommand gameEndCommand = new GameEndCommand();
         LobbyCommand lobbyCommand = new LobbyCommand(this);
         LocationManagerUI.init(this);
 
@@ -52,18 +40,7 @@ public class MR extends JavaPlugin {
         manager.registerEvents(gameListener,this);
         manager.registerEvents(lobbyCommand,this);
 
-        this.getCommand("mineraidersdebug").setExecutor(debugCommand);
-        this.getCommand("getloots").setExecutor(lootCommand);
-        this.getCommand("getgadgets").setExecutor(gadgetCommand);
-        this.getCommand("getweapons").setExecutor(weaponCommand);
-        this.getCommand("getarmors").setExecutor(armorCommand);
-        this.getCommand("getrecipes").setExecutor(recipeCommand);
-        this.getCommand("getfreerecipes").setExecutor(freeRecipeCommand);
-        this.getCommand("getdrops").setExecutor(dropCommand);
-        this.getCommand("getall").setExecutor(getAllItemsCommand);
-        this.getCommand("gamestart").setExecutor(gameStartCommand);
-        this.getCommand("gameend").setExecutor(gameEndCommand);
-        this.getCommand("mrlobby").setExecutor(lobbyCommand);
+        getCommand("mineraiders").setExecutor(new MineRaidersCommand(this));
 
         k.setPlugin(this);
         recipes.setPlugin(this);
