@@ -175,7 +175,15 @@ public class ContainerListener implements Listener {
         Action action = interactEvent.getAction();
         if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
             Block b = interactEvent.getClickedBlock();
-            if(getContainerRarity(b) != -1) {
+            if(getContainerRarity(b) == -1) {
+                Material type = b.getType();
+                if(type.name().contains("BUTTON"))return;
+                List<Material> whitelist = Arrays.stream(interactBlocks).toList();
+                if(!whitelist.contains(type)){
+                    interactEvent.setCancelled(true);
+                    return;
+                }
+            }else {
                 interactEvent.setCancelled(true);
                 if(p.getCooldown(Material.COMMAND_BLOCK_MINECART) == 0) {
                     p.setCooldown(Material.COMMAND_BLOCK_MINECART,10);
@@ -227,13 +235,6 @@ public class ContainerListener implements Listener {
                         p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                                 TextComponent.fromLegacy("门松动了一些，再试试吧"));
                         w.spawnParticle(Particle.LARGE_SMOKE,b.getLocation(),10,0.5,0.5,0.5,0.05);
-                    }
-                }else {
-                    Material type = b.getType();
-                    if(type.name().contains("BUTTON"))return;
-                    List<Material> whitelist = Arrays.stream(interactBlocks).toList();
-                    if(!whitelist.contains(type)){
-                        interactEvent.setCancelled(true);
                     }
                 }
             }

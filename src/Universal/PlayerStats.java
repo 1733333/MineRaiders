@@ -63,9 +63,18 @@ public enum PlayerStats {
     }
     public void openShield(Player p) {
         isShieldOn.add(p);
+        BossBar shieldBar = playerShieldBar.getOrDefault(p.getName(),null);
+        if(shieldBar != null) {
+            shieldBar.setVisible(true);
+        }
     }
     public void closeShield(Player p) {
         isShieldOn.remove(p);
+        BossBar shieldBar = playerShieldBar.getOrDefault(p.getName(),null);
+        if(shieldBar != null) {
+            shieldBar.removeAll();
+            playerShieldBar.remove(p.getName());
+        }
     }
     public boolean hasShield(Player p) {
         return playerShield.getOrDefault(p.getName(), -1D) > 0;

@@ -56,7 +56,6 @@ public class InventoryListener implements Listener {
             World world = Bukkit.getWorld(gameStatus.getWorlds(slot));
             if(world != null) {
                 Bukkit.getPluginManager().callEvent(new GameStartEvent(world));
-                Bukkit.broadcastMessage(ChatColor.AQUA + "正在返回上层......");
             }else {
                 Bukkit.broadcastMessage(ChatColor.RED + "世界不存在！请联系管理员寻求帮助");
             }

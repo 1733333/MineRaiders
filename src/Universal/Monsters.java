@@ -60,9 +60,13 @@ public enum Monsters {
             w.spawnEntity(loc,mobs[r.nextInt(mobs.length)]);
         }
     }
+
+    int[] randArcs = new int[]{
+            1,2,3,5,
+    };
     public void randomArc(Location loc,int amount){
         for(int i = 0;i < amount;i++){
-           summonArc(loc,r.nextInt(1,5));
+           summonArc(loc,randArcs[r.nextInt(randArcs.length)]);
         }
     }
 

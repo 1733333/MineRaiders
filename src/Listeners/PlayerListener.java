@@ -80,6 +80,10 @@ public class PlayerListener implements Listener {
         double aDamage = damageEvent.getOriginalDamage(EntityDamageEvent.DamageModifier.ARMOR);
         DamageType type = damageEvent.getDamageSource().getDamageType();
         if (damaged instanceof Player p) {
+            BossBar shieldBar = PlayerStats.playerShieldBar.getOrDefault(p.getName(),null);
+            if(shieldBar != null) {
+                if (!shieldBar.isVisible()) return;
+            }
             if(!playerStats.isInGame(p))return;
             if (p.getNoDamageTicks() > 10) {
                 damageEvent.setCancelled(true);
@@ -400,14 +404,9 @@ public class PlayerListener implements Listener {
             BukkitRunnable later = new BukkitRunnable() {
                 @Override
                 public void run() {
-                    BossBar bar = PlayerStats.playerShieldBar.get(p.getName());
                     if (!k.isArmored(p)) {
                         if (playerStats.isShieldOn(p)) {
                             playerStats.closeShield(p);
-                        }
-                        if (bar != null) {
-                            bar.removeAll();
-                            PlayerStats.playerShieldBar.remove(p.getName());
                         }
                     }
                 }
