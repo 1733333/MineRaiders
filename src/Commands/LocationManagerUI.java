@@ -93,15 +93,8 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         locationKey = new NamespacedKey(plugin, "location_id");
         addTypeKey = new NamespacedKey(plugin, "add_type");
 
-        // 初始化独立配置文件
+        // 初始化配置文件对象（不创建文件）
         locationFile = new File(plugin.getDataFolder(), "location.yml");
-        if (!locationFile.exists()) {
-            try {
-                locationFile.createNewFile();
-            } catch (IOException e) {
-                plugin.getLogger().severe("无法创建 location.yml: " + e.getMessage());
-            }
-        }
         locationConfig = YamlConfiguration.loadConfiguration(locationFile);
 
         // 注册事件监听
@@ -110,7 +103,7 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         // 注意：不再注册 /mrlocs 命令，完全通过 /mr locs 子命令调用
         // 命令执行器由 MineRaidersCommand 负责调用，因此不需要在此处注册
 
-        loadFromConfig();
+        loadFromConfig(); // 尝试加载现有数据（如果文件存在）
     }
 
     // ==================== 公开 API ====================

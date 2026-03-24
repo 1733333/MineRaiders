@@ -211,7 +211,6 @@ public enum Recipes {
         recipeKeys.put(i.getItemMeta().getDisplayName(), key);
         key += 1;
         try{
-            Bukkit.broadcastMessage(ChatColor.AQUA + "自定义配方已加载");
             Bukkit.addRecipe(r); 
         } catch (Exception ignored) {}
     }
