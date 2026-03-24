@@ -8,6 +8,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -584,6 +585,7 @@ public class GameListener implements Listener {
         // 随机分配玩家到生成点
         List<Player> playersToTeleport = new ArrayList<>(readyPlayers);
         Collections.shuffle(playersToTeleport);
+        Collections.shuffle(spawnList);
         for (int i = 0; i < playersToTeleport.size(); i++) {
             Player t = playersToTeleport.get(i);
             Location spawnLoc = spawnList.get(i % spawnList.size());
@@ -792,8 +794,21 @@ public class GameListener implements Listener {
 
             // 优先检查是否处于撤离窗口期
             if (session.evacuationWindows.containsKey(golem)) {
-                // 窗口期内右键即可撤离
-                evacuatePlayer(player, golem, session);
+                double radius = EVACUATION_RADIUS;
+                List<Player> playersToEvacuate = new ArrayList<>();
+                for (Entity e : golem.getNearbyEntities(radius, radius, radius)) {
+                    if (e instanceof Player p && e.getLocation().distanceSquared(golem.getLocation()) <= radius * radius) {
+                        playersToEvacuate.add(p);
+                    }
+                }
+                // 如果有玩家撤离，先取消窗口任务（避免重复操作）
+                if (!playersToEvacuate.isEmpty()) {
+                    cancelEvacuationWindow(golem, session);
+                    cancelChargeTask(golem, session);
+                    for (Player p : playersToEvacuate) {
+                        evacuatePlayer(p, golem, session);
+                    }
+                }
                 return;
             }
 
@@ -846,24 +861,7 @@ public class GameListener implements Listener {
         GameSession session = activeGames.get(world);
         if (session == null) return;
         if (!session.players.contains(player)) return;
-
-        // 检查是否在撤离点范围内（半径 EVACUATION_RADIUS）
-        boolean inEvacuation = false;
-        for (Snowman golem : session.evacuationGolems) {
-            if (!golem.isDead() && player.getLocation().distance(golem.getLocation()) <= EVACUATION_RADIUS) {
-                inEvacuation = true;
-                break;
-            }
-        }
-
-        // 倒地状态下，即使在撤离圈内也视为撤离失败（正常死亡掉落）
-        if (inEvacuation && !PlayerStats.INSTANCE.isDying(player)) {
-            // 在撤离圈内且未倒地 -> 成功撤离
-            Bukkit.getPluginManager().callEvent(new PlayerExtractEvent(player));
-        } else {
-            // 不在圈内或倒地状态 -> 撤离失败
-            handleExtract(player, false, session);
-        }
+        handleExtract(player, false, session);
     }
 
     @EventHandler
@@ -1057,11 +1055,32 @@ public class GameListener implements Listener {
     @EventHandler
     public void onPlayerInteractArmorStand(PlayerInteractEntityEvent event) {
         if (!(event.getRightClicked() instanceof ArmorStand stand)) return;
+        if(stand.getCustomName() == null)return;
         ItemStack[] allItems = lootMap.get(stand);
         if (allItems == null) return;
         event.setCancelled(true);
         Player player = event.getPlayer();
         if(player.getGameMode() == GameMode.SPECTATOR)return;
+
+        // 从盔甲架的自定义名称中提取玩家名（格式："§e玩家名 的遗物"）
+        String displayName = stand.getCustomName();
+        String playerName = displayName != null ? displayName.substring(2, displayName.indexOf(" 的遗物")) : "未知";
+
+        Inventory gui = Bukkit.createInventory(null, 54, "§6" + playerName + " 的遗物");
+        fillInventory(gui, allItems);
+        player.openInventory(gui);
+        openLootInventories.put(gui, stand);
+    }
+
+    @EventHandler
+    public void playerInteractArmorStand(PlayerArmorStandManipulateEvent event) {
+        ArmorStand stand = event.getRightClicked();
+        if (stand.getCustomName() == null) return;
+        ItemStack[] allItems = lootMap.get(stand);
+        if (allItems == null) return;
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
 
         // 从盔甲架的自定义名称中提取玩家名（格式："§e玩家名 的遗物"）
         String displayName = stand.getCustomName();

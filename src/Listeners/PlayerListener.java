@@ -101,7 +101,7 @@ public class PlayerListener implements Listener {
         damage -= aDamage;
         damageEvent.setDamage(damage);
     }
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void playerInteractArmorStand(PlayerArmorStandManipulateEvent event) {
         ArmorStand a = event.getRightClicked();
         if (a.getCustomName() != null) {
