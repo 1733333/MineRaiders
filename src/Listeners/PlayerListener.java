@@ -101,11 +101,14 @@ public class PlayerListener implements Listener {
         damage -= aDamage;
         damageEvent.setDamage(damage);
     }
-
     @EventHandler
     public void playerInteractArmorStand(PlayerArmorStandManipulateEvent event) {
         ArmorStand a = event.getRightClicked();
         if (a.getCustomName() != null) {
+            // 如果是遗物盔甲架，则不取消事件
+            if (GameListener.isLootStand(a)) {
+                return;
+            }
             event.setCancelled(true);
         }
     }
@@ -144,7 +147,7 @@ public class PlayerListener implements Listener {
                 && p.getCooldown(Material.LIGHT) == 0) {
             p.setVelocity(slide.multiply(0.9));
             p.setCooldown(Material.LIGHT, 20);
-            if(!playerStats.isInGame(p)) {
+            if(playerStats.isInGame(p)) {
                 int food = p.getFoodLevel();
                 p.setFoodLevel(Math.max(0, food - 2));
             }

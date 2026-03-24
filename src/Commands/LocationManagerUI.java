@@ -4,6 +4,7 @@ import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -24,7 +25,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class LocationManagerUI implements Listener, CommandExecutor {
+public class LocationManagerUI implements Listener, CommandExecutor, TabCompleter {
 
     // ==================== 类型定义 ====================
     public enum LocationType {
@@ -71,6 +72,9 @@ public class LocationManagerUI implements Listener, CommandExecutor {
     private static final Map<UUID, AddState> AWAITING_INPUT = new HashMap<>();
     private static NamespacedKey addTypeKey;
 
+    // ===== 新增：添加按钮的 NamespacedKey =====
+    private static NamespacedKey addButtonKey;
+
     // 独立配置文件
     private static FileConfiguration locationConfig;
     private static File locationFile;
@@ -92,6 +96,7 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         plugin = instance;
         locationKey = new NamespacedKey(plugin, "location_id");
         addTypeKey = new NamespacedKey(plugin, "add_type");
+        addButtonKey = new NamespacedKey(plugin, "add_button"); // 新增
 
         // 初始化配置文件对象（不创建文件）
         locationFile = new File(plugin.getDataFolder(), "location.yml");
@@ -153,12 +158,13 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         Inventory gui = Bukkit.createInventory(null, 54, GUI_TITLE);
         int slot = 0;
 
+        // ===== 修改：地点最多填充到 51 号槽位，为 52 和 53 留出按钮和统计信息 =====
         for (Map.Entry<String, Map<String, LocationData>> worldEntry : LOCATIONS.entrySet()) {
             String worldName = worldEntry.getKey();
             World world = Bukkit.getWorld(worldName);
 
             for (Map.Entry<String, LocationData> locEntry : worldEntry.getValue().entrySet()) {
-                if (slot >= 53) break;
+                if (slot >= 52) break; // 最多 52 个地点，预留 52 和 53 给按钮和统计信息
 
                 String locName = locEntry.getKey();
                 LocationData data = locEntry.getValue();
@@ -167,6 +173,15 @@ public class LocationManagerUI implements Listener, CommandExecutor {
             }
         }
 
+        // ===== 新增：添加地点按钮放在 52 号槽位 =====
+        ItemStack addItem = new ItemStack(Material.NETHER_STAR);
+        ItemMeta addMeta = addItem.getItemMeta();
+        addMeta.setDisplayName("§a添加地点");
+        addMeta.getPersistentDataContainer().set(addButtonKey, PersistentDataType.BOOLEAN, true);
+        addItem.setItemMeta(addMeta);
+        gui.setItem(52, addItem);
+
+        // 统计信息放在 53 号槽位
         ItemStack statsItem = new ItemStack(Material.BOOK);
         ItemMeta statsMeta = statsItem.getItemMeta();
         statsMeta.setDisplayName("§6统计信息");
@@ -317,6 +332,12 @@ public class LocationManagerUI implements Listener, CommandExecutor {
         ItemMeta meta = clicked.getItemMeta();
         if (meta == null) return;
 
+        // ===== 新增：处理添加地点按钮点击 =====
+        if (meta.getPersistentDataContainer().has(addButtonKey, PersistentDataType.BOOLEAN)) {
+            openAddGUI(player);
+            return;
+        }
+
         if (event.getSlot() == 53 && clicked.getType() == Material.BOOK) {
             openGUI(player);
             return;
@@ -388,7 +409,6 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                 state.step = AddStep.WAITING_ID;
                 AWAITING_INPUT.put(uuid, state);
                 player.sendMessage("§a请输入该特殊怪物点的ID（整数），输入 §ccancel §a取消：");
-                return;
             } else {
                 new BukkitRunnable() {
                     @Override
@@ -398,8 +418,8 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                         AWAITING_INPUT.remove(uuid);
                     }
                 }.runTask(plugin);
-                return;
             }
+            return;
         }
 
         if (state.step == AddStep.WAITING_ID && state.type == LocationType.SPECIAL_MONSTER_SPAWN) {
@@ -581,6 +601,62 @@ public class LocationManagerUI implements Listener, CommandExecutor {
                 break;
         }
         return true;
+    }
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (!(sender instanceof Player player)) return Collections.emptyList();
+
+        if (args.length == 1) {
+            // 补全子命令
+            return Arrays.asList("gui", "addgui", "list", "add", "remove", "tp");
+        } else if (args.length >= 2) {
+            String sub = args[0].toLowerCase();
+            switch (sub) {
+                case "list":
+                    if (args.length == 2) {
+                        // 补全世界名
+                        return getWorldNames();
+                    }
+                    break;
+                case "add":
+                    if (args.length == 3) {
+                        // 补全类型
+                        return Arrays.asList("player", "monster", "evacuate", "special_evac", "special_monster");
+                    }
+                    break;
+                case "remove":
+                    if (args.length == 2) {
+                        // 补全当前世界的地点名称
+                        return getLocationNames(player.getWorld().getName());
+                    } else if (args.length == 3) {
+                        // 补全世界名
+                        return getWorldNames();
+                    }
+                    break;
+                case "tp":
+                    if (args.length == 2) {
+                        // 补全当前世界的地点名称
+                        return getLocationNames(player.getWorld().getName());
+                    } else if (args.length == 3) {
+                        // 补全世界名
+                        return getWorldNames();
+                    }
+                    break;
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    private List<String> getWorldNames() {
+        List<String> worlds = new ArrayList<>();
+        for (World w : Bukkit.getWorlds()) worlds.add(w.getName());
+        return worlds;
+    }
+
+    private List<String> getLocationNames(String worldName) {
+        Map<String, LocationData> worldLocs = LOCATIONS.get(worldName);
+        if (worldLocs == null) return Collections.emptyList();
+        return new ArrayList<>(worldLocs.keySet());
     }
 
     private void sendHelp(Player player) {

@@ -40,13 +40,31 @@ public class GameListener implements Listener {
     private static final int EVACUATION_WINDOW_DURATION = 20; // 撤离窗口期（秒）
     private static final double EVACUATION_RADIUS = 5.0;      // 撤离生效半径
 
-    // 撤离失败物品存储
-    private static final Map<UUID, FailedLoot> lootMap = new HashMap<>();
-    // 记录打开的遗物GUI与对应的盔甲架UUID（用于允许任何人取走物品）
-    private static final Map<Inventory, UUID> openLootInventories = new WeakHashMap<>();
+    // 撤离失败物品存储（盔甲架 -> 物品数组）
+    private static final Map<ArmorStand, ItemStack[]> lootMap = new HashMap<>();
+    // 清理任务存储（盔甲架 -> 清理任务）
+    private static final Map<ArmorStand, BukkitTask> cleanTasks = new HashMap<>();
+    // 记录打开的遗物GUI与对应的盔甲架
+    private static final Map<Inventory, ArmorStand> openLootInventories = new WeakHashMap<>();
 
     public GameListener(JavaPlugin plugin) {
         GameListener.plugin = plugin;
+    }
+
+    // ========================= 辅助方法：清理准备状态 =========================
+    /**
+     * 清除单个玩家的准备状态（同时清除 PlayerStats 和 GameStatus）
+     */
+    private void clearPlayerReady(Player player, String worldName) {
+        PlayerStats.INSTANCE.stopReady(player);
+        GameStatus.INSTANCE.removeReadyPlayer(worldName, player.getUniqueId());
+    }
+
+    /**
+     * 清除整个世界的准备状态
+     */
+    private void clearWorldReady(String worldName) {
+        GameStatus.INSTANCE.clearReadyPlayers(worldName);
     }
 
     // ========================= 内部类：游戏会话 =========================
@@ -61,6 +79,9 @@ public class GameListener implements Listener {
         boolean isEnding = false;                  // 游戏是否正在结束（等待充能完成）
         boolean ended = false;                     // 游戏是否已经结束（防止重复执行endGame）
         final Set<Snowman> activeGolems = new HashSet<>(); // 正在充能或处于窗口期的撤离点
+
+        // 本局游戏中撤离失败的玩家名称集合
+        final Set<String> failedPlayers = new HashSet<>();
 
         // 怪物刷新盔甲架列表
         final List<ArmorStand> monsterTriggers = new ArrayList<>();
@@ -265,80 +286,6 @@ public class GameListener implements Listener {
         }
     }
 
-    // ========================= 内部类：撤离失败物品数据（无 owner 限制） =========================
-    private static class FailedLoot {
-        final ItemStack[] inventory;               // 主背包（36格）
-        final ItemStack[] armor;                   // 盔甲栏（4格）
-        ItemStack offHand;                         // 副手
-        final BukkitTask cleanTask;                // 清理任务
-        final String playerName;                   // 仅用于 GUI 标题显示
-
-        FailedLoot(ItemStack[] inventory, ItemStack[] armor, ItemStack offHand, BukkitTask cleanTask, String playerName) {
-            this.inventory = inventory.clone();
-            this.armor = armor.clone();
-            this.offHand = offHand == null ? null : offHand.clone();
-            this.cleanTask = cleanTask;
-            this.playerName = playerName;
-        }
-
-        /**
-         * 将物品填充到 GUI 中（按顺序：背包、盔甲、副手）
-         */
-        void fillInventory(Inventory inv) {
-            // 背包 0-35
-            for (int i = 0; i < inventory.length; i++) {
-                if (inventory[i] != null) inv.setItem(i, inventory[i].clone());
-            }
-            // 盔甲栏 36-39
-            for (int i = 0; i < armor.length; i++) {
-                if (armor[i] != null) inv.setItem(36 + i, armor[i].clone());
-            }
-            // 副手 40
-            if (offHand != null) inv.setItem(40, offHand.clone());
-        }
-
-        /**
-         * 从 GUI 中移除已取走的物品，同步更新内部存储
-         * @param slot 被点击的格子
-         * @return 如果该格子有物品且被成功取出，返回 true
-         */
-        boolean takeItem(int slot, Player player) {
-            if (slot < 0 || slot > 40) return false;
-            ItemStack taken = null;
-            if (slot < 36) {
-                if (inventory[slot] != null) {
-                    taken = inventory[slot].clone();
-                    inventory[slot] = null;
-                }
-            } else if (slot < 40) {
-                int idx = slot - 36;
-                if (armor[idx] != null) {
-                    taken = armor[idx].clone();
-                    armor[idx] = null;
-                }
-            } else if (slot == 40) {
-                if (offHand != null) {
-                    taken = offHand.clone();
-                    offHand = null;
-                }
-            }
-            if (taken != null) {
-                // 将物品给予玩家
-                player.getInventory().addItem(taken).values().forEach(remaining -> {
-                    player.getWorld().dropItem(player.getLocation(), remaining);
-                });
-                return true;
-            }
-            return false;
-        }
-
-        boolean isEmpty() {
-            for (ItemStack i : inventory) if (i != null) return false;
-            for (ItemStack i : armor) if (i != null) return false;
-            return offHand == null;
-        }
-    }
-
     // ========================= 辅助方法 =========================
     private void startContainerHighlight(Player player, World world) {
         ContainerListener cl = new ContainerListener(plugin);
@@ -354,7 +301,7 @@ public class GameListener implements Listener {
                     for (int b = -radius; b <= radius; b++) {
                         for (int c = -radius; c <= radius; c++) {
                             Location bLoc = player.getLocation().add(a, b, c).clone();
-                            Block block = world.getBlockAt(bLoc);
+                            Block block = player.getWorld().getBlockAt(bLoc);
                             if (gameStatus.isEmpty(block)) continue;
                             int rarity = cl.getContainerRarity(block);
                             if (rarity != -1) {
@@ -382,7 +329,6 @@ public class GameListener implements Listener {
         World world = location.getWorld();
         if (world == null) return;
 
-        // 生成小盔甲架
         ArmorStand stand = world.spawn(location, ArmorStand.class);
         stand.setSmall(true);
         stand.setVisible(true);
@@ -391,30 +337,39 @@ public class GameListener implements Listener {
         stand.setCanPickupItems(false);
         stand.setMarker(false);
         stand.setCustomName("§e" + player.getName() + " 的遗物");
-        stand.setCustomNameVisible(true);
 
-        // 设置装备：头颅 + 皮革护甲
         ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
         meta.setOwningPlayer(player);
         skull.setItemMeta(meta);
         stand.getEquipment().setHelmet(skull);
-
         stand.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
         stand.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
         stand.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+
+        // 合并所有物品到一个数组（背包 0-35，盔甲 36-39，副手 40）
+        ItemStack[] allItems = new ItemStack[41];
+        for (int i = 0; i < inv.length; i++) {
+            if (inv[i] != null) allItems[i] = inv[i].clone();
+        }
+        for (int i = 0; i < armor.length; i++) {
+            if (armor[i] != null) allItems[36 + i] = armor[i].clone();
+        }
+        if (offHand != null) allItems[40] = offHand.clone();
+
+        // 存储物品
+        lootMap.put(stand, allItems);
 
         // 5分钟后自动清理
         BukkitTask cleanTask = new BukkitRunnable() {
             @Override
             public void run() {
                 if (!stand.isDead()) stand.remove();
-                lootMap.remove(stand.getUniqueId());
+                lootMap.remove(stand);
+                cleanTasks.remove(stand);
             }
-        }.runTaskLater(plugin, 6000L); // 5分钟
-
-        // 保存数据（不再保存 owner）
-        lootMap.put(stand.getUniqueId(), new FailedLoot(inv, armor, offHand, cleanTask, player.getName()));
+        }.runTaskLater(plugin, 6000L);
+        cleanTasks.put(stand, cleanTask);
     }
 
     // ========================= 撤离点充能 + 窗口期逻辑 =========================
@@ -489,10 +444,10 @@ public class GameListener implements Listener {
 
         // 广播坐标给所有游戏内玩家
         Location loc = golem.getLocation();
-        String coordMsg = "§e撤离点就绪！位于 [" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "]，右键即可撤离！窗口期 " + EVACUATION_WINDOW_DURATION + " 秒。";
         for (Player p : session.players) {
             if (p.isOnline()) {
-                p.sendMessage(coordMsg);
+                p.sendMessage("位于§e" + "[" + loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ() + "]" +
+                        "§a的撤离点已经开启，使用§b鼠标右键§a点击雪傀儡即可撤离");
                 p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.5f);
             }
         }
@@ -552,10 +507,14 @@ public class GameListener implements Listener {
         cancelEvacuationWindow(golem, session);
         cancelChargeTask(golem, session);
 
-        // 移除雪傀儡并清理引用
-        golem.remove();
-        session.evacuationGolems.remove(golem);
+        // 重置雪傀儡外观（取消任务时已重置，但再次确保）
+        if (!golem.isDead()) {
+            golem.setGlowing(true);
+            golem.setCustomName("§a撤离点");
+        }
+        // 从激活集合中移除，但保留在撤离点列表中，以便其他玩家重新激活
         session.removeActiveGolem(golem);
+        // 注意：不要移除雪傀儡本身！ session.evacuationGolems 中仍保留
 
         player.sendMessage("§a你通过撤离点成功撤离！");
     }
@@ -629,7 +588,8 @@ public class GameListener implements Listener {
             Player t = playersToTeleport.get(i);
             Location spawnLoc = spawnList.get(i % spawnList.size());
             PlayerStats.INSTANCE.setInGame(playersToTeleport.get(i));
-            PlayerStats.INSTANCE.stopReady(playersToTeleport.get(i));
+            // 【修改】清除准备状态（同时清除 PlayerStats 和 GameStatus）
+            clearPlayerReady(t, world.getName());
             t.teleport(spawnLoc);
             t.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,20,0));
             t.playSound(t.getLocation(),Sound.ENTITY_ENDERMAN_TELEPORT,1,1);
@@ -761,6 +721,14 @@ public class GameListener implements Listener {
             return;
         }
 
+        // 【新增】检查是否在本局游戏中撤离失败过
+        if (session.failedPlayers.contains(player.getName())) {
+            player.sendMessage("§c你已在本局游戏中撤离失败，无法重新加入，只能观战。");
+            player.setGameMode(GameMode.SPECTATOR);
+            player.teleport(world.getSpawnLocation());
+            return;
+        }
+
         Map<String, Location> playerSpawns = LocationManagerUI.getLocationsByType(world.getName(),
                 LocationManagerUI.LocationType.PLAYER_SPAWN);
         List<Location> spawnList = new ArrayList<>(playerSpawns.values());
@@ -771,6 +739,8 @@ public class GameListener implements Listener {
 
         Random rand = new Random();
         Location spawnLoc = spawnList.get(rand.nextInt(spawnList.size()));
+        player.setHealth(20);
+        player.setFoodLevel(20);
         player.teleport(spawnLoc);
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,20,0));
@@ -789,6 +759,8 @@ public class GameListener implements Listener {
         session.updateScoreboard();
 
         PlayerStats.INSTANCE.setInGame(player);
+        // 【修改】中途加入时清除其准备状态
+        clearPlayerReady(player, world.getName());
         startContainerHighlight(player, world);
 
         player.sendMessage("§a你已中途加入游戏！剩余时间：" +
@@ -803,34 +775,37 @@ public class GameListener implements Listener {
         GameSession session = activeGames.get(world);
         if (session == null) return;
         if (!session.players.contains(player)) return;
+        if(player.getGameMode() == GameMode.SPECTATOR)return;
 
         Entity clicked = event.getRightClicked();
         if (!(clicked instanceof Snowman golem)) return;
         if (!session.evacuationGolems.contains(golem)) return;
 
         event.setCancelled(true);
+        if(player.getCooldown(Material.CARVED_PUMPKIN) == 0) {
+            player.setCooldown(Material.CARVED_PUMPKIN,10);
+            // 如果游戏已经结束（等待充能中），禁止新的激活
+            if (session.isEnding) {
+                player.sendMessage("§c游戏已结束，无法激活撤离点！");
+                return;
+            }
 
-        // 如果游戏已经结束（等待充能中），禁止新的激活
-        if (session.isEnding) {
-            player.sendMessage("§c游戏已结束，无法激活撤离点！");
-            return;
+            // 优先检查是否处于撤离窗口期
+            if (session.evacuationWindows.containsKey(golem)) {
+                // 窗口期内右键即可撤离
+                evacuatePlayer(player, golem, session);
+                return;
+            }
+
+            // 检查是否正在充能
+            if (session.chargeTasks.containsKey(golem)) {
+                player.sendMessage("§c撤离点正在充能中，请稍后！");
+                return;
+            }
+
+            // 未激活状态 -> 开始充能
+            startCharging(golem, session, player);
         }
-
-        // 优先检查是否处于撤离窗口期
-        if (session.evacuationWindows.containsKey(golem)) {
-            // 窗口期内右键即可撤离
-            evacuatePlayer(player, golem, session);
-            return;
-        }
-
-        // 检查是否正在充能
-        if (session.chargeTasks.containsKey(golem)) {
-            player.sendMessage("§c撤离点正在充能中，请稍后！");
-            return;
-        }
-
-        // 未激活状态 -> 开始充能
-        startCharging(golem, session, player);
     }
 
     @EventHandler
@@ -913,11 +888,20 @@ public class GameListener implements Listener {
         if (session == null) return;
         if (!session.players.contains(player)) return;
 
+        // 如果玩家处于倒地状态，清除倒地状态
+        if (PlayerStats.INSTANCE.isDying(player)) {
+            BukkitRunnable timer = PlayerListener.dyingTimers.remove(player);
+            if (timer != null) timer.cancel();
+            PlayerStats.INSTANCE.stopDying(player);
+            player.removePotionEffect(PotionEffectType.WEAKNESS);
+            player.removePotionEffect(PotionEffectType.MINING_FATIGUE);
+        }
+
         // 从游戏会话中移除玩家
         session.removePlayer(player);
         PlayerStats.INSTANCE.stopInGame(player);
-        // 取消准备状态（确保）
-        PlayerStats.INSTANCE.stopReady(player);
+        // 清除准备状态
+        clearPlayerReady(player, world.getName());
 
         // 传送到世界出生点
         Location spawn = world.getSpawnLocation();
@@ -994,6 +978,8 @@ public class GameListener implements Listener {
                 p.teleport(world.getSpawnLocation());
                 p.setGameMode(GameMode.SURVIVAL);
                 PlayerStats.INSTANCE.stopSpectating(p);
+                // 【修改】观战玩家也清除准备状态
+                clearPlayerReady(p, world.getName());
                 p.sendMessage("§c游戏结束，返回上层。");
             }
         }
@@ -1017,20 +1003,21 @@ public class GameListener implements Listener {
         }
 
         // 9. 清理本世界的遗物盔甲架及打开的 GUI
-        Iterator<Map.Entry<UUID, FailedLoot>> it = lootMap.entrySet().iterator();
+        Iterator<Map.Entry<ArmorStand, ItemStack[]>> it = lootMap.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<UUID, FailedLoot> entry = it.next();
-            Entity e = Bukkit.getEntity(entry.getKey());
-            if (e != null && e.getWorld().equals(world)) {
-                e.remove();
-                entry.getValue().cleanTask.cancel();
+            Map.Entry<ArmorStand, ItemStack[]> entry = it.next();
+            ArmorStand stand = entry.getKey();
+            if (stand != null && !stand.isDead() && stand.getWorld().equals(world)) {
+                stand.remove();
+                BukkitTask task = cleanTasks.remove(stand);
+                if (task != null) task.cancel();
                 it.remove();
             }
         }
         // 关闭所有打开的相关 GUI
         for (Inventory inv : new ArrayList<>(openLootInventories.keySet())) {
-            UUID standId = openLootInventories.get(inv);
-            if (standId != null && !lootMap.containsKey(standId)) {
+            ArmorStand stand = openLootInventories.get(inv);
+            if (stand == null || stand.isDead() || !lootMap.containsKey(stand)) {
                 // 如果对应的盔甲架已不存在，关闭所有查看该 GUI 的玩家
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (p.getOpenInventory().getTopInventory().equals(inv)) {
@@ -1041,7 +1028,10 @@ public class GameListener implements Listener {
             }
         }
 
-        // 10. 从全局活跃游戏映射中移除
+        // 10. 【修改】清除该世界的所有准备状态
+        clearWorldReady(world.getName());
+
+        // 11. 从全局活跃游戏映射中移除
         activeGames.remove(world);
     }
 
@@ -1067,16 +1057,33 @@ public class GameListener implements Listener {
     @EventHandler
     public void onPlayerInteractArmorStand(PlayerInteractEntityEvent event) {
         if (!(event.getRightClicked() instanceof ArmorStand stand)) return;
-        FailedLoot loot = lootMap.get(stand.getUniqueId());
-        if (loot == null) return;
+        ItemStack[] allItems = lootMap.get(stand);
+        if (allItems == null) return;
         event.setCancelled(true);
         Player player = event.getPlayer();
+        if(player.getGameMode() == GameMode.SPECTATOR)return;
 
-        // 创建 GUI 并记录映射
-        Inventory gui = Bukkit.createInventory(null, 54, "§6" + loot.playerName + " 的遗物");
-        loot.fillInventory(gui);
+        // 从盔甲架的自定义名称中提取玩家名（格式："§e玩家名 的遗物"）
+        String displayName = stand.getCustomName();
+        String playerName = displayName != null ? displayName.substring(2, displayName.indexOf(" 的遗物")) : "未知";
+
+        Inventory gui = Bukkit.createInventory(null, 54, "§6" + playerName + " 的遗物");
+        fillInventory(gui, allItems);
         player.openInventory(gui);
-        openLootInventories.put(gui, stand.getUniqueId());
+        openLootInventories.put(gui, stand);
+    }
+
+    private void fillInventory(Inventory inv, ItemStack[] allItems) {
+        // 背包 0-35
+        for (int i = 0; i < 36; i++) {
+            if (allItems[i] != null) inv.setItem(i, allItems[i].clone());
+        }
+        // 盔甲 36-39
+        for (int i = 0; i < 4; i++) {
+            if (allItems[36 + i] != null) inv.setItem(36 + i, allItems[36 + i].clone());
+        }
+        // 副手 40
+        if (allItems[40] != null) inv.setItem(40, allItems[40].clone());
     }
 
     /**
@@ -1092,35 +1099,71 @@ public class GameListener implements Listener {
         int slot = event.getRawSlot();
         if (slot < 0 || slot >= 54) return;
 
-        UUID standId = openLootInventories.get(inv);
-        if (standId == null) {
+        ArmorStand stand = openLootInventories.get(inv);
+        if (stand == null || stand.isDead()) {
             player.closeInventory();
             return;
         }
 
-        FailedLoot loot = lootMap.get(standId);
-        if (loot == null) {
+        ItemStack[] allItems = lootMap.get(stand);
+        if (allItems == null) {
             player.closeInventory();
             openLootInventories.remove(inv);
             return;
         }
 
-        boolean taken = loot.takeItem(slot, player);
+        boolean taken = false;
+        ItemStack takenItem = null;
+        if (slot < 36) {
+            if (allItems[slot] != null) {
+                takenItem = allItems[slot].clone();
+                allItems[slot] = null;
+                taken = true;
+            }
+        } else if (slot < 40) {
+            int idx = slot - 36;
+            if (allItems[36 + idx] != null) {
+                takenItem = allItems[36 + idx].clone();
+                allItems[36 + idx] = null;
+                taken = true;
+            }
+        } else if (slot == 40) {
+            if (allItems[40] != null) {
+                takenItem = allItems[40].clone();
+                allItems[40] = null;
+                taken = true;
+            }
+        }
+
         if (taken) {
+            // 给予玩家物品
+            player.getInventory().addItem(takenItem).values().forEach(remaining -> {
+                player.getWorld().dropItem(player.getLocation(), remaining);
+            });
+
             inv.clear();
-            loot.fillInventory(inv);
-            if (loot.isEmpty()) {
-                // 物品取空，关闭所有打开此 GUI 的玩家，移除盔甲架
+            fillInventory(inv, allItems);
+
+            // 检查是否全部物品已取空
+            boolean isEmpty = true;
+            for (ItemStack item : allItems) {
+                if (item != null) {
+                    isEmpty = false;
+                    break;
+                }
+            }
+            if (isEmpty) {
+                // 关闭所有打开此 GUI 的玩家
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (p.getOpenInventory().getTopInventory().equals(inv)) {
                         p.closeInventory();
                     }
                 }
                 openLootInventories.remove(inv);
-                ArmorStand stand = (ArmorStand) Bukkit.getEntity(standId);
-                if (stand != null && !stand.isDead()) stand.remove();
-                if (loot.cleanTask != null) loot.cleanTask.cancel();
-                lootMap.remove(standId);
+                stand.remove();
+                BukkitTask task = cleanTasks.remove(stand);
+                if (task != null) task.cancel();
+                lootMap.remove(stand);
                 player.sendMessage("§a所有遗物已取回，盔甲架消失。");
             } else {
                 player.updateInventory();
@@ -1147,6 +1190,11 @@ public class GameListener implements Listener {
         if (session != null && session.players.contains(player)) {
             session.removePlayer(player);
             PlayerStats.INSTANCE.stopInGame(player);
+        }
+
+        // 【新增】记录失败玩家名称
+        if (session != null) {
+            session.failedPlayers.add(player.getName());
         }
 
         // 处理倒地状态
@@ -1189,8 +1237,12 @@ public class GameListener implements Listener {
         if (!success) {
             Bukkit.getPluginManager().callEvent(new PlayerFailToExtractEvent(player));
         }
-        // 无论成功与否，都要取消准备状态（如果还没被取消）
-        PlayerStats.INSTANCE.stopReady(player);
+        // 【修改】无论成功与否，都清除准备状态（成功时已在 onPlayerExtract 中清除，这里仅处理失败）
+        if (!success) {
+            String worldName = player.getWorld().getName();
+            PlayerStats.INSTANCE.stopReady(player);
+            GameStatus.INSTANCE.removeReadyPlayer(worldName, player.getUniqueId());
+        }
     }
 
     private double getItemValue(ItemStack item) {
@@ -1202,6 +1254,10 @@ public class GameListener implements Listener {
     }
 
     // ========================= 公共静态方法 =========================
+    public static boolean isLootStand(ArmorStand stand) {
+        return lootMap.containsKey(stand);
+    }
+
     public static boolean isGameActive(World world) {
         return activeGames.containsKey(world);
     }

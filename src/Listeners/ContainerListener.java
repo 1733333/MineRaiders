@@ -175,21 +175,6 @@ public class ContainerListener implements Listener {
         Action action = interactEvent.getAction();
         if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
             Block b = interactEvent.getClickedBlock();
-            if(getContainerRarity(b) == -1) {
-                Material type = b.getType();
-                if(type.name().contains("BUTTON"))return;
-                List<Material> whitelist = Arrays.stream(interactBlocks).toList();
-                if(!whitelist.contains(type)){
-                    interactEvent.setCancelled(true);
-                    return;
-                }
-            }else {
-                interactEvent.setCancelled(true);
-                if(p.getCooldown(Material.COMMAND_BLOCK_MINECART) == 0) {
-                    p.setCooldown(Material.COMMAND_BLOCK_MINECART,10);
-                    openContainer(p, b);
-                }
-            }
             if(b.getType() == Material.IRON_DOOR){
                 Block b1 = w.getBlockAt(b.getLocation().add(0,1,0));
                 Block b2 = w.getBlockAt(b.getLocation().add(0,-1,0));
@@ -236,6 +221,22 @@ public class ContainerListener implements Listener {
                                 TextComponent.fromLegacy("门松动了一些，再试试吧"));
                         w.spawnParticle(Particle.LARGE_SMOKE,b.getLocation(),10,0.5,0.5,0.5,0.05);
                     }
+                }
+            }
+            if(getContainerRarity(b) == -1) {
+                Material type = b.getType();
+                if(type.isInteractable()) {
+                    if (type.name().contains("BUTTON")) return;
+                    List<Material> whitelist = Arrays.stream(interactBlocks).toList();
+                    if (!whitelist.contains(type)) {
+                        interactEvent.setCancelled(true);
+                    }
+                }
+            }else {
+                interactEvent.setCancelled(true);
+                if(p.getCooldown(Material.COMMAND_BLOCK_MINECART) == 0) {
+                    p.setCooldown(Material.COMMAND_BLOCK_MINECART,10);
+                    openContainer(p, b);
                 }
             }
         }

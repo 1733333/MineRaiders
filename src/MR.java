@@ -4,6 +4,7 @@ import Commands.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -41,6 +42,8 @@ public class MR extends JavaPlugin {
         manager.registerEvents(lobbyCommand,this);
 
         getCommand("mineraiders").setExecutor(new MineRaidersCommand(this));
+        getCommand("mr").setTabCompleter(new MineRaidersCommand(this));
+
 
         k.setPlugin(this);
         recipes.setPlugin(this);

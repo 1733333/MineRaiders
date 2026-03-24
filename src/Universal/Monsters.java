@@ -62,7 +62,7 @@ public enum Monsters {
     }
 
     int[] randArcs = new int[]{
-            1,2,3,5,
+            1,2,3
     };
     public void randomArc(Location loc,int amount){
         for(int i = 0;i < amount;i++){
@@ -756,7 +756,7 @@ public enum Monsters {
                 getTarget.runTaskTimer(plugin, 0L, 50L);
                 shooting.runTaskTimer(plugin, 0L, 50L);
             }
-        }.runTaskLater(plugin,1L);
+        }.runTaskLater(plugin,2L);
     }
     public Entity dukeMinion(Location loc,boolean isMinion){
         World w = loc.getWorld();

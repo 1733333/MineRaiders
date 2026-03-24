@@ -109,17 +109,15 @@ public class GadgetListener implements Listener {
         String tag = k.getLore(hand);
         String tag1 = k.getLore(offHand);
         if (rightClick) {
-            boolean handled = false;
             if (offHand.getType() != Material.AIR) {
                 switch (tag1) {
                     case "§f可以修复物品的粉末":
                         mendingPowder(p,offHand);
                         interactEvent.setCancelled(true);
-                        handled = true;
                         break;
                 }
             }
-            if (!handled && hand.getType() != Material.AIR) {
+            if (hand.getType() != Material.AIR) {
                 switch (tag) {
                     case "§f闪爆手雷":
                         grenade(p, hand);

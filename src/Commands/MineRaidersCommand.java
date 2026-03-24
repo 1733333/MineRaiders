@@ -15,10 +15,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
-public class MineRaidersCommand implements CommandExecutor {
+public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
 
     private final JavaPlugin plugin;
     private final Map<String, CommandExecutor> subCommands = new HashMap<>();
+    private final Map<String, TabCompleter> subCompleters = new HashMap<>();
 
     public MineRaidersCommand(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -36,6 +37,13 @@ public class MineRaidersCommand implements CommandExecutor {
         subCommands.put("weapon", new WeaponCommand());
         subCommands.put("summondamagetester", new SummonDamageTester());
         subCommands.put("locs", new LocationManagerUI()); // 新增地点管理子命令
+
+        // 注册对应的 TabCompleter（若子命令实现了 TabCompleter）
+        for (Map.Entry<String, CommandExecutor> entry : subCommands.entrySet()) {
+            if (entry.getValue() instanceof TabCompleter) {
+                subCompleters.put(entry.getKey(), (TabCompleter) entry.getValue());
+            }
+        }
     }
 
     @Override
@@ -67,6 +75,42 @@ public class MineRaidersCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "未知的子命令！使用 /mr 打开主菜单。");
             return true;
         }
+    }
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (args.length == 1) {
+            // 顶级子命令补全
+            List<String> allCommands = new ArrayList<>(subCommands.keySet());
+            allCommands.add("debug"); // debug 是特殊子命令
+            return filter(allCommands, args[0]);
+        } else if (args.length >= 2) {
+            String sub = args[0].toLowerCase();
+            // 如果子命令有对应的 TabCompleter，则转发
+            TabCompleter completer = subCompleters.get(sub);
+            if (completer != null) {
+                // 构造新的参数数组（去掉第一个子命令名）
+                String[] newArgs = new String[args.length - 1];
+                System.arraycopy(args, 1, newArgs, 0, newArgs.length);
+                return completer.onTabComplete(sender, command, sub, newArgs);
+            } else if (sub.equals("debug")) {
+                // debug 子命令的参数补全：数字 0-14
+                if (args.length == 2) {
+                    List<String> numbers = new ArrayList<>();
+                    for (int i = 0; i <= 14; i++) numbers.add(String.valueOf(i));
+                    return filter(numbers, args[1]);
+                }
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    private List<String> filter(List<String> list, String prefix) {
+        if (prefix == null || prefix.isEmpty()) return list;
+        List<String> result = new ArrayList<>();
+        for (String s : list) {
+            if (s.toLowerCase().startsWith(prefix.toLowerCase())) result.add(s);
+        }
+        return result;
     }
 
     // ========================== 主菜单 ==========================
