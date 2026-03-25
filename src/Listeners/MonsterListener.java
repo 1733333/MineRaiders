@@ -233,6 +233,9 @@ public class MonsterListener implements Listener {
     @EventHandler
     public void mobDeathDrops(EntityDeathEvent deathEvent) {
         LivingEntity mob = deathEvent.getEntity();
+        if(!(mob instanceof Player)){
+            deathEvent.getDrops().clear();
+        }
         World w = mob.getWorld();
         String dName = mob.getName();
         List<ItemStack> drops = new ArrayList<>();
@@ -384,7 +387,6 @@ public class MonsterListener implements Listener {
                 }
             }
         }
-        deathEvent.getDrops().clear();
         for(ItemStack i : drops){
             w.dropItem(mob.getLocation(),i);
         }

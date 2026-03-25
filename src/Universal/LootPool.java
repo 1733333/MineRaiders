@@ -329,6 +329,7 @@ public enum LootPool {
     }
 
     public int getRarity(ItemStack item) {
+        if(!item.hasItemMeta())return -1;
         ItemMeta meta = item.getItemMeta();
         String name = meta.getDisplayName();
         if (!name.contains("§")) return -1;

@@ -677,7 +677,7 @@ public enum Monsters {
         bottom.setSilent(true);
         bottom.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 2));
         bottom.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 10));
-        new BukkitRunnable(){
+        BukkitRunnable later = new BukkitRunnable(){
             @Override
             public void run() {
                 Pillager top = (Pillager) w.spawnEntity(loc, EntityType.PILLAGER);
@@ -756,7 +756,8 @@ public enum Monsters {
                 getTarget.runTaskTimer(plugin, 0L, 50L);
                 shooting.runTaskTimer(plugin, 0L, 50L);
             }
-        }.runTaskLater(plugin,2L);
+        };
+        later.runTaskLater(plugin,2L);
     }
     public Entity dukeMinion(Location loc,boolean isMinion){
         World w = loc.getWorld();

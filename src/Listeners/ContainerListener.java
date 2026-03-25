@@ -400,9 +400,9 @@ public class ContainerListener implements Listener {
                     Location bLoc = container.getLocation();
                     Location pLoc = p.getEyeLocation();
                     Vector offSet = pLoc.toVector().subtract(bLoc.toVector());
-                    w.dropItem(bLoc.add(offSet.multiply(0.5)), item);
+                    w.dropItem(bLoc.add(offSet.multiply(0.5)), item).setTicksLived(5400);
                     if (item2 != null) {
-                        w.dropItem(bLoc.add(offSet.multiply(0.5)), item2);
+                        w.dropItem(bLoc.add(offSet.multiply(0.5)), item2).setTicksLived(5400);;
                         w.spawnParticle(Particle.TOTEM_OF_UNDYING,bLoc,20,1,1,1,0.5);
                         int rarity2 = lp.getRarity(item2);
                         if(rarity2 > rarity){
