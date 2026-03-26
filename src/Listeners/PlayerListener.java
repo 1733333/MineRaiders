@@ -20,10 +20,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
@@ -73,26 +70,24 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void playerDamageListener(EntityDamageEvent damageEvent) {
+    public void playerShieldDamageReduction(EntityDamageEvent damageEvent) {
         if (damageEvent.isCancelled()) return;
         Entity damaged = damageEvent.getEntity();
         double damage = damageEvent.getDamage();
         double aDamage = damageEvent.getOriginalDamage(EntityDamageEvent.DamageModifier.ARMOR);
         DamageType type = damageEvent.getDamageSource().getDamageType();
         if (damaged instanceof Player p) {
-            BossBar shieldBar = PlayerStats.playerShieldBar.getOrDefault(p.getName(),null);
-            if(shieldBar != null) {
-                if (!shieldBar.isVisible()) return;
-            }
             if (p.getNoDamageTicks() > 10) {
                 damageEvent.setCancelled(true);
                 return;
             }
-            if (type != DamageType.FALL && type != DamageType.STARVE && !p.isBlocking()) {
-                if (playerStats.isShieldOn(p)) {
-                    if (playerStats.hasShield(p)) {
-                        Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, -damage));
-                        damage *= 0.6;
+            if (playerStats.isShieldOn(p)) {
+                if (type != DamageType.FALL && type != DamageType.STARVE && !p.isBlocking()) {
+                    if (playerStats.isShieldOn(p)) {
+                        if (playerStats.hasShield(p)) {
+                            Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, -damage));
+                            damage *= 0.6;
+                        }
                     }
                 }
             }
@@ -398,7 +393,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void playerEquipArmor(ArmorEquipEvent equipEvent) {
         Player p = equipEvent.getPlayer();
-        EntityEquipment e = p.getEquipment();
+        if(!playerStats.isInGame(p)) return;
         double shield = playerStats.getShield(p);
         int maxShield = playerStats.getMaxShield();
         ItemStack newPiece = equipEvent.getNewArmorPiece();
@@ -416,34 +411,14 @@ public class PlayerListener implements Listener {
             };
             later.runTaskLater(plugin, 1L);
         } else {
-            BossBar bar = PlayerStats.playerShieldBar.get(p.getName());
             if (shield == -1 || !playerStats.isShieldOn(p)) {
                 if (shield == -1) {
-                    playerStats.setShield(p, maxShield);
-                    Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, 20));
+                    GadgetListener gadgetListener = new GadgetListener(plugin);
+                    gadgetListener.battery(p,10,20,new ItemStack(Material.NETHER_PORTAL));
                 }
                 if (!playerStats.isShieldOn(p)) {
                     playerStats.openShield(p);
                 }
-                if (bar == null) {
-                    bar = Bukkit.createBossBar(
-                            ChatColor.AQUA + "" + ChatColor.BOLD + "护盾丨电量：" + String.format("%.2f", maxShield * 1.0),
-                            BarColor.BLUE, BarStyle.SEGMENTED_10);
-                    bar.addPlayer(p);
-                    PlayerStats.playerShieldBar.put(p.getName(), bar);
-                }
-                double progress = shield / maxShield;
-                if (progress < 0) {
-                    progress = 0;
-                }
-                bar.setProgress(Math.min(1, progress));
-                BukkitRunnable later = new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, 0));
-                    }
-                };
-                later.runTaskLater(plugin, 1L);
             }
         }
     }

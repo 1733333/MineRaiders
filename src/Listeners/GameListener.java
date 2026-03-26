@@ -480,6 +480,9 @@ public class GameListener implements Listener {
 
     // ========================= 统一撤离失败处理 =========================
     private void performFailedExtract(Player player) {
+        performFailedExtract(player,false);
+    }
+    private void performFailedExtract(Player player,boolean isGameEnded) {
         World world = player.getWorld();
         GameSession session = activeGames.get(world);
         // 处理倒地状态（如果有）
@@ -494,52 +497,55 @@ public class GameListener implements Listener {
         if (session != null && session.players.contains(player)) {
             session.removePlayer(player);
         }
-        // 记录失败玩家名称（用于禁止中途加入）
-        if (session != null) {
-            session.failedPlayers.add(player.getName());
-        }
-        // 收集玩家的所有物品，用于生成遗物盔甲架
-        List<ItemStack> playerItems = new ArrayList<>();
-        for (ItemStack item : player.getInventory().getContents()) {
-            if (item != null && !item.getType().isAir()) {
-                playerItems.add(item);
+        if(isGameEnded) {
+            // 记录失败玩家名称（用于禁止中途加入）
+            if (session != null) {
+                session.failedPlayers.add(player.getName());
             }
-        }
-        // 在玩家位置生成遗物盔甲架
-        if (!playerItems.isEmpty()) { // 仅当玩家有物品时生成
-            ArmorStand lootStand = world.spawn(player.getLocation(), ArmorStand.class);
-            // 设置小盔甲架属性
-            lootStand.setSmall(true);
-            lootStand.setAI(false);
-            lootStand.setInvulnerable(true);
-            lootStand.setCustomName("§c" + player.getName() + " §7的遗物");
-            lootStand.setCustomNameVisible(true);
-            // 设置装备：玩家头颅 + 皮革护甲
-            // 玩家头颅
-            ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);
-            SkullMeta skullMeta = (SkullMeta) playerHead.getItemMeta();
-            skullMeta.setOwningPlayer(player);
-            playerHead.setItemMeta(skullMeta);
-            // 皮革护甲
-            ItemStack leatherChest = new ItemStack(Material.LEATHER_CHESTPLATE);
-            ItemStack leatherLegs = new ItemStack(Material.LEATHER_LEGGINGS);
-            ItemStack leatherBoots = new ItemStack(Material.LEATHER_BOOTS);
-            // 应用装备到盔甲架
-            lootStand.getEquipment().setHelmet(playerHead);
-            lootStand.getEquipment().setChestplate(leatherChest);
-            lootStand.getEquipment().setLeggings(leatherLegs);
-            lootStand.getEquipment().setBoots(leatherBoots);
-            // 存储物品到lootMap，关联盔甲架
-            lootMap.put(lootStand, playerItems);
+            // 收集玩家的所有物品，用于生成遗物盔甲架
+            List<ItemStack> playerItems = new ArrayList<>();
+            for (ItemStack item : player.getInventory().getContents()) {
+                if (item != null && !item.getType().isAir()) {
+                    playerItems.add(item);
+                }
+            }
+            // 在玩家位置生成遗物盔甲架
+            if (!playerItems.isEmpty()) { // 仅当玩家有物品时生成
+                ArmorStand lootStand = world.spawn(player.getLocation(), ArmorStand.class);
+                // 设置小盔甲架属性
+                lootStand.setSmall(true);
+                lootStand.setAI(false);
+                lootStand.setInvulnerable(true);
+                lootStand.setCustomName("§c" + player.getName() + " §7的遗物");
+                lootStand.setCustomNameVisible(true);
+                // 设置装备：玩家头颅 + 皮革护甲
+                // 玩家头颅
+                ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);
+                SkullMeta skullMeta = (SkullMeta) playerHead.getItemMeta();
+                skullMeta.setOwningPlayer(player);
+                playerHead.setItemMeta(skullMeta);
+                // 皮革护甲
+                ItemStack leatherChest = new ItemStack(Material.LEATHER_CHESTPLATE);
+                ItemStack leatherLegs = new ItemStack(Material.LEATHER_LEGGINGS);
+                ItemStack leatherBoots = new ItemStack(Material.LEATHER_BOOTS);
+                // 应用装备到盔甲架
+                lootStand.getEquipment().setHelmet(playerHead);
+                lootStand.getEquipment().setChestplate(leatherChest);
+                lootStand.getEquipment().setLeggings(leatherLegs);
+                lootStand.getEquipment().setBoots(leatherBoots);
+                // 存储物品到lootMap，关联盔甲架
+                lootMap.put(lootStand, playerItems);
+            }
         }
         player.getInventory().clear();
         // 传送到世界出生点
         player.teleport(world.getSpawnLocation());
-        player.sendMessage("§c你撤离失败，所有物品已丢失！其他玩家可右键你的遗物取回物品。");
+        player.sendMessage("§c撤离失败，所有物品已丢失！");
         player.setHealth(20);
         player.setFoodLevel(20);
         // 清除游戏状态标记
         PlayerStats.INSTANCE.stopInGame(player);
+        PlayerStats.INSTANCE.removeShieldBar(player);
         if (session != null) {
             clearPlayerReady(player, world.getName());
         }
@@ -594,6 +600,12 @@ public class GameListener implements Listener {
             t.setGameMode(GameMode.ADVENTURE);
             t.setHealth(20);
             t.setFoodLevel(20);
+            playerStats.createShieldBar(t);
+            if(k.isArmored(t)){
+                playerStats.openShield(t);
+                GadgetListener gadgetListener = new GadgetListener(plugin);
+                gadgetListener.battery(t,5,20,new ItemStack(Material.NETHER_PORTAL));
+            }
         }
         // 为每个玩家添加容器高亮任务
         for (Player p : playersToTeleport) {
@@ -983,16 +995,10 @@ public class GameListener implements Listener {
                 e.remove();
             }
         }
-        // 8. 对所有游戏内玩家执行撤离失败（触发装备重置）
+        // 8. 对所有游戏内玩家执行撤离失败
         for (Player p : new ArrayList<>(session.players)) {
             if (p.isOnline()) {
-                try {
-                    Bukkit.getPluginManager().callEvent(
-                            new ArmorEquipEvent(p, ArmorEquipEvent.EquipMethod.DEATH, ArmorType.HELMET, new ItemStack(Material.LEATHER_HELMET), null));
-                } catch (Exception e) {
-                    plugin.getLogger().warning("游戏结束时装备更新事件处理异常，已跳过：" + e.getMessage());
-                }
-                playerStats.removePlayerShield(p);
+                performFailedExtract(p,true);
             }
         }
         // 9. 清除该世界的所有准备状态
