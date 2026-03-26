@@ -84,7 +84,6 @@ public class PlayerListener implements Listener {
             if(shieldBar != null) {
                 if (!shieldBar.isVisible()) return;
             }
-            if(!playerStats.isInGame(p))return;
             if (p.getNoDamageTicks() > 10) {
                 damageEvent.setCancelled(true);
                 return;

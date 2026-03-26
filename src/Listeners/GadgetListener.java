@@ -874,6 +874,7 @@ public class GadgetListener implements Listener {
                     return;
                 }
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
+                    if(e == g)continue;
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
                         if (p1.getGameMode() == GameMode.SPECTATOR) continue;
@@ -933,6 +934,7 @@ public class GadgetListener implements Listener {
                     return;
                 }
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
+                    if(e == g)continue;
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
                         if (p1.getGameMode() == GameMode.SPECTATOR) continue;
@@ -994,6 +996,7 @@ public class GadgetListener implements Listener {
                     return;
                 }
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
+                    if(e == g)continue;
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
                         if (p1.getGameMode() == GameMode.SPECTATOR) continue;
@@ -1056,6 +1059,7 @@ public class GadgetListener implements Listener {
                     return;
                 }
                 for (Entity e : g.getNearbyEntities(radius, radius, radius)) {
+                    if(e == g)continue;
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
                         if (p1.getGameMode() == GameMode.SPECTATOR) continue;
@@ -1350,6 +1354,7 @@ public class GadgetListener implements Listener {
                         w.spawnParticle(Particle.EXPLOSION_EMITTER,g.getLocation(),1);
                         double radius = 10;
                         for(Entity e : g.getNearbyEntities(radius,radius,radius)){
+                            if(e == g)continue;
                             if(e instanceof LivingEntity l){
                                 Location shooterLoc = g.getEyeLocation();
                                 Location targetLoc = l.getEyeLocation();

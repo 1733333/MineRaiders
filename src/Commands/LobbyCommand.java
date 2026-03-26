@@ -227,13 +227,13 @@ public class LobbyCommand implements CommandExecutor, Listener {
                             gameStatus.removeReadyPlayer(oldWorld, player.getUniqueId());
                         }
                         // 设置新准备
-                        int readyCount = gameStatus.getReadyCount(worldName);
                         PlayerStats.INSTANCE.setReady(player, mapId);
                         String innerWorldName = gameStatus.getWorldNameByID(mapId);
                         player.sendMessage("§a你已准备加入地图 " + innerWorldName + "，等待游戏开始...");
-                        gameStatus.addReadyPlayer(worldName, player.getUniqueId());
+                        gameStatus.addReadyPlayer(worldName, player.getUniqueId());   // 先添加玩家
+                        int readyCount = gameStatus.getReadyCount(worldName);        // 再获取最新人数
                         Bukkit.broadcastMessage("§b" + player.getName() + "§a准备加入地图§e" + innerWorldName
-                                +"§a，当前准备人数：§e" + (readyCount + 1));
+                                + "§a，当前准备人数：§e" + readyCount);
                     }
                     openWorldMenu(player); // 刷新菜单
                 } else {

@@ -91,13 +91,13 @@ public class InventoryListener implements Listener {
                 @Override
                 public void run() {
                     String command = switch (slot) {
-                        case 0 -> "getarmors";
-                        case 1 -> "getweapons";
-                        case 2 -> "getgadgets";
-                        case 3 -> "getdrops";
-                        case 4 -> "getloots";
-                        case 5 -> "getrecipes";
-                        case 6 -> "getfreerecipes";
+                        case 0 -> "mr armor";
+                        case 1 -> "mr weapon";
+                        case 2 -> "mr gadget";
+                        case 3 -> "mr drop";
+                        case 4 -> "mr loot";
+                        case 5 -> "mr recipe";
+                        case 6 -> "mr freerecipe";
                         default -> "";
                     };
                     if (!command.isEmpty()) {

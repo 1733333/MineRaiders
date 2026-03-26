@@ -99,7 +99,6 @@ public class MonsterListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void mobMeleeAttack(EntityDamageByEntityEvent damageEvent) {
         DamageType damageType = damageEvent.getDamageSource().getDamageType();
-        World w = damageEvent.getDamager().getWorld();
         Entity a = damageEvent.getDamager();
         Entity d = damageEvent.getEntity();
         if(!(a instanceof Player)){
@@ -233,9 +232,6 @@ public class MonsterListener implements Listener {
     @EventHandler
     public void mobDeathDrops(EntityDeathEvent deathEvent) {
         LivingEntity mob = deathEvent.getEntity();
-        if(!(mob instanceof Player)){
-            deathEvent.getDrops().clear();
-        }
         World w = mob.getWorld();
         String dName = mob.getName();
         List<ItemStack> drops = new ArrayList<>();
@@ -387,6 +383,7 @@ public class MonsterListener implements Listener {
                 }
             }
         }
+        deathEvent.getDrops().clear();
         for(ItemStack i : drops){
             w.dropItem(mob.getLocation(),i);
         }

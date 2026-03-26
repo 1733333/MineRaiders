@@ -93,7 +93,7 @@ public enum Kit {
             if (distance(jar, e) > radius) continue;
             if (e instanceof LivingEntity l) {
                 int distance = (int) distance(jar, l);
-                if (l != source) {
+                if (l != source && l != jar) {
                     Location shooterLoc = source.getEyeLocation();
                     Location targetLoc = l.getEyeLocation();
                     Vector sV = shooterLoc.toVector();
