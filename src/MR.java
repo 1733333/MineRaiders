@@ -15,6 +15,7 @@ public class MR extends JavaPlugin {
         PluginManager manager = this.getServer().getPluginManager();
         Recipes recipes = Recipes.INSTANCE;
         BoxPool boxPool = BoxPool.INSTANCE;
+        LootPool lootPool = LootPool.INSTANCE;
         Monsters monsters = Monsters.INSTANCE;
         Kit k = Kit.INSTANCE;
 
@@ -55,6 +56,7 @@ public class MR extends JavaPlugin {
         boxPool.registerBooks();
         boxPool.registerHorns();
         boxPool.registerPotions();
+        lootPool.registerRecycleMap();
 
         Bukkit.broadcastMessage(ChatColor.AQUA + "插件已重载");
         for (Player p : Bukkit.getOnlinePlayers()){

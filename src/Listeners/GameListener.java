@@ -497,7 +497,7 @@ public class GameListener implements Listener {
         if (session != null && session.players.contains(player)) {
             session.removePlayer(player);
         }
-        if(isGameEnded) {
+        if(!isGameEnded) {
             // 记录失败玩家名称（用于禁止中途加入）
             if (session != null) {
                 session.failedPlayers.add(player.getName());
@@ -771,12 +771,6 @@ public class GameListener implements Listener {
         if (!session.players.contains(player)) return;
         if (player.getGameMode() == GameMode.SPECTATOR) return;
         Entity clicked = event.getRightClicked();
-        // 处理遗物盔甲架的右键交互
-        if (clicked instanceof ArmorStand stand && isLootStand(stand)) {
-            event.setCancelled(true);
-            spawnItems(stand);
-            return;
-        }
         // 处理撤离点雪傀儡的交互
         if (!(clicked instanceof Snowman golem)) return;
         if (!session.evacuationGolems.contains(golem)) return;
@@ -814,6 +808,16 @@ public class GameListener implements Listener {
             }
             // 未激活状态 -> 开始充能
             startCharging(golem, session, player);
+        }
+    }
+
+    @EventHandler
+    public void PlayerClickArmorStand(PlayerArmorStandManipulateEvent event){
+        ArmorStand stand = event.getRightClicked();
+        // 处理遗物盔甲架的右键交互
+        if (isLootStand(stand)) {
+            event.setCancelled(true);
+            spawnItems(stand);
         }
     }
 
@@ -1048,7 +1052,7 @@ public class GameListener implements Listener {
                 ItemStack stack = iterator.next();
                 iterator.remove();  // 已处理，从列表中移除
                 double x = rand.nextDouble() - rand.nextDouble();
-                double y = 1;
+                double y = 5;
                 double z = rand.nextDouble() - rand.nextDouble();
                 Vector spread = new Vector(x, y, z);
                 Item item = world.dropItem(eyeLoc, stack);
@@ -1060,12 +1064,13 @@ public class GameListener implements Listener {
                     case 5 -> Sound.UI_TOAST_CHALLENGE_COMPLETE;
                     default -> Sound.ENTITY_ITEM_PICKUP;
                 };
+                if(rarity < 0)rarity = 2;
                 item.setTicksLived(6000 - (200 * (rarity + 1)));
-                item.setVelocity(spread.multiply(0.5));
+                item.setVelocity(spread.multiply(0.1));
                 world.playSound(eyeLoc, s, 1, 1);
                 world.spawnParticle(Particle.EXPLOSION, eyeLoc, 1);
             }
-        }.runTaskTimer(plugin, 0L, 3L);
+        }.runTaskTimer(plugin, 0L, 4L);
         // 保留随机音符盒特效（不影响物品掉落）
         if (rand.nextInt(10) == 0) {
             new BukkitRunnable() {
@@ -1083,7 +1088,7 @@ public class GameListener implements Listener {
                     world.playSound(eyeLoc, Sound.BLOCK_NOTE_BLOCK_BIT, 1, pitch);
                     count++;
                 }
-            }.runTaskTimer(plugin, 0L, 3L);
+            }.runTaskTimer(plugin, 0L, 4L);
         }
     }
 

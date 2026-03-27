@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,6 +16,8 @@ import java.util.*;
 public enum LootPool {
     INSTANCE;
     Random r = new Random();
+    DropPool dp = DropPool.INSTANCE;
+    HashMap<ItemStack,ItemStack[]>recycleMap = new HashMap<>();
     ItemStack[] commonItem = {
             i0(),i0(),i0(),i0(),i0(),
             i1(),i1(),i1(),i1(),i1(),
@@ -77,7 +80,10 @@ public enum LootPool {
             i106(), i106(), i106(),
             i107(), i107(),
             i110(), i110(), i110(), i110(),
-            i111(), i111(), i111(), i111()
+            i111(), i111(), i111(), i111(),
+            i114(), i114(), i114(), i114(),
+            i115(), i115(), i115(), i115(),
+            i116(), i116(), i116(), i116(),
     };
     ItemStack[] rareItem = {
             i54(), i54(), i54(), i54(), i54(),
@@ -95,7 +101,14 @@ public enum LootPool {
             i64(),
             i65(),
             i66(),
-            i67(), i67(), i67(), i67(), i67(), i67(), i67(), i67()
+            i67(), i67(), i67(), i67(), i67(), i67(), i67(), i67(),
+            i117(), i117(), i117(),
+            i118(), i118(), i118(),
+            i119(), i119(), i119(),
+            i120(), i120(), i120(),
+            i121(), i121(), i121(),
+            i122(), i122(), i122(),
+            i123(), i123(), i123(),
     };
     ItemStack[] epicItem = {
             i68(), i68(),
@@ -112,7 +125,10 @@ public enum LootPool {
             i80(), i80(), i80(), i80(), i80(), i80(),
             i81(), i81(), i81(), i81(), i81(), i81(),
             i82(),
-            i109()
+            i109(),
+            i124(), i124(),
+            i125(), i125(),
+            i126(), i126(),
     };
     ItemStack[] legendaryItem = {
             i83(), i83(), i83(),
@@ -127,7 +143,9 @@ public enum LootPool {
             i92(), i92(), i92(),
             i93(), i93(), i93(), i93(), i93(), i93(), i93(), i93(),
             i94(),
-            i95(), i95(), i95(), i95(), i95(), i95(), i95()
+            i95(), i95(), i95(), i95(), i95(), i95(), i95(),
+            i127(), i127(),
+            i128(), i128(),
     };
     ItemStack[] mysticItem = {
             i96(),
@@ -162,6 +180,106 @@ public enum LootPool {
             i82(),
             i95(),
     };
+    public void registerRecycleMap() {
+        recycleMap = new HashMap<>();
+
+        // 狗窝 -> 皮革 × 3
+        recycleMap.put(i114(), new ItemStack[]{
+                i45().clone(), i45().clone(), i45().clone()
+        });
+
+        // 非常难受的枕头 -> 羽毛 × 3
+        recycleMap.put(i115(), new ItemStack[]{
+                i50().clone(), i50().clone(), i50().clone()
+        });
+
+        // 有机灯泡 -> 玻璃瓶 × 9
+        recycleMap.put(i116(), new ItemStack[]{
+                i24().clone(), i24().clone(), i24().clone(),
+                i24().clone(), i24().clone(), i24().clone(),
+                i24().clone(), i24().clone(), i24().clone()
+        });
+
+        // 没生锈的齿轮 -> 砂砾 × 5, 圆石 × 10, 木棍 × 5
+        recycleMap.put(i117(), new ItemStack[]{
+                i40().clone(), i40().clone(), i40().clone(), i40().clone(), i40().clone(),
+                i0().clone(),  i0().clone(),  i0().clone(),  i0().clone(),  i0().clone(),
+                i0().clone(),  i0().clone(),  i0().clone(),  i0().clone(),  i0().clone(),
+                i22().clone(), i22().clone(), i22().clone(), i22().clone(), i22().clone()
+        });
+
+        // 崭新的工具 -> 竹子 × 5, 铜粒 × 5, 铁粒 × 5, 金粒 × 5
+        recycleMap.put(i118(), new ItemStack[]{
+                i38().clone(), i38().clone(), i38().clone(), i38().clone(), i38().clone(),
+                i19().clone(), i19().clone(), i19().clone(), i19().clone(), i19().clone(),
+                i20().clone(), i20().clone(), i20().clone(), i20().clone(), i20().clone(),
+                i21().clone(), i21().clone(), i21().clone(), i21().clone(), i21().clone()
+        });
+
+        // 小傀儡 -> 铜锭 × 10
+        recycleMap.put(i119(), new ItemStack[]{
+                i42().clone(), i42().clone(), i42().clone(), i42().clone(), i42().clone(),
+                i42().clone(), i42().clone(), i42().clone(), i42().clone(), i42().clone()
+        });
+
+        // 名贵挂钟 -> 金锭 × 3
+        recycleMap.put(i120(), new ItemStack[]{
+                i56().clone(), i56().clone(), i56().clone()
+        });
+
+        // 烤唱片机 -> 橡树原木 × 5, 铁锭 × 1, 铁粒 × 5
+        recycleMap.put(i121(), new ItemStack[]{
+                i27().clone(), i27().clone(), i27().clone(), i27().clone(), i27().clone(),
+                i55().clone(),
+                i20().clone(), i20().clone(), i20().clone(), i20().clone(), i20().clone()
+        });
+
+        // 猫项圈 -> 羊毛 × 5, 线 × 15
+        recycleMap.put(i122(), new ItemStack[]{
+                i53().clone(), i53().clone(), i53().clone(), i53().clone(), i53().clone(),
+                dp.string(), dp.string(), dp.string(), dp.string(), dp.string(),
+                dp.string(), dp.string(), dp.string(), dp.string(), dp.string()
+        });
+
+        // 因涂蜡而难以生锈的轻微氧化切制铜楼梯 -> 蜜脾 × 5, 铜锭 × 5
+        recycleMap.put(i123(), new ItemStack[]{
+                i49().clone(), i49().clone(), i49().clone(), i49().clone(), i49().clone(),
+                i42().clone(), i42().clone(), i42().clone(), i42().clone(), i42().clone()
+        });
+
+        // 电棍 -> 爆裂紫颂果 × 5, 海晶碎片 × 5, 海晶沙粒 × 5
+        recycleMap.put(i124(), new ItemStack[]{
+                i108().clone(), i108().clone(), i108().clone(), i108().clone(), i108().clone(),
+                i110().clone(), i110().clone(), i110().clone(), i110().clone(), i110().clone(),
+                i111().clone(), i111().clone(), i111().clone(), i111().clone(), i111().clone()
+        });
+
+        // 磁力减速器 -> 紫水晶 × 2, 下界石英 × 5, 萤石粉 × 5
+        recycleMap.put(i125(), new ItemStack[]{
+                i68().clone(), i68().clone(),
+                i43().clone(), i43().clone(), i43().clone(), i43().clone(), i43().clone(),
+                i44().clone(), i44().clone(), i44().clone(), i44().clone(), i44().clone()
+        });
+
+        // 高巢模块 -> 树脂团 × 5, 荧光墨囊 × 5, 灵魂沙 × 5
+        recycleMap.put(i126(), new ItemStack[]{
+                i58().clone(), i58().clone(), i58().clone(), i58().clone(), i58().clone(),
+                i51().clone(), i51().clone(), i51().clone(), i51().clone(), i51().clone(),
+                i106().clone(), i106().clone(), i106().clone(), i106().clone(), i106().clone()
+        });
+
+        // 危险钩 -> 恶魂之泪 × 4, 青金石 × 4
+        recycleMap.put(i127(), new ItemStack[]{
+                i74().clone(), i74().clone(), i74().clone(), i74().clone(),
+                i70().clone(), i70().clone(), i70().clone(), i70().clone()
+        });
+
+        // 费洛分流器 -> 黑曜石 × 4, 钻石 × 4
+        recycleMap.put(i128(), new ItemStack[]{
+                i73().clone(), i73().clone(), i73().clone(), i73().clone(),
+                i69().clone(), i69().clone(), i69().clone(), i69().clone()
+        });
+    }
     double[] prices = {
             5,15,50,125,350,1500
     };
@@ -327,6 +445,9 @@ public enum LootPool {
         }
         return content.toArray(new ItemStack[0]);
     }
+    public ItemStack[]getRecycle(ItemStack item){
+        return recycleMap.getOrDefault(item,null);
+    }
 
     public int getRarity(ItemStack item) {
         if(!item.hasItemMeta())return -1;
@@ -387,7 +508,7 @@ public enum LootPool {
         lore.add(ChatColor.BLACK + "EMERALD_BLOCK");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack k1() {
@@ -401,7 +522,7 @@ public enum LootPool {
         lore.add(ChatColor.BLACK + "GOLD_BLOCK");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack k2() {
@@ -415,7 +536,7 @@ public enum LootPool {
         lore.add(ChatColor.BLACK + "DIAMOND_BLOCK");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack k3() {
@@ -429,7 +550,7 @@ public enum LootPool {
         lore.add(ChatColor.BLACK + "REDSTONE_BLOCK");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
 
@@ -442,7 +563,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "随处可见的石头");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i1() {
@@ -454,7 +575,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "还是圆石，但是黑了点");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i2() {
@@ -466,7 +587,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "就是内个石头");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i3() {
@@ -478,7 +599,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "如果有机械动力的话...");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i4() {
@@ -490,7 +611,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "这是什么？哦，闪长岩");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i5() {
@@ -502,7 +623,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "至少能拿来做建筑材料");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i6() {
@@ -514,7 +635,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "不要与闪长岩搞混");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i7() {
@@ -526,7 +647,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "存在感很低");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i8() {
@@ -539,7 +660,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "还好这游戏没有风");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i9() {
@@ -551,7 +672,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "红温的沙子");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i10() {
@@ -563,7 +684,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "非常基础的材料");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i11() {
@@ -575,7 +696,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "通常可以在壁炉里找到");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i12() {
@@ -587,7 +708,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "归根到底还是圆石");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i13() {
@@ -599,7 +720,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "就不能把这个砸成滴水石锥吗");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i14() {
@@ -611,7 +732,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "可以用作建材");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i15() {
@@ -623,7 +744,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "我在东北玩泥巴");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i16() {
@@ -635,7 +756,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "方便携带的干粮");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i17() {
@@ -647,7 +768,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "跟它不太熟，不建议生吃");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i18() {
@@ -659,7 +780,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "什么香香脆脆我们都爱");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i19() {
@@ -671,7 +792,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "一小粒的铜，可以攒起来合成铜锭");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i20() {
@@ -683,7 +804,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "一小粒的铁，可以攒起来合成铁锭");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i21() {
@@ -695,7 +816,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "一小粒金子，可以攒起来合成金锭");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i22() {
@@ -707,7 +828,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "不是林昆，也不是棍木");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i23() {
@@ -719,7 +840,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "一只空碗，擦擦灰尘还能用");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i24() {
@@ -731,7 +852,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "一个空瓶子，可以装液体");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i25() {
@@ -743,7 +864,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "这个容器很久没动过了，以至于出现了这东西");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i26() {
@@ -755,7 +876,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "除非实在没有东西吃了，不然不建议吃");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i27() {
@@ -767,7 +888,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i28() {
@@ -779,7 +900,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i29() {
@@ -791,7 +912,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i30() {
@@ -803,7 +924,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i31() {
@@ -815,7 +936,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i32() {
@@ -827,7 +948,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i33() {
@@ -839,7 +960,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i34() {
@@ -851,7 +972,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i35() {
@@ -863,7 +984,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i36() {
@@ -875,7 +996,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木(？)，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i37() {
@@ -887,7 +1008,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "刚砍下来的原木(？)，用途很广");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i38() {
@@ -899,7 +1020,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "生长速度很快，适合作为建材");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i39() {
@@ -911,7 +1032,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "可以用来种植农作物");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i40() {
@@ -923,7 +1044,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "沙子，但是会挖出来燧石");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i41() {
@@ -935,7 +1056,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "非常好的燃料");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i42() {
@@ -947,7 +1068,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "铜制成的金属锭，最基础的金属材料");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i43() {
@@ -959,7 +1080,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "腐竹最喜欢的建材");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i44() {
@@ -971,7 +1092,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "亮晶晶的粉末");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i45() {
@@ -983,7 +1104,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "动物身上的皮，应该有用");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i46() {
@@ -995,7 +1116,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "激荡！！！");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i47() {
@@ -1011,7 +1132,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i48() {
@@ -1027,7 +1148,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i49() {
@@ -1039,7 +1160,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "给我擦皮鞋");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i50() {
@@ -1051,7 +1172,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "可以拿来做箭矢");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i51() {
@@ -1063,7 +1184,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "估计是辐射量超标的墨鱼的掉落物");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i52() {
@@ -1075,7 +1196,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "好运的象征");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i53() {
@@ -1087,7 +1208,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "快来薅羊毛");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i54() {
@@ -1099,7 +1220,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "不要在里面包石头");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i55() {
@@ -1111,7 +1232,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "由铁制成的金属锭，很实用的金属材料");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i56() {
@@ -1123,7 +1244,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "亮闪闪的，很受人们欢迎");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i57() {
@@ -1136,7 +1257,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "不要跟“VR”弄混了");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i58() {
@@ -1149,7 +1270,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "丢出去的时候有可能会黏在手上");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i59() {
@@ -1161,7 +1282,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "可以防止你的宠物被服务器刷掉");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i60() {
@@ -1174,7 +1295,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "放在副手可以抵挡一次致命伤害");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i61() {
@@ -1186,7 +1307,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "不知道是镀金还是纯金");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i62() {
@@ -1199,7 +1320,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "可以直接开启特殊撤离点");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i63() {
@@ -1211,7 +1332,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "当猪飞的时候");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i64() {
@@ -1227,7 +1348,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i65() {
@@ -1243,7 +1364,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i66() {
@@ -1259,7 +1380,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i67() {
@@ -1275,7 +1396,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i68() {
@@ -1287,7 +1408,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "不是能源紫水晶");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i69() {
@@ -1299,7 +1420,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "我挖到钻石辣！");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i70() {
@@ -1311,7 +1432,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "蕴含魔力的矿物");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i71() {
@@ -1324,7 +1445,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "落地，水");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i72() {
@@ -1337,7 +1458,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "和水桶搭配使用更好");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i73() {
@@ -1349,7 +1470,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "当你倒岩浆的时候倒错了位置，你就得到了这个");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i74() {
@@ -1362,7 +1483,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "见鬼去吧！");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i75() {
@@ -1375,7 +1496,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "结实又轻便");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i76() {
@@ -1391,7 +1512,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i77() {
@@ -1407,7 +1528,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i78() {
@@ -1423,7 +1544,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i79() {
@@ -1439,7 +1560,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i80() {
@@ -1455,7 +1576,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i81() {
@@ -1471,7 +1592,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i82() {
@@ -1487,7 +1608,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i83() {
@@ -1499,7 +1620,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "蕴含古老的力量");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i84() {
@@ -1511,7 +1632,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "升级装备的必需品");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i85() {
@@ -1523,7 +1644,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "谁在切洋葱");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i86() {
@@ -1535,7 +1656,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "我要当太空人");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i87() {
@@ -1548,7 +1669,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "不是附魔的金苹果");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i88() {
@@ -1560,7 +1681,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "犰狳其实就是起了全装的负鼠");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i89() {
@@ -1572,7 +1693,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "要想生活过得去...");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i90() {
@@ -1584,7 +1705,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "可以听到大海的声音");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i91() {
@@ -1596,7 +1717,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "非洲之心 + 海洋之泪");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i92() {
@@ -1610,7 +1731,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "用来制作武器装备一定很不错");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i93() {
@@ -1622,7 +1743,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "你需要来点薄荷糖");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i94() {
@@ -1634,7 +1755,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "不是嗅探兽的刷怪蛋");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i95() {
@@ -1650,7 +1771,7 @@ public enum LootPool {
                 ChatColor.WHITE + "打开");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i96() {
@@ -1663,7 +1784,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "不建议用这个做煎蛋");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i97() {
@@ -1676,7 +1797,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "里面的液体不建议饮用");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i98() {
@@ -1688,7 +1809,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "希望你没有花粉过敏");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i99() {
@@ -1701,7 +1822,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "可以戴在头上吓唬朋友");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i100() {
@@ -1713,7 +1834,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "一滴也不剩的恶魂");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i101() {
@@ -1726,7 +1847,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "有可能是地心的物质碎片");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i102() {
@@ -1738,7 +1859,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "MEME物品");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i103() {
@@ -1751,7 +1872,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "指南针的收藏价值极高");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i104() {
@@ -1763,7 +1884,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "上面有很多刺，不要被扎到");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i105() {
@@ -1775,7 +1896,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "经验+3");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i106() {
@@ -1787,7 +1908,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "拿在手上能感受到不详的气息");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i107() {
@@ -1799,7 +1920,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "没人知道里面写了什么");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i108() {
@@ -1811,7 +1932,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "已经不能吃了");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
 
     public ItemStack i109() {
@@ -1823,7 +1944,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "如果有骨粉的话...");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
     public ItemStack i110() {
         ItemStack i = new ItemStack(Material.PRISMARINE_SHARD);
@@ -1835,7 +1956,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "上面隐隐约约能看到残缺的古老文字");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
     public ItemStack i111() {
         ItemStack i = new ItemStack(Material.PRISMARINE_CRYSTALS);
@@ -1847,7 +1968,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "放在手心触感非常不错");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
     public ItemStack i112() {
         ItemStack i = new ItemStack(Material.LEVER);
@@ -1859,7 +1980,7 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "可以开启没(mei)收库房");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
     }
     public ItemStack i113() {
         ItemStack i = new ItemStack(Material.TALL_GRASS);
@@ -1870,6 +1991,204 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "可以制成绝世药品");
         meta.setLore(lore);
         i.setItemMeta(meta);
-        return i.clone();
+        return i;
+    }
+    public ItemStack i114() {
+        ItemStack i = new ItemStack(Material.BIRCH_TRAPDOOR);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(8);
+        meta.setDisplayName(ChatColor.GREEN + "【寻常】狗窝");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "鸡应用不到这个吧");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i115() {
+        ItemStack i = new ItemStack(Material.POLISHED_DIORITE_SLAB);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(8);
+        meta.setDisplayName(ChatColor.GREEN + "【寻常】非常难受的枕头");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "里面的填充物导致这个枕头很难受");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i116() {
+        ItemStack i = new ItemStack(Material.CARVED_PUMPKIN);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(8);
+        meta.addEnchant(Enchantment.BINDING_CURSE,1,true);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTMENT_GLINT_OVERRIDE);
+        meta.setDisplayName(ChatColor.GREEN + "【寻常】赛博灯泡");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "戴在头上就拿不下来了，不要轻易尝试");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i117() {
+        ItemStack i = new ItemStack(Material.GRINDSTONE);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】没生锈的齿轮");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "没有生锈");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i118() {
+        ItemStack i = new ItemStack(Material.POWERED_RAIL);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】崭新的工具");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "一堆工具原料，可能会有用");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i119() {
+        ItemStack i = new ItemStack(Material.WAXED_COPPER_GOLEM_STATUE);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】小傀儡");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "容器的1：1复制品，非常精致");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i120() {
+        ItemStack i = new ItemStack(Material.CLOCK);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】名贵挂钟");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "不适合拿来送礼");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i121() {
+        ItemStack i = new ItemStack(Material.JUKEBOX);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】烤唱片机");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "把唱片放进去就能知道什么叫烧录唱片了");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i122() {
+        ItemStack i = new ItemStack(Material.LEAD);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】猫项圈");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "鸡应该用不到这个吧");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i123() {
+        ItemStack i = new ItemStack(Material.WAXED_WEATHERED_CUT_COPPER_STAIRS);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "【稀有】因涂蜡而难以生锈的斑驳切制铜楼梯");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "腐竹最喜欢的方块");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i124() {
+        ItemStack i = new ItemStack(Material.END_ROD);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(2);
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】电棍");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "我不会告诉你们任何事情");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i125() {
+        ItemStack i = new ItemStack(Material.CONDUIT);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(2);
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】磁力减速器");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "精密的电子线圈，可以防止箭矢速度过快");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i126() {
+        ItemStack i = new ItemStack(Material.WAXED_COPPER_BULB);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(2);
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "【罕见】高巢模块");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "迁移到海拔非常高的人发明的一系列东西");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i127() {
+        ItemStack i = new ItemStack(Material.WARPED_FUNGUS_ON_A_STICK);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(1);
+        meta.setDisplayName(ChatColor.GOLD + "【珍奇】危险钩");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "不适合用来飞檐走壁");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i128() {
+        ItemStack i = new ItemStack(Material.STONECUTTER);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(1);
+        meta.setDisplayName(ChatColor.GOLD + "【珍奇】费洛分流器");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "费洛分流器");
+        lore.add(ChatColor.WHITE + "放在副手时，费洛的箭矢会被分成若干箭矢");
+        lore.add(ChatColor.WHITE + "可以用切石机回收成制造材料");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
     }
 }

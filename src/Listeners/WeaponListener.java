@@ -167,13 +167,21 @@ public class WeaponListener implements Listener {
             case "§f费洛" -> {
                 w.playSound(shootLoc, Sound.ENTITY_GENERIC_EXPLODE, 2, 2);
                 w.spawnParticle(Particle.EXPLOSION, shootLoc.add(shootVec), 1);
-                Arrow a = w.spawnArrow(shootLoc, shootVec, 5, 0);
-                a.setShooter(p);
-                a.setCritical(true);
-                a.setDamage(1.5);
-                shootBowEvent.setProjectile(a);
-                if(p instanceof Player) {
-                    ((Player) p).setCooldown(bow.getType(), 20);
+                if(k.getLore(p.getEquipment().getItemInOffHand()).equals("§f费洛分流器")){
+                    w.playSound(shootLoc, Sound.UI_STONECUTTER_TAKE_RESULT, 2, 2);
+                    w.playSound(shootLoc, Sound.UI_STONECUTTER_TAKE_RESULT, 2, 2);
+                    w.playSound(shootLoc, Sound.UI_STONECUTTER_TAKE_RESULT, 2, 2);
+                    shootFourArrows(shootLoc,shootVec,1.5,0.5);
+                    pr.remove();
+                }else {
+                    Arrow a = w.spawnArrow(shootLoc, shootVec, 5, 0);
+                    a.setShooter(p);
+                    a.setCritical(true);
+                    a.setDamage(1.5);
+                    shootBowEvent.setProjectile(a);
+                    if (p instanceof Player) {
+                        ((Player) p).setCooldown(bow.getType(), 20);
+                    }
                 }
             }
             case "§f猎头" -> {
@@ -450,6 +458,31 @@ public class WeaponListener implements Listener {
                 }
             };
             slam.runTaskLater(plugin,15L);
+        }
+    }
+    public void shootFourArrows(Location location, Vector forward, double speed, double spread) {
+        // 计算右向量（水平垂直于前方向）
+        Vector right = new Vector(-forward.getZ(), 0, forward.getX()).normalize();
+        // 计算上向量（简单使用世界Y轴，对于非水平方向可能不够精确，但常见场景足够）
+        Vector up = new Vector(0, 1, 0);
+
+        // 四个偏移方向（未归一化，最后会归一化）
+        Vector[] offsets = {
+                right.clone().multiply(-spread).add(up.clone().multiply(spread)),   // 左上
+                right.clone().multiply(-spread).add(up.clone().multiply(-spread)),  // 左下
+                right.clone().multiply(spread).add(up.clone().multiply(spread)),    // 右上
+                right.clone().multiply(spread).add(up.clone().multiply(-spread))    // 右下
+        };
+
+        for (Vector offset : offsets) {
+            // 最终方向 = 前方向 + 偏移，归一化后乘以速度
+            Vector direction = forward.clone().add(offset).normalize();
+            Vector velocity = direction.multiply(speed);
+
+            // 生成箭矢
+            Arrow arrow = location.getWorld().spawnArrow(location, velocity, (float) speed, 0);
+            // 可选：设置发射者（如果有Player或Entity）
+            // arrow.setShooter(shooter);
         }
     }
 }

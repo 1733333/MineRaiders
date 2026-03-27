@@ -166,6 +166,7 @@ public class ContainerListener implements Listener {
     @EventHandler
     public void playerInteract(PlayerInteractEvent interactEvent) {
         Player p = interactEvent.getPlayer();
+        ItemStack hand = p.getEquipment().getItemInMainHand();
         if(!playerStats.isInGame(p))return;
         if(playerStats.isDying(p) || p.getGameMode() == GameMode.SPECTATOR) {
             interactEvent.setCancelled(true);
@@ -175,6 +176,19 @@ public class ContainerListener implements Listener {
         Action action = interactEvent.getAction();
         if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
             Block b = interactEvent.getClickedBlock();
+            if(b.getType() == Material.STONECUTTER){
+                ItemStack[]drops = lp.getRecycle(hand);
+                if(drops != null){
+                    interactEvent.setCancelled(true);
+                    Location bLoc = b.getLocation();
+                    Location pLoc = p.getEyeLocation();
+                    Vector offSet = pLoc.toVector().subtract(bLoc.toVector());
+                    for(ItemStack i : drops) {
+                        w.dropItem(bLoc.add(offSet.multiply(0.5)), i);
+                    }
+                    w.playSound(b.getLocation(),Sound.UI_STONECUTTER_TAKE_RESULT,1,1);
+                }
+            }
             if(b.getType() == Material.IRON_DOOR){
                 Block b1 = w.getBlockAt(b.getLocation().add(0,1,0));
                 Block b2 = w.getBlockAt(b.getLocation().add(0,-1,0));
