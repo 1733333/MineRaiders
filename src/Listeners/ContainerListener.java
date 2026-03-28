@@ -167,7 +167,6 @@ public class ContainerListener implements Listener {
     public void playerInteract(PlayerInteractEvent interactEvent) {
         Player p = interactEvent.getPlayer();
         ItemStack hand = p.getEquipment().getItemInMainHand();
-        if(!playerStats.isInGame(p))return;
         if(playerStats.isDying(p) || p.getGameMode() == GameMode.SPECTATOR) {
             interactEvent.setCancelled(true);
             return;
@@ -189,6 +188,7 @@ public class ContainerListener implements Listener {
                     w.playSound(b.getLocation(),Sound.UI_STONECUTTER_TAKE_RESULT,1,1);
                 }
             }
+            if(!playerStats.isInGame(p))return;
             if(b.getType() == Material.IRON_DOOR){
                 Block b1 = w.getBlockAt(b.getLocation().add(0,1,0));
                 Block b2 = w.getBlockAt(b.getLocation().add(0,-1,0));

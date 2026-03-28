@@ -34,12 +34,6 @@ public class DebugCommand implements CommandExecutor {
     KiryuKazuma kiryuKazuma;
     GameStatus gameStatus = GameStatus.INSTANCE;
 
-    public DebugCommand(JavaPlugin plugin) {
-        this.plugin = plugin;
-        kiryuKazuma = new KiryuKazuma(plugin);
-        plugin.getServer().getPluginManager().registerEvents(kiryuKazuma,plugin);
-    }
-
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         if (commandSender instanceof Player p) {

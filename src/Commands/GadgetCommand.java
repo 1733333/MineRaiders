@@ -28,8 +28,8 @@ public class GadgetCommand implements CommandExecutor {
             inv.setItem(51, lp.pageUp());
             inv.setItem(52, lp.close());
             inv.setItem(53, lp.pageDown());
-            PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.GADGET_MENU);
             p.openInventory(inv);
+            PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.GADGET_MENU);
         }
         return true;
     }

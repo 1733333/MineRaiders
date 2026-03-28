@@ -144,7 +144,7 @@ public class InventoryListener implements Listener {
                     BukkitRunnable later = new BukkitRunnable() {
                         @Override
                         public void run() {
-                            p.performCommand("getall");
+                            p.performCommand("mr getallitems");
                         }
                     };
                     later.runTaskLater(plugin,1L);
@@ -204,10 +204,10 @@ public class InventoryListener implements Listener {
         PlayerStats.MenuStatus pStatus = playerPreviousStatus.getOrDefault(name, PlayerStats.MenuStatus.NOT_MENU);
         if (status == PlayerStats.MenuStatus.CRAFTING_MENU) {
             if (pStatus == PlayerStats.MenuStatus.RECIPE_MENU) {
-                p.performCommand("getrecipes");
+                p.performCommand("mr recipe");
             }
             if (pStatus == PlayerStats.MenuStatus.FREE_RECIPE_MENU) {
-                p.performCommand("getfreerecipes");
+                p.performCommand("mr freerecipe");
             }
         }
         playerMenuStatus.put(name, PlayerStats.MenuStatus.NOT_MENU);

@@ -605,6 +605,8 @@ public class GameListener implements Listener {
                 playerStats.openShield(t);
                 GadgetListener gadgetListener = new GadgetListener(plugin);
                 gadgetListener.battery(t,5,20,new ItemStack(Material.NETHER_PORTAL));
+            }else {
+                playerStats.closeShield(t);
             }
         }
         // 为每个玩家添加容器高亮任务
@@ -775,8 +777,8 @@ public class GameListener implements Listener {
         if (!(clicked instanceof Snowman golem)) return;
         if (!session.evacuationGolems.contains(golem)) return;
         event.setCancelled(true);
-        if (player.getCooldown(Material.CARVED_PUMPKIN) == 0) {
-            player.setCooldown(Material.CARVED_PUMPKIN, 10);
+        if (player.getCooldown(Material.JACK_O_LANTERN) == 0) {
+            player.setCooldown(Material.JACK_O_LANTERN, 10);
             // 如果游戏已经结束（等待充能中），禁止新的激活
             if (session.isEnding) {
                 player.sendMessage("§c游戏已结束，无法激活撤离点！");

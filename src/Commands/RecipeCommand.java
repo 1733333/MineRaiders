@@ -28,8 +28,8 @@ public class RecipeCommand implements CommandExecutor {
             inv.setItem(51, lp.pageUp());
             inv.setItem(52, lp.close());
             inv.setItem(53, lp.pageDown());
-            PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.RECIPE_MENU);
             p.openInventory(inv);
+            PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.RECIPE_MENU);
         }
         return true;
     }

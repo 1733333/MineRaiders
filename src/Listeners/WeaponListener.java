@@ -17,9 +17,7 @@ import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -171,7 +169,7 @@ public class WeaponListener implements Listener {
                     w.playSound(shootLoc, Sound.UI_STONECUTTER_TAKE_RESULT, 2, 2);
                     w.playSound(shootLoc, Sound.UI_STONECUTTER_TAKE_RESULT, 2, 2);
                     w.playSound(shootLoc, Sound.UI_STONECUTTER_TAKE_RESULT, 2, 2);
-                    shootFourArrows(shootLoc,shootVec,1.5,0.5);
+                    shootSplitArrows(p,2.5,0.025);
                     pr.remove();
                 }else {
                     Arrow a = w.spawnArrow(shootLoc, shootVec, 5, 0);
@@ -460,29 +458,45 @@ public class WeaponListener implements Listener {
             slam.runTaskLater(plugin,15L);
         }
     }
-    public void shootFourArrows(Location location, Vector forward, double speed, double spread) {
-        // 计算右向量（水平垂直于前方向）
-        Vector right = new Vector(-forward.getZ(), 0, forward.getX()).normalize();
-        // 计算上向量（简单使用世界Y轴，对于非水平方向可能不够精确，但常见场景足够）
-        Vector up = new Vector(0, 1, 0);
+    public void shootSplitArrows(LivingEntity shooter, double speed, double spread) {
+        Location location = shooter.getEyeLocation().clone();
+        Vector forward = location.getDirection().clone().normalize();
 
-        // 四个偏移方向（未归一化，最后会归一化）
+        // 计算垂直于 forward 的两个正交轴（right 和 upLocal）
+        Vector right;
+        Vector upLocal;
+
+        // 先尝试使用世界向上向量与 forward 叉积得到 right
+        Vector worldUp = new Vector(0, 1, 0);
+        if (Math.abs(forward.dot(worldUp)) < 0.9999) {
+            // forward 不与世界向上平行，可以正常计算
+            right = forward.clone().crossProduct(worldUp).normalize();
+        } else {
+            // forward 接近垂直（向上或向下），改用世界北向量作为参考
+            Vector worldNorth = new Vector(0, 0, 1);
+            right = forward.clone().crossProduct(worldNorth).normalize();
+        }
+        upLocal = right.clone().crossProduct(forward).normalize();
+
+        // 四个偏移方向（在垂直于 forward 的平面内，呈方形散布）
         Vector[] offsets = {
-                right.clone().multiply(-spread).add(up.clone().multiply(spread)),   // 左上
-                right.clone().multiply(-spread).add(up.clone().multiply(-spread)),  // 左下
-                right.clone().multiply(spread).add(up.clone().multiply(spread)),    // 右上
-                right.clone().multiply(spread).add(up.clone().multiply(-spread))    // 右下
+                right.clone().multiply(-spread).add(upLocal.clone().multiply(spread)),   // 左上
+                right.clone().multiply(-spread).add(upLocal.clone().multiply(-spread)),  // 左下
+                right.clone().multiply(spread).add(upLocal.clone().multiply(spread)),    // 右上
+                right.clone().multiply(spread).add(upLocal.clone().multiply(-spread))    // 右下
         };
 
         for (Vector offset : offsets) {
-            // 最终方向 = 前方向 + 偏移，归一化后乘以速度
+            // 最终方向 = 前方向 + 偏移，归一化后得到单位方向
             Vector direction = forward.clone().add(offset).normalize();
+            // 速度向量 = 方向 * 速度
             Vector velocity = direction.multiply(speed);
 
-            // 生成箭矢
+            // 生成箭矢（注意：spawnArrow 的第三个参数是速度大小，第四个是散布）
             Arrow arrow = location.getWorld().spawnArrow(location, velocity, (float) speed, 0);
-            // 可选：设置发射者（如果有Player或Entity）
-            // arrow.setShooter(shooter);
+            arrow.setCritical(true);
+            arrow.setDamage(3);
+            arrow.setShooter(shooter);
         }
     }
 }
