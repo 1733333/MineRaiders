@@ -32,6 +32,7 @@ public enum PlayerStats {
         COOKBOOK_MENU,
         DEV_MENU,
         MAP_MENU,
+        END_MENU,
         MAIN_MENU
     }
 

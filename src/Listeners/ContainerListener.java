@@ -174,11 +174,26 @@ public class ContainerListener implements Listener {
         World w = p.getWorld();
         Action action = interactEvent.getAction();
         if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
+            if(lp.getRarity(hand) >= 0){
+                interactEvent.setCancelled(true);
+            }
             Block b = interactEvent.getClickedBlock();
             if(b.getType() == Material.STONECUTTER){
                 ItemStack[]drops = lp.getRecycle(hand);
+                boolean drop = false;
                 if(drops != null){
-                    interactEvent.setCancelled(true);
+                    drop = true;
+                }else if(lp.getRarity(hand) > 0){
+                    int amount = 2;
+                    drop = true;
+                    drops = new ItemStack[amount];
+                    int result = lp.getRarity(hand) - 1;
+                    for (int i = 0; i < amount; i++) {
+                        ItemStack[] randItem = lp.getPoolByRarity(result);
+                        drops[i] = randItem[r.nextInt(randItem.length)];
+                    }
+                }
+                if(drop) {
                     Location bLoc = b.getLocation();
                     Location pLoc = p.getEyeLocation();
                     Vector offSet = pLoc.toVector().subtract(bLoc.toVector());
@@ -186,6 +201,10 @@ public class ContainerListener implements Listener {
                         w.dropItem(bLoc.add(offSet.multiply(0.5)), i);
                     }
                     w.playSound(b.getLocation(),Sound.UI_STONECUTTER_TAKE_RESULT,1,1);
+                    if (p.getGameMode() != GameMode.CREATIVE) {
+                        int amount = hand.getAmount();
+                        hand.setAmount(amount - 1);
+                    }
                 }
             }
             if(!playerStats.isInGame(p))return;

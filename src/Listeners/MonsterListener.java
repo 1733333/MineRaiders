@@ -394,6 +394,7 @@ public class MonsterListener implements Listener {
         World w = e.getWorld();
         if(damageEvent.getDamage() > 3) {
             if (e instanceof LivingEntity d) {
+                if(e instanceof Player)return;
                 if(e == damageEvent.getDamager())return;
                 String dName = d.getName();
                 Sound s = switch (dName){

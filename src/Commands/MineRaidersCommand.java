@@ -17,9 +17,17 @@ import java.util.*;
 
 public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
 
+    Kit k = Kit.INSTANCE;
     private final JavaPlugin plugin;
     private final Map<String, CommandExecutor> subCommands = new HashMap<>();
     private final Map<String, TabCompleter> subCompleters = new HashMap<>();
+    Material[] mobMats = {
+            Material.STICK, Material.IRON_SWORD, Material.WRITABLE_BOOK, Material.CHEST,
+            Material.OBSERVER, Material.FERMENTED_SPIDER_EYE, Material.CREEPER_HEAD,
+            Material.MAGMA_CREAM, Material.SPYGLASS, Material.FIREWORK_STAR,
+            Material.CREAKING_HEART, Material.LODESTONE, Material.DISPENSER,
+            Material.PLAYER_HEAD, Material.DRAGON_HEAD
+    };
 
     public MineRaidersCommand(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -115,40 +123,29 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
 
     // ========================== 主菜单 ==========================
     private void openMainMenu(Player p) {
-        Inventory inv = Bukkit.createInventory(p, 27, ChatColor.GOLD + "" + ChatColor.BOLD + "MineRaiders 主菜单");
-
+        Inventory inv = Bukkit.createInventory(p, 27, ChatColor.DARK_RED + "" + ChatColor.BOLD + "MineRaiders 主菜单");
         // 第一行：图鉴类
-        inv.setItem(0, createMenuItem(Material.IRON_CHESTPLATE, "§b装备图鉴", "查看所有盔甲"));
-        inv.setItem(1, createMenuItem(Material.IRON_SWORD, "§b武器图鉴", "查看所有武器"));
-        inv.setItem(2, createMenuItem(Material.CREEPER_SPAWN_EGG, "§b道具图鉴", "查看所有道具"));
-        inv.setItem(3, createMenuItem(Material.SKELETON_SKULL, "§b掉落物图鉴", "查看所有掉落物"));
-        inv.setItem(4, createMenuItem(Material.CHEST, "§b战利品图鉴", "查看所有战利品"));
-        inv.setItem(5, createMenuItem(Material.WRITTEN_BOOK, "§b配方图鉴", "查看需要合成的物品配方"));
-        inv.setItem(6, createMenuItem(Material.WRITABLE_BOOK, "§b免费配方图鉴", "查看无需合成的物品配方"));
-        inv.setItem(7, createMenuItem(Material.KNOWLEDGE_BOOK, "§b物品总览", "查看所有物品分类"));
-
+        inv.setItem(0, k.createMenuItem(Material.IRON_CHESTPLATE, "§b装备图鉴", "查看所有盔甲"));
+        inv.setItem(1, k.createMenuItem(Material.IRON_SWORD, "§b武器图鉴", "查看所有武器"));
+        inv.setItem(2, k.createMenuItem(Material.CREEPER_SPAWN_EGG, "§b道具图鉴", "查看所有道具"));
+        inv.setItem(3, k.createMenuItem(Material.SKELETON_SKULL, "§b掉落物图鉴", "查看所有掉落物"));
+        inv.setItem(4, k.createMenuItem(Material.CHEST, "§b战利品图鉴", "查看所有战利品"));
+        inv.setItem(5, k.createMenuItem(Material.WRITTEN_BOOK, "§b配方图鉴", "查看需要合成的物品配方"));
+        inv.setItem(6, k.createMenuItem(Material.WRITABLE_BOOK, "§b免费配方图鉴", "查看无需合成的物品配方"));
+        inv.setItem(7, k.createMenuItem(Material.KNOWLEDGE_BOOK, "§b物品总览", "查看所有物品分类"));
         // 第二行：游戏与功能
-        inv.setItem(9, createMenuItem(Material.LODESTONE, "§a开始游戏", "选择地图并开始游戏"));
-        inv.setItem(10, createMenuItem(Material.NETHER_STAR, "§a大厅", "选择游戏世界并加入/观战"));
-        inv.setItem(11, createMenuItem(Material.BARRIER, "§c强制结束游戏", "结束当前游戏 (OP)"));
-        inv.setItem(12, createMenuItem(Material.COMMAND_BLOCK, "§d调试菜单", "打开调试功能菜单 (OP)"));
-        inv.setItem(13, createMenuItem(Material.ARMOR_STAND, "§e伤害测试假人", "在脚下召唤一个伤害测试假人"));
-        inv.setItem(14, createMenuItem(Material.BOOK, "§7帮助", "查看命令帮助"));
-        inv.setItem(15, createMenuItem(Material.COMPASS, "§b地点管理", "管理游戏地点（OP）"));
+        inv.setItem(9, k.createMenuItem(Material.LODESTONE, "§a开始游戏", "选择地图并开始游戏"));
+        inv.setItem(10, k.createMenuItem(Material.NETHER_STAR, "§a大厅", "选择游戏世界并加入/观战"));
+        inv.setItem(11, k.createMenuItem(Material.BARRIER, "§c强制结束游戏", "结束当前游戏 (OP)"));
+        inv.setItem(12, k.createMenuItem(Material.COMMAND_BLOCK, "§d调试菜单", "打开调试功能菜单 (OP)"));
+        inv.setItem(13, k.createMenuItem(Material.ARMOR_STAND, "§e伤害测试假人", "在脚下召唤一个伤害测试假人"));
+        inv.setItem(14, k.createMenuItem(Material.BOOK, "§7帮助", "查看命令帮助"));
+        inv.setItem(15, k.createMenuItem(Material.COMPASS, "§b地点管理", "管理游戏地点（OP）"));
 
+        inv.setItem(inv.getSize() -1, k.createMenuItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE
+                , "§k123456789", ""));
         p.openInventory(inv);
         PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.MAIN_MENU);
-    }
-
-    private ItemStack createMenuItem(Material material, String name, String... lore) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name);
-        if (lore.length > 0) {
-            meta.setLore(Arrays.asList(lore));
-        }
-        item.setItemMeta(meta);
-        return item;
     }
 
     // ========================== Debug 子命令逻辑 ==========================
@@ -213,39 +210,23 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
     private void openDebugMenu(Player p) {
         Inventory inv = Bukkit.createInventory(p, 27,
                 ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "测试菜单");
-        inv.addItem(debugItem(0, "获得荒野大笛客"));
-        inv.addItem(debugItem(1, "召唤伤害测试假人"));
-        inv.addItem(debugItem(2, "清除自定义配方"));
-        inv.addItem(debugItem(3, "重置容器状态"));
-        inv.addItem(debugItem(4, "召唤粉碎者"));
-        inv.addItem(debugItem(5, "召唤跳蚤"));
-        inv.addItem(debugItem(6, "召唤爆爆"));
-        inv.addItem(debugItem(7, "召唤火球"));
-        inv.addItem(debugItem(8, "召唤告密者"));
-        inv.addItem(debugItem(9, "召唤跳跃者"));
-        inv.addItem(debugItem(10, "召唤堡垒"));
-        inv.addItem(debugItem(11, "召唤机魂"));
-        inv.addItem(debugItem(12, "召唤公爵"));
-        inv.addItem(debugItem(13, "召唤模仿者"));
-        inv.addItem(debugItem(14, "召唤“桐生一马”"));
+        inv.addItem(k.createMenuItem(mobMats[0], "获得荒野大笛客"));
+        inv.addItem(k.createMenuItem(mobMats[1], "召唤伤害测试假人"));
+        inv.addItem(k.createMenuItem(mobMats[2], "清除自定义配方"));
+        inv.addItem(k.createMenuItem(mobMats[3], "重置容器状态"));
+        inv.addItem(k.createMenuItem(mobMats[4], "召唤粉碎者"));
+        inv.addItem(k.createMenuItem(mobMats[5], "召唤跳蚤"));
+        inv.addItem(k.createMenuItem(mobMats[6], "召唤爆爆"));
+        inv.addItem(k.createMenuItem(mobMats[7], "召唤火球"));
+        inv.addItem(k.createMenuItem(mobMats[8], "召唤告密者"));
+        inv.addItem(k.createMenuItem(mobMats[9], "召唤跳跃者"));
+        inv.addItem(k.createMenuItem(mobMats[10], "召唤堡垒"));
+        inv.addItem(k.createMenuItem(mobMats[11], "召唤机魂"));
+        inv.addItem(k.createMenuItem(mobMats[12], "召唤公爵"));
+        inv.addItem(k.createMenuItem(mobMats[13], "召唤模仿者"));
+        inv.addItem(k.createMenuItem(mobMats[14], "召唤“桐生一马”"));
         p.openInventory(inv);
         PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.DEV_MENU);
-    }
-
-    private ItemStack debugItem(int id, String name) {
-        Material[] mats = {
-                Material.STICK, Material.IRON_SWORD, Material.WRITABLE_BOOK, Material.CHEST,
-                Material.OBSERVER, Material.FERMENTED_SPIDER_EYE, Material.CREEPER_HEAD,
-                Material.MAGMA_CREAM, Material.SPYGLASS, Material.FIREWORK_STAR,
-                Material.CREAKING_HEART, Material.LODESTONE, Material.DISPENSER,
-                Material.PLAYER_HEAD, Material.DRAGON_HEAD
-        };
-        ItemStack item = new ItemStack(mats[id]);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.AQUA + name);
-        meta.setLore(Collections.singletonList(ChatColor.WHITE + "点击执行指令"));
-        item.setItemMeta(meta);
-        return item;
     }
 
     private ItemStack debugFlute() {

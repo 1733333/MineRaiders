@@ -45,39 +45,39 @@ public class GadgetListener implements Listener {
     Recipes rp = Recipes.INSTANCE;
     WeaponPool wp = WeaponPool.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
-    HashSet<Player>isPlaying = new HashSet<>();
+    HashSet<Player> isPlaying = new HashSet<>();
     HashSet<Player> isChargingShield = new HashSet<>();
-    HashMap<String,BukkitRunnable> playerTask = new HashMap<>();
-    int[]musicScore1 = new int[]{
+    HashMap<String, BukkitRunnable> playerTask = new HashMap<>();
+    int[] musicScore1 = new int[]{
             8,
-            0,0,
+            0, 0,
             8,
-            0,0,0,0,
+            0, 0, 0, 0,
             11,
-            0,0,0,0,0,
+            0, 0, 0, 0, 0,
             15,
-            0,0,0,0,0,
+            0, 0, 0, 0, 0,
             11,
-            0,0,
+            0, 0,
             13,
-            0,0,0,0,0,0,0,0,0,0,0,0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             11,
             0,
             13,
             0,
             11,
-            0,0,0,
+            0, 0, 0,
             13,
-            0,0,0,0,0,
+            0, 0, 0, 0, 0,
             15,
-            0,0,0,0,0,
+            0, 0, 0, 0, 0,
             8,
-            0,0,
+            0, 0,
             8,
     };
-    int[]musicScore2 = new int[]{};
+    int[] musicScore2 = new int[]{};
 
-    public GadgetListener(JavaPlugin plugin){
+    public GadgetListener(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -90,17 +90,19 @@ public class GadgetListener implements Listener {
             }
         }
     }
+
     @EventHandler
     public void playerInteract(PlayerInteractEvent interactEvent) {
         Action action = interactEvent.getAction();
         Player p = interactEvent.getPlayer();
-        if(playerStats.isDying(p)){
+        World w = p.getWorld();
+        if (playerStats.isDying(p)) {
             interactEvent.setCancelled(true);
             return;
         }
         if (p.getGameMode() == GameMode.SPECTATOR) return;
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if(hand.getType() == Material.NAME_TAG){
+        if (hand.getType() == Material.NAME_TAG) {
             interactEvent.setCancelled(true);
         }
         ItemStack offHand = p.getInventory().getItemInOffHand();
@@ -112,7 +114,7 @@ public class GadgetListener implements Listener {
             if (offHand.getType() != Material.AIR) {
                 switch (tag1) {
                     case "§f可以修复物品的粉末":
-                        mendingPowder(p,offHand);
+                        mendingPowder(p, offHand);
                         interactEvent.setCancelled(true);
                         break;
                 }
@@ -167,6 +169,28 @@ public class GadgetListener implements Listener {
                         leaperUnit(p, hand);
                         interactEvent.setCancelled(true);
                         break;
+                    case "布满灰尘的石头":
+                        ItemStack[] stones = lp.getStones();
+                        w.dropItem(p.getLocation(), stones[r.nextInt(stones.length)]).setPickupDelay(0);
+                        w.playSound(p.getLocation(), Sound.ITEM_BRUSH_BRUSHING_GENERIC, 1, 1);
+                        w.playSound(p.getLocation(), Sound.ITEM_BRUSH_BRUSHING_GENERIC, 1, 1);
+                        w.playSound(p.getLocation(), Sound.ITEM_BRUSH_BRUSHING_GENERIC, 1, 1);
+                        if (p.getGameMode() != GameMode.CREATIVE) {
+                            int amount = hand.getAmount();
+                            hand.setAmount(amount - 1);
+                        }
+                        break;
+                    case "布满灰尘的木头":
+                        ItemStack[] woods = lp.getWoods();
+                        w.dropItem(p.getLocation(), woods[r.nextInt(woods.length)]).setPickupDelay(0);
+                        w.playSound(p.getLocation(), Sound.ITEM_BRUSH_BRUSHING_GENERIC, 1, 1);
+                        w.playSound(p.getLocation(), Sound.ITEM_BRUSH_BRUSHING_GENERIC, 1, 1);
+                        w.playSound(p.getLocation(), Sound.ITEM_BRUSH_BRUSHING_GENERIC, 1, 1);
+                        if (p.getGameMode() != GameMode.CREATIVE) {
+                            int amount = hand.getAmount();
+                            hand.setAmount(amount - 1);
+                        }
+                        break;
                 }
                 if (tag.contains("收纳盒")) {
                     openBox(p, hand, tag);
@@ -179,7 +203,7 @@ public class GadgetListener implements Listener {
     @EventHandler
     public void playerConsume(PlayerItemConsumeEvent consumeEvent) {
         Player p = consumeEvent.getPlayer();
-        if(playerStats.isDying(p)){
+        if (playerStats.isDying(p)) {
             consumeEvent.setCancelled(true);
             return;
         }
@@ -206,7 +230,7 @@ public class GadgetListener implements Listener {
                 ironGolem(p);
                 break;
             case "§f狩猎图腾":
-                wolfGolem(p,consumeEvent);
+                wolfGolem(p, consumeEvent);
                 break;
             case "§f瘟疫图腾":
                 zombieGolem(p, item);
@@ -232,7 +256,7 @@ public class GadgetListener implements Listener {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 1));
                 break;
             case "§f肾上腺素":
-                if(p.getHealth() <= 5){
+                if (p.getHealth() <= 5) {
                     Bukkit.broadcastMessage(ChatColor.RED + p.getName() + "飞升到了肾上腺素星球");
                 }
                 p.damage(5, DamageSource.builder(DamageType.MAGIC).build());
@@ -240,45 +264,45 @@ public class GadgetListener implements Listener {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 1));
                 break;
             case "§f铜质电池":
-                if(shield == -1 || shield == 20){
+                if (shield == -1 || shield == 20) {
                     consumeEvent.setCancelled(true);
-                }else {
+                } else {
                     p.setCooldown(item, 160);
-                    battery(p, 8, 8,item);
+                    battery(p, 8, 8, item);
                 }
                 break;
             case "§f铁质电池":
-                if(shield == -1 || shield == 20){
+                if (shield == -1 || shield == 20) {
                     consumeEvent.setCancelled(true);
-                }else {
+                } else {
                     p.setCooldown(item, 80);
-                    battery(p, 4, 8,item);
+                    battery(p, 4, 8, item);
                 }
                 break;
             case "§f黄金电池":
-                if(shield == -1 || shield == 20){
+                if (shield == -1 || shield == 20) {
                     consumeEvent.setCancelled(true);
-                }else {
+                } else {
                     p.setCooldown(item, 120);
-                    battery(p, 6, 12,item);
+                    battery(p, 6, 12, item);
                 }
                 break;
             case "§f钻石电池":
-                if(shield == -1 || shield == 20){
+                if (shield == -1 || shield == 20) {
                     consumeEvent.setCancelled(true);
-                }else {
+                } else {
                     p.setCooldown(item, 80);
-                    battery(p, 4, 16,item);
+                    battery(p, 4, 16, item);
                 }
                 break;
             case "§f下界电池":
-                if(shield == 20){
+                if (shield == 20) {
                     consumeEvent.setCancelled(true);
-                }else {
+                } else {
                     p.setCooldown(item, 80);
                     Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, 20));
                     BossBar bar = PlayerStats.playerShieldBar.getOrDefault(p.getName(), null);
-                    if(bar != null){
+                    if (bar != null) {
                         bar.setColor(BarColor.BLUE);
                     }
                 }
@@ -471,7 +495,7 @@ public class GadgetListener implements Listener {
         damage.runTaskTimer(plugin, 0L, 20L);
     }
 
-    public void wolfGolem(Player p,PlayerItemConsumeEvent consumeEvent) {
+    public void wolfGolem(Player p, PlayerItemConsumeEvent consumeEvent) {
         World w = p.getWorld();
         w.playSound(p.getLocation(), Sound.ENTITY_SKELETON_DEATH, 1, 1);
         Player nearest = null;
@@ -486,20 +510,21 @@ public class GadgetListener implements Listener {
         }
         if (nearest != null) {
             Player p1 = nearest;
-            if(p.hasPotionEffect(PotionEffectType.UNLUCK)) {
+            if (p.hasPotionEffect(PotionEffectType.UNLUCK)) {
                 PotionEffect effect = p.getPotionEffect(PotionEffectType.UNLUCK);
                 int duration = effect.getDuration();
-                p.addPotionEffect(new PotionEffect(PotionEffectType.UNLUCK,1200 + duration,0));
-            }else {
+                p.addPotionEffect(new PotionEffect(PotionEffectType.UNLUCK, 1200 + duration, 0));
+            } else {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.UNLUCK, 1200, 0));
                 BukkitRunnable chase = new BukkitRunnable() {
                     int count = 0;
+
                     @Override
                     public void run() {
-                        double distance = k.distance(p,p1);
-                        if(!p.hasPotionEffect(PotionEffectType.UNLUCK) || distance <= 5){
-                            if(distance <= 5){
-                                p1.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING,200,0));
+                        double distance = k.distance(p, p1);
+                        if (!p.hasPotionEffect(PotionEffectType.UNLUCK) || distance <= 5) {
+                            if (distance <= 5) {
+                                p1.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 200, 0));
                                 p.removePotionEffect(PotionEffectType.UNLUCK);
                             }
                             this.cancel();
@@ -507,16 +532,16 @@ public class GadgetListener implements Listener {
                         }
                         Location sLoc = p.getEyeLocation();
                         Vector sVec = sLoc.getDirection();
-                        EnderSignal s = (EnderSignal) w.spawnEntity(sLoc.add(sVec.multiply(2)),EntityType.EYE_OF_ENDER);
+                        EnderSignal s = (EnderSignal) w.spawnEntity(sLoc.add(sVec.multiply(2)), EntityType.EYE_OF_ENDER);
                         s.setItem(new ItemStack(Material.SKELETON_SKULL));
                         Vector pVec = p.getEyeLocation().toVector();
                         Vector p1Vec = p1.getEyeLocation().toVector();
                         Vector vec = (p1Vec.subtract(pVec)).normalize();
                         s.setVelocity(vec.multiply(0.25));
                         s.setGlowing(true);
-                        for(Player p2 : w.getPlayers()){
-                            if(p2 == p)continue;
-                            p2.hideEntity(plugin,s);
+                        for (Player p2 : w.getPlayers()) {
+                            if (p2 == p) continue;
+                            p2.hideEntity(plugin, s);
                         }
                         BukkitRunnable remove = new BukkitRunnable() {
                             @Override
@@ -524,20 +549,19 @@ public class GadgetListener implements Listener {
                                 s.remove();
                             }
                         };
-                        remove.runTaskLater(plugin,20L);
+                        remove.runTaskLater(plugin, 20L);
                         count += 1;
                     }
                 };
-                chase.runTaskTimer(plugin,0L,40L);
+                chase.runTaskTimer(plugin, 0L, 40L);
             }
-        }else {
+        } else {
             consumeEvent.setCancelled(true);
         }
     }
 
 
-
-    public void zombieGolem(Player p,ItemStack hand) {
+    public void zombieGolem(Player p, ItemStack hand) {
         World w = p.getWorld();
         Material material = hand.getType();
         if (p.getCooldown(material) == 0) {
@@ -594,9 +618,9 @@ public class GadgetListener implements Listener {
                 @Override
                 public void run() {
                     w.spawnParticle(Particle.CRIT, nade.getLocation(), 0);
-                    if (bounce < 3){
-                        if(k.dikBounce(nade,0.2)){
-                            bounce ++;
+                    if (bounce < 3) {
+                        if (k.dikBounce(nade, 0.2)) {
+                            bounce++;
                         }
                     }
                     if (nade.isDead() || nade.getTicksLived() > 20) {
@@ -639,6 +663,7 @@ public class GadgetListener implements Listener {
             hit.runTaskTimer(plugin, 0L, 1L);
         }
     }
+
     public void gasGrenade(Player p, ItemStack hand) {
         World w = p.getWorld();
         Material material = hand.getType();
@@ -664,14 +689,15 @@ public class GadgetListener implements Listener {
                     if (nade.isDead()) {
                         this.cancel();
                         w.playSound(nade.getLocation(), Sound.BLOCK_LANTERN_BREAK, 2, 1);
-                        w.spawnParticle(Particle.EXPLOSION,nade.getLocation(),1);
-                        k.gas(p, nade, 10,4);
+                        w.spawnParticle(Particle.EXPLOSION, nade.getLocation(), 1);
+                        k.gas(p, nade, 10, 4);
                     }
                 }
             };
             land.runTaskTimer(plugin, 0L, 1L);
         }
     }
+
     public void fireGrenade(Player p, ItemStack hand) {
         World w = p.getWorld();
         Material material = hand.getType();
@@ -697,14 +723,15 @@ public class GadgetListener implements Listener {
                         this.cancel();
                         w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
                         w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
-                        w.spawnParticle(Particle.EXPLOSION,nade.getLocation(),1);
-                        k.fire(p, nade, 7,3,4);
+                        w.spawnParticle(Particle.EXPLOSION, nade.getLocation(), 1);
+                        k.fire(p, nade, 7, 3, 4);
                     }
                 }
             };
             land.runTaskTimer(plugin, 0L, 1L);
         }
     }
+
     public void smallFireGrenade(Player p, ItemStack hand) {
         World w = p.getWorld();
         Material material = hand.getType();
@@ -730,14 +757,15 @@ public class GadgetListener implements Listener {
                         this.cancel();
                         w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
                         w.playSound(nade.getLocation(), Sound.BLOCK_GLASS_BREAK, 2, 1);
-                        w.spawnParticle(Particle.EXPLOSION,nade.getLocation(),1);
-                        k.fire(p, nade, 5,1,2);
+                        w.spawnParticle(Particle.EXPLOSION, nade.getLocation(), 1);
+                        k.fire(p, nade, 5, 1, 2);
                     }
                 }
             };
             land.runTaskTimer(plugin, 0L, 1L);
         }
     }
+
     public void smokeGrenade(Player p, ItemStack hand) {
         World w = p.getWorld();
         Material material = hand.getType();
@@ -769,6 +797,7 @@ public class GadgetListener implements Listener {
             land.runTaskTimer(plugin, 0L, 1L);
         }
     }
+
     public void glitchGrenade(Player p, ItemStack hand) {
         World w = p.getWorld();
         Material material = hand.getType();
@@ -790,27 +819,28 @@ public class GadgetListener implements Listener {
                 @Override
                 public void run() {
                     w.spawnParticle(Particle.ELECTRIC_SPARK, nade.getLocation(), 0);
-                    if (nade.isDead() || k.hitBallBlock(nade,0.5)) {
+                    if (nade.isDead() || k.hitBallBlock(nade, 0.5)) {
                         BukkitRunnable flash = new BukkitRunnable() {
                             int count = 0;
+
                             @Override
                             public void run() {
-                                if(count > 5){
+                                if (count > 5) {
                                     this.cancel();
                                     return;
                                 }
-                                w.spawnParticle(Particle.FLASH, nade.getLocation(), 1,Color.BLUE);
+                                w.spawnParticle(Particle.FLASH, nade.getLocation(), 1, Color.BLUE);
                                 count += 1;
                             }
                         };
                         BukkitRunnable later = new BukkitRunnable() {
                             @Override
                             public void run() {
-                                k.electric(nade,5);
+                                k.electric(nade, 5);
                             }
                         };
                         later.runTaskLater(plugin, 30L);
-                        flash.runTaskTimer(plugin,0L,6L);
+                        flash.runTaskTimer(plugin, 0L, 6L);
                         this.cancel();
                     }
                 }
@@ -818,6 +848,7 @@ public class GadgetListener implements Listener {
             land.runTaskTimer(plugin, 0L, 1L);
         }
     }
+
     public void baitGrenade(Player p, ItemStack hand) {
         World w = p.getWorld();
         Material material = hand.getType();
@@ -842,19 +873,20 @@ public class GadgetListener implements Listener {
                     if (nade.isDead() || k.hitBallBlock(nade)) {
                         this.cancel();
                         nade.remove();
-                        k.bait(p,nade,40,0.08);
+                        k.bait(p, nade, 40, 0.08);
                     }
                 }
             };
             land.runTaskTimer(plugin, 3L, 1L);
         }
     }
+
     public void explodeMine(Player p) {
         World w = p.getWorld();
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        if(!p.isSneaking()) {
+        if (!p.isSneaking()) {
             g.setVelocity(shootVec.multiply(0.5));
         }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -874,7 +906,7 @@ public class GadgetListener implements Listener {
                     return;
                 }
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
-                    if(e == g)continue;
+                    if (e == g) continue;
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
                         if (p1.getGameMode() == GameMode.SPECTATOR) continue;
@@ -909,12 +941,13 @@ public class GadgetListener implements Listener {
         };
         trigger.runTaskTimer(plugin, 30L, 20L);
     }
+
     public void pyroMine(Player p) {
         World w = p.getWorld();
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        if(!p.isSneaking()) {
+        if (!p.isSneaking()) {
             g.setVelocity(shootVec.multiply(0.5));
         }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -934,7 +967,7 @@ public class GadgetListener implements Listener {
                     return;
                 }
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
-                    if(e == g)continue;
+                    if (e == g) continue;
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
                         if (p1.getGameMode() == GameMode.SPECTATOR) continue;
@@ -971,12 +1004,13 @@ public class GadgetListener implements Listener {
         };
         trigger.runTaskTimer(plugin, 30L, 20L);
     }
+
     public void gasMine(Player p) {
         World w = p.getWorld();
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        if(!p.isSneaking()) {
+        if (!p.isSneaking()) {
             g.setVelocity(shootVec.multiply(0.5));
         }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -996,7 +1030,7 @@ public class GadgetListener implements Listener {
                     return;
                 }
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
-                    if(e == g)continue;
+                    if (e == g) continue;
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
                         if (p1.getGameMode() == GameMode.SPECTATOR) continue;
@@ -1033,12 +1067,13 @@ public class GadgetListener implements Listener {
         };
         trigger.runTaskTimer(plugin, 30L, 20L);
     }
+
     public void shockMine(Player p) {
         World w = p.getWorld();
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        if(!p.isSneaking()) {
+        if (!p.isSneaking()) {
             g.setVelocity(shootVec.multiply(0.5));
         }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -1059,7 +1094,7 @@ public class GadgetListener implements Listener {
                     return;
                 }
                 for (Entity e : g.getNearbyEntities(radius, radius, radius)) {
-                    if(e == g)continue;
+                    if (e == g) continue;
                     if (e instanceof Player p1) {
                         if (p1 == p) continue;
                         if (p1.getGameMode() == GameMode.SPECTATOR) continue;
@@ -1079,7 +1114,7 @@ public class GadgetListener implements Listener {
                             BukkitRunnable explode = new BukkitRunnable() {
                                 @Override
                                 public void run() {
-                                    k.electric(g,5);
+                                    k.electric(g, 5);
                                     g.remove();
                                 }
                             };
@@ -1092,7 +1127,8 @@ public class GadgetListener implements Listener {
         };
         trigger.runTaskTimer(plugin, 30L, 20L);
     }
-    public void fireCamp(Player p,ItemStack hand){
+
+    public void fireCamp(Player p, ItemStack hand) {
         if (p.getCooldown(hand.getType()) == 0) {
             p.setCooldown(hand.getType(), 20);
             World w = p.getWorld();
@@ -1100,21 +1136,22 @@ public class GadgetListener implements Listener {
                 int amount = hand.getAmount();
                 hand.setAmount(amount - 1);
             }
-            for(Entity e : w.getNearbyEntities(p.getLocation(),24,24,24)){
-                if(e instanceof Player p1){
-                    for(PotionEffect po : p1.getActivePotionEffects()){
+            for (Entity e : w.getNearbyEntities(p.getLocation(), 24, 24, 24)) {
+                if (e instanceof Player p1) {
+                    for (PotionEffect po : p1.getActivePotionEffects()) {
                         p1.removePotionEffect(po.getType());
                     }
                     p1.setFireTicks(0);
-                    p1.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,100,4));
-                    p1.playSound(p1.getLocation(),Sound.BLOCK_BELL_USE,1,1);
-                    p1.playSound(p1.getLocation(),Sound.BLOCK_BELL_USE,1,1);
-                    p1.playSound(p1.getLocation(),Sound.BLOCK_BELL_USE,1,1);
+                    p1.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, 4));
+                    p1.playSound(p1.getLocation(), Sound.BLOCK_BELL_USE, 1, 1);
+                    p1.playSound(p1.getLocation(), Sound.BLOCK_BELL_USE, 1, 1);
+                    p1.playSound(p1.getLocation(), Sound.BLOCK_BELL_USE, 1, 1);
                 }
             }
         }
     }
-    public void soulCamp(Player p,ItemStack hand){
+
+    public void soulCamp(Player p, ItemStack hand) {
         if (p.getCooldown(hand.getType()) == 0) {
             p.setCooldown(hand.getType(), 20);
             World w = p.getWorld();
@@ -1122,26 +1159,28 @@ public class GadgetListener implements Listener {
                 int amount = hand.getAmount();
                 hand.setAmount(amount - 1);
             }
-            for(Entity e : w.getNearbyEntities(p.getLocation(),24,24,24)){
-                if(e instanceof LivingEntity l){
-                    l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,100,4));
-                    l.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING,100,4));
-                    l.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,120,4));
+            for (Entity e : w.getNearbyEntities(p.getLocation(), 24, 24, 24)) {
+                if (e instanceof LivingEntity l) {
+                    l.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 4));
+                    l.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 100, 4));
+                    l.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 120, 4));
                 }
-                if(e instanceof Player p1){
-                    p1.playSound(p1.getLocation(),Sound.BLOCK_BELL_USE,1,1);
-                    p1.playSound(p1.getLocation(),Sound.BLOCK_BELL_USE,1,1);
-                    p1.playSound(p1.getLocation(),Sound.BLOCK_BELL_USE,1,1);
+                if (e instanceof Player p1) {
+                    p1.playSound(p1.getLocation(), Sound.BLOCK_BELL_USE, 1, 1);
+                    p1.playSound(p1.getLocation(), Sound.BLOCK_BELL_USE, 1, 1);
+                    p1.playSound(p1.getLocation(), Sound.BLOCK_BELL_USE, 1, 1);
                 }
             }
         }
     }
-    public void flute(Player p){
+
+    public void flute(Player p) {
         BukkitRunnable task = playerTask.getOrDefault(p.getName(), null);
         World w = p.getWorld();
         if (task == null) {
             BukkitRunnable play = new BukkitRunnable() {
                 int count = 0;
+
                 @Override
                 public void run() {
                     if (count >= musicScore1.length) {
@@ -1149,18 +1188,19 @@ public class GadgetListener implements Listener {
                         playerTask.remove(p.getName());
                         return;
                     }
-                    if(musicScore1[count] > 0){
+                    if (musicScore1[count] > 0) {
                         Note n = new Note(musicScore1[count]);
-                        w.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_FLUTE,1,n.getPitch());
+                        w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_FLUTE, 1, n.getPitch());
                     }
                     count += 1;
                 }
             };
-            play.runTaskTimer(plugin,0L,1L);
-            playerTask.put(p.getName(),play);
+            play.runTaskTimer(plugin, 0L, 1L);
+            playerTask.put(p.getName(), play);
         }
     }
-    public void wolfPack(Player p,ItemStack hand){
+
+    public void wolfPack(Player p, ItemStack hand) {
         World w = p.getWorld();
         Material material = hand.getType();
         if (p.getCooldown(material) == 0) {
@@ -1183,9 +1223,9 @@ public class GadgetListener implements Listener {
                     Particle.DustOptions dust = new Particle.DustOptions(Color.WHITE, 1);
                     w.spawnParticle(Particle.DUST, nade.getLocation(), 0, dust);
                     if (nade.isDead() || nade.getTicksLived() > 10) {
-                        if(nade.getTicksLived() > 10){
-                            for(int i = 0;i < 12;i++){
-                                Arrow a = w.spawnArrow(nade.getLocation(),nade.getVelocity(),1,50);
+                        if (nade.getTicksLived() > 10) {
+                            for (int i = 0; i < 12; i++) {
+                                Arrow a = w.spawnArrow(nade.getLocation(), nade.getVelocity(), 1, 50);
                                 a.setShooter(p);
                                 a.setGlowing(true);
                                 a.setTicksLived(1200);
@@ -1212,14 +1252,14 @@ public class GadgetListener implements Listener {
                                             Vector arrowLocVector = a.getLocation().toVector();
                                             Vector entityVector = (nearest.getEyeLocation().toVector()).subtract(arrowLocVector);
                                             a.setVelocity(entityVector.normalize());
-                                            distance = k.locDistance(a.getLocation(),nearest.getEyeLocation());
+                                            distance = k.locDistance(a.getLocation(), nearest.getEyeLocation());
                                         }
                                         if ((distance > 0 && distance < 3) || a.isDead()) {
                                             if ((distance > 0 && distance < 3)) {
                                                 int count = 0;
                                                 for (Entity e : a.getNearbyEntities(5, 5, 5)) {
                                                     if (e instanceof Arrow a1) {
-                                                        if(a1.getName().contains("狼群")) {
+                                                        if (a1.getName().contains("狼群")) {
                                                             a1.remove();
                                                             count += 1;
                                                         }
@@ -1234,12 +1274,12 @@ public class GadgetListener implements Listener {
                                         w.spawnParticle(Particle.END_ROD, a.getLocation(), 0);
                                     }
                                 };
-                                traceEnemy.runTaskTimer(plugin, 20L,2L);
+                                traceEnemy.runTaskTimer(plugin, 20L, 2L);
                             }
                         }
                         nade.remove();
                         w.playSound(nade.getLocation(), Sound.ENTITY_WOLF_AMBIENT, 3, 1);
-                        Firework firework = (Firework)w.spawnEntity(nade.getLocation(), EntityType.FIREWORK_ROCKET);
+                        Firework firework = (Firework) w.spawnEntity(nade.getLocation(), EntityType.FIREWORK_ROCKET);
                         firework.setVelocity(nade.getVelocity());
                         FireworkMeta meta = firework.getFireworkMeta();
                         meta.setPower(3);
@@ -1253,7 +1293,7 @@ public class GadgetListener implements Listener {
                                 .with(FireworkEffect.Type.BURST).build());
                         firework.setFireworkMeta(meta);
                         firework.detonate();
-                        w.spawnParticle(Particle.EXPLOSION,nade.getLocation(),1);
+                        w.spawnParticle(Particle.EXPLOSION, nade.getLocation(), 1);
                         this.cancel();
                     }
                 }
@@ -1261,47 +1301,51 @@ public class GadgetListener implements Listener {
             land.runTaskTimer(plugin, 0L, 1L);
         }
     }
+
     @EventHandler
-    public void shieldDamageEvent(PlayerShieldAmountChangeEvent changeEvent){
+    public void shieldDamageEvent(PlayerShieldAmountChangeEvent changeEvent) {
         Player p = changeEvent.getPlayer();
         double amount = changeEvent.getAmount();
-        if(amount < 0){
+        if (amount < 0) {
             isChargingShield.remove(p);
         }
     }
-    public void battery(Player p,int seconds,double shieldAmount,ItemStack item){
+
+    public void battery(Player p, int seconds, double shieldAmount, ItemStack item) {
         isChargingShield.add(p);
         BossBar bar = PlayerStats.playerShieldBar.getOrDefault(p.getName(), null);
-        if(bar != null){
+        if (bar != null) {
             bar.setColor(BarColor.WHITE);
         }
         BukkitRunnable recover = new BukkitRunnable() {
             int count = 0;
             int step = seconds * 4;
+
             @Override
             public void run() {
                 double shield = playerStats.getShield(p);
-                if(count > step - 1 || shield == 20 || !isChargingShield.contains(p)){
-                    if(bar != null){
+                if (count > step - 1 || shield >= 20 || !isChargingShield.contains(p)) {
+                    if (bar != null) {
                         bar.setColor(BarColor.BLUE);
                     }
                     isChargingShield.remove(p);
-                    p.setCooldown(item,0);
+                    p.setCooldown(item, 0);
                     this.cancel();
                     return;
                 }
-                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p,shieldAmount / step));
+                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, shieldAmount / step));
                 count += 1;
             }
         };
-        recover.runTaskTimer(plugin,0L,5L);
+        recover.runTaskTimer(plugin, 0L, 5L);
     }
+
     public void deadline(Player p) {
         World w = p.getWorld();
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
         ArmorStand g = (ArmorStand) w.spawnEntity(shootLoc, EntityType.ARMOR_STAND);
-        if(!p.isSneaking()) {
+        if (!p.isSneaking()) {
             g.setVelocity(shootVec.multiply(0.5));
         }
         w.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1, 1);
@@ -1320,14 +1364,15 @@ public class GadgetListener implements Listener {
             @Override
             public void run() {
                 if (count >= 20 || g.isDead()) {
-                    if(count >= 20){
+                    if (count >= 20) {
                         g.remove();
                         Location pLoc = g.getLocation().clone();
                         BukkitRunnable sweep = new BukkitRunnable() {
                             int count = 0;
+
                             @Override
                             public void run() {
-                                if(count > 3){
+                                if (count > 3) {
                                     this.cancel();
                                     return;
                                 }
@@ -1340,22 +1385,22 @@ public class GadgetListener implements Listener {
                                     double z = padZ + ((3 + count * 2) * Math.cos((3 + count * 2) * i + 0.5 * j));
                                     Location areaP = new Location(w, x, padY, z);
                                     BlockData data = Bukkit.createBlockData(Material.GRAVEL);
-                                    w.spawnParticle(Particle.DUST_PILLAR,areaP,1,data);
-                                    w.spawnParticle(Particle.EXPLOSION,areaP,1);
+                                    w.spawnParticle(Particle.DUST_PILLAR, areaP, 1, data);
+                                    w.spawnParticle(Particle.EXPLOSION, areaP, 1);
                                 }
-                                w.spawnParticle(Particle.FLASH,g.getLocation(),1,Color.YELLOW);
-                                w.spawnParticle(Particle.LAVA,g.getLocation(),10,1,1,1,0.1);
+                                w.spawnParticle(Particle.FLASH, g.getLocation(), 1, Color.YELLOW);
+                                w.spawnParticle(Particle.LAVA, g.getLocation(), 10, 1, 1, 1, 0.1);
                                 count += 1;
                             }
                         };
-                        w.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE,g.getLocation(),100,0,0,0,0.2);
-                        sweep.runTaskTimer(plugin,0L,2L);
-                        w.playSound(g.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,3,1);
-                        w.spawnParticle(Particle.EXPLOSION_EMITTER,g.getLocation(),1);
+                        w.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, g.getLocation(), 100, 0, 0, 0, 0.2);
+                        sweep.runTaskTimer(plugin, 0L, 2L);
+                        w.playSound(g.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 3, 1);
+                        w.spawnParticle(Particle.EXPLOSION_EMITTER, g.getLocation(), 1);
                         double radius = 10;
-                        for(Entity e : g.getNearbyEntities(radius,radius,radius)){
-                            if(e == g)continue;
-                            if(e instanceof LivingEntity l){
+                        for (Entity e : g.getNearbyEntities(radius, radius, radius)) {
+                            if (e == g) continue;
+                            if (e instanceof LivingEntity l) {
                                 Location shooterLoc = g.getEyeLocation();
                                 Location targetLoc = l.getEyeLocation();
                                 Vector sV = shooterLoc.toVector();
@@ -1365,7 +1410,7 @@ public class GadgetListener implements Listener {
                                 l.damage(250);
                             }
                         }
-                        if(g.getVehicle() instanceof LivingEntity l1){
+                        if (g.getVehicle() instanceof LivingEntity l1) {
                             l1.damage(250);
                         }
                     }
@@ -1373,13 +1418,13 @@ public class GadgetListener implements Listener {
                     return;
                 }
                 Color c = Color.RED;
-                if(count == 14){
-                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.7f);
-                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.65f);
-                }else if(count == 13){
-                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.6f);
-                    w.playSound(g.getLocation(),Sound.ITEM_GOAT_HORN_SOUND_3,2,1.55f);
-                } else if(count < 13) {
+                if (count == 14) {
+                    w.playSound(g.getLocation(), Sound.ITEM_GOAT_HORN_SOUND_3, 2, 1.7f);
+                    w.playSound(g.getLocation(), Sound.ITEM_GOAT_HORN_SOUND_3, 2, 1.65f);
+                } else if (count == 13) {
+                    w.playSound(g.getLocation(), Sound.ITEM_GOAT_HORN_SOUND_3, 2, 1.6f);
+                    w.playSound(g.getLocation(), Sound.ITEM_GOAT_HORN_SOUND_3, 2, 1.55f);
+                } else if (count < 13) {
                     c = Color.YELLOW;
                     w.playSound(g.getLocation(), Sound.UI_BUTTON_CLICK, 2, 0.5f + count * 0.05f);
                     w.playSound(g.getLocation(), Sound.BLOCK_COPPER_BULB_TURN_OFF, 2, 0.5f + count * 0.05f);
@@ -1387,9 +1432,9 @@ public class GadgetListener implements Listener {
                     w.playSound(g.getLocation(), Sound.BLOCK_COPPER_BULB_TURN_OFF, 2, 0.5f + count * 0.05f);
                 }
                 double y = 1 + count / 10.0;
-                Particle.DustOptions dust = new Particle.DustOptions(c,1.5f);
-                w.spawnParticle(Particle.DUST,g.getLocation().add(0,y,0)
-                        ,50,0,y / 2,0,dust);
+                Particle.DustOptions dust = new Particle.DustOptions(c, 1.5f);
+                w.spawnParticle(Particle.DUST, g.getLocation().add(0, y, 0)
+                        , 50, 0, y / 2, 0, dust);
                 Entity nearest = null;
                 double nearestDistanceSquared = Double.MAX_VALUE;
                 for (Entity e : g.getNearbyEntities(5, 5, 5)) {
@@ -1409,9 +1454,10 @@ public class GadgetListener implements Listener {
                 count += 1;
             }
         };
-        trigger.runTaskTimer(plugin,20L,8L);
+        trigger.runTaskTimer(plugin, 20L, 8L);
     }
-    public void leaperUnit(Player p,ItemStack hand){
+
+    public void leaperUnit(Player p, ItemStack hand) {
         World w = p.getWorld();
         Material material = hand.getType();
         if (p.getCooldown(material) == 0) {
@@ -1435,45 +1481,47 @@ public class GadgetListener implements Listener {
                     if (nade.isDead() || k.hitBallBlock(nade)) {
                         this.cancel();
                         nade.remove();
-                        EnderSignal s = (EnderSignal) w.spawnEntity(nade.getLocation(),EntityType.EYE_OF_ENDER);
+                        EnderSignal s = (EnderSignal) w.spawnEntity(nade.getLocation(), EntityType.EYE_OF_ENDER);
                         s.setItem(new ItemStack(Material.FIREWORK_STAR));
                         s.setGlowing(true);
                         BukkitRunnable boom = new BukkitRunnable() {
                             int count = 0;
+
                             @Override
                             public void run() {
-                                if(count > 5){
+                                if (count > 5) {
                                     s.remove();
                                     this.cancel();
                                     return;
                                 }
-                                if(count < 5){
-                                    if(count == 0) {
+                                if (count < 5) {
+                                    if (count == 0) {
                                         w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
                                         w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
                                         w.playSound(nade.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_ABOUT_TO_SPAWN_ITEM, 2, 1);
                                     }
-                                    Particle.DustOptions dust = new Particle.DustOptions(Color.YELLOW,1);
-                                    w.spawnParticle(Particle.DUST,nade.getLocation(),count * 10,
-                                            (count+1)/2.0,(count+1)/2.0,(count+1)/2.0,dust);
-                                    for(Entity e : nade.getNearbyEntities(5,5,5)) {
+                                    Particle.DustOptions dust = new Particle.DustOptions(Color.YELLOW, 1);
+                                    w.spawnParticle(Particle.DUST, nade.getLocation(), count * 10,
+                                            (count + 1) / 2.0, (count + 1) / 2.0, (count + 1) / 2.0, dust);
+                                    for (Entity e : nade.getNearbyEntities(5, 5, 5)) {
                                         if (e instanceof LivingEntity l1) {
-                                            if(e instanceof Monster)continue;
+                                            if (e instanceof Monster) continue;
                                             if (e instanceof Player p) {
-                                                if(playerStats.isDying(p))continue;
+                                                if (playerStats.isDying(p)) continue;
                                                 if (p.getGameMode() != GameMode.SURVIVAL) continue;
                                             }
                                             k.knockBack(l1, nade.getLocation(), -0.25);
                                         }
                                     }
-                                }else {
+                                } else {
                                     Location pLoc = nade.getLocation();
-                                    k.explode(p,nade,22,1,5,0);
+                                    k.explode(p, nade, 22, 1, 5, 0);
                                     BukkitRunnable sweep = new BukkitRunnable() {
                                         int count = 0;
+
                                         @Override
                                         public void run() {
-                                            if(count > 5){
+                                            if (count > 5) {
                                                 this.cancel();
                                                 return;
                                             }
@@ -1486,30 +1534,31 @@ public class GadgetListener implements Listener {
                                                 double z = padZ + ((1 + count) * Math.cos((1 + count) * i + 0.5 * j));
                                                 Location areaP = new Location(w, x, padY, z);
                                                 BlockData data = Bukkit.createBlockData(Material.YELLOW_CONCRETE);
-                                                w.spawnParticle(Particle.DUST_PILLAR,areaP,1,data);
-                                                if(count == 2) {
+                                                w.spawnParticle(Particle.DUST_PILLAR, areaP, 1, data);
+                                                if (count == 2) {
                                                     w.spawnParticle(Particle.FIREFLY, areaP, 1);
                                                 }
                                             }
                                             count += 1;
                                         }
                                     };
-                                    w.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE,nade.getLocation(),200,0,0,0,0.1);
-                                    sweep.runTaskTimer(plugin,0L,2L);
-                                    w.playSound(nade.getLocation(),Sound.ENTITY_GENERIC_EXPLODE,3,1);
-                                    w.spawnParticle(Particle.EXPLOSION_EMITTER,nade.getLocation(),1);
-                                    w.spawnParticle(Particle.FLASH,nade.getLocation(),1,Color.YELLOW);
+                                    w.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, nade.getLocation(), 200, 0, 0, 0, 0.1);
+                                    sweep.runTaskTimer(plugin, 0L, 2L);
+                                    w.playSound(nade.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 3, 1);
+                                    w.spawnParticle(Particle.EXPLOSION_EMITTER, nade.getLocation(), 1);
+                                    w.spawnParticle(Particle.FLASH, nade.getLocation(), 1, Color.YELLOW);
                                 }
                                 count += 1;
                             }
                         };
-                        boom.runTaskTimer(plugin,0L,10L);
+                        boom.runTaskTimer(plugin, 0L, 10L);
                     }
                 }
             };
             land.runTaskTimer(plugin, 3L, 1L);
         }
     }
+
     public void mendingPowder(Player p, ItemStack hand) {
         // 检查修复粉末冷却
         if (p.getCooldown(hand.getType()) != 0) {

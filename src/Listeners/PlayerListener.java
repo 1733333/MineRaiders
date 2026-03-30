@@ -414,7 +414,7 @@ public class PlayerListener implements Listener {
             if (shield == -1 || !playerStats.isShieldOn(p)) {
                 if (shield == -1) {
                     GadgetListener gadgetListener = new GadgetListener(plugin);
-                    gadgetListener.battery(p,10,20,new ItemStack(Material.NETHER_PORTAL));
+                    gadgetListener.battery(p,10,30,new ItemStack(Material.NETHER_PORTAL));
                 }
                 if (!playerStats.isShieldOn(p)) {
                     playerStats.openShield(p);

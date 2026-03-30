@@ -27,16 +27,6 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 public class GameListener implements Listener {
-    public int[] gameOver = new int[]{
-            0, 1, 0, 0, 0, 1, 1, 1,
-            0, 1, 0, 0, 0, 0, 0, 1,
-            0, 1, 0, 0, 1, 1, 0, 1,
-            0, 1, 0, 0, 0, 1, 0, 1,
-            0, 1, 0, 0, 1, 1, 1, 1,
-            0, 1, 0, 1, 0, 1, 1, 0,
-            0, 1, 0, 0, 0, 1, 0, 1,
-            0, 1, 0, 1, 0, 0, 1, 0,
-    };
     Random rand = new Random();
     private static JavaPlugin plugin = null;
     private static final Map<World, GameSession> activeGames = new HashMap<>();
@@ -81,12 +71,13 @@ public class GameListener implements Listener {
         final Map<Player, Scoreboard> playerScoreboards = new HashMap<>();   // 独立计分板
         final Map<Player, Objective> playerObjectives = new HashMap<>();     // 独立显示目标
         final BukkitTask timerTask;
+        final int totalGameSeconds;
         int remainingSeconds;                      // 剩余时间（秒）
         boolean isEnding = false;                  // 游戏是否正在结束（等待充能）
         boolean ended = false;                     // 游戏是否已经结束（防止重复执行endGame）
         final Set<Snowman> activeGolems = new HashSet<>(); // 正在充能或处于窗口期的撤离点
-        // 本局游戏中撤离失败的玩家名称集合
-        final Set<String> failedPlayers = new HashSet<>();
+        // 本局游戏中已经退出（成功撤离或撤离失败）的玩家名称集合，用于禁止中途以玩家身份加入
+        final Set<String> exitedPlayers = new HashSet<>();
         // 怪物刷新盔甲架列表
         final List<ArmorStand> monsterTriggers = new ArrayList<>();
         // 普通撤离点雪傀儡列表
@@ -105,6 +96,7 @@ public class GameListener implements Listener {
             this.world = world;
             this.players = new HashSet<>(players);
             this.profits = new HashMap<>();
+            this.totalGameSeconds = totalSeconds;  // 记录总时长
             for (Player p : players) {
                 profits.put(p.getUniqueId(), 0.0);
             }
@@ -498,9 +490,9 @@ public class GameListener implements Listener {
             session.removePlayer(player);
         }
         if(!isGameEnded) {
-            // 记录失败玩家名称（用于禁止中途加入）
+            // 记录退出玩家名称（用于禁止中途加入）
             if (session != null) {
-                session.failedPlayers.add(player.getName());
+                session.exitedPlayers.add(player.getName());
             }
             // 收集玩家的所有物品，用于生成遗物盔甲架
             List<ItemStack> playerItems = new ArrayList<>();
@@ -724,11 +716,25 @@ public class GameListener implements Listener {
         if (session.players.contains(player)) {
             return;
         }
-        // 检查是否在本局游戏中撤离失败过
-        if (session.failedPlayers.contains(player.getName())) {
-            player.sendMessage("§c你已在本局游戏中撤离失败，无法重新加入，只能观战。");
+        // 检查是否在本局游戏中已经退出（无论成功撤离还是失败）
+        if (session.exitedPlayers.contains(player.getName())) {
+            player.sendMessage("§c你已在本局游戏中退出，无法重新加入，只能观战。");
             player.setGameMode(GameMode.SPECTATOR);
-            player.teleport(world.getSpawnLocation());
+            // 随机传送到一个在游戏中的玩家位置
+            List<Player> onlinePlayers = new ArrayList<>(session.players);
+            onlinePlayers.removeIf(p -> !p.isOnline() || p.getGameMode() == GameMode.SPECTATOR);
+            if (!onlinePlayers.isEmpty()) {
+                Player target = onlinePlayers.get(rand.nextInt(onlinePlayers.size()));
+                player.teleport(target.getLocation());
+                player.sendMessage("§7你正在观战 " + target.getName() + " 的游戏");
+            } else {
+                player.teleport(world.getSpawnLocation());
+                player.sendMessage("§c当前没有其他玩家可供观战");
+            }
+            // 设置观战状态标记
+            PlayerStats.INSTANCE.setSpectating(player, GameStatus.INSTANCE.getWorldId(world.getName()));
+            // 清除可能残留的准备状态
+            clearPlayerReady(player, world.getName());
             return;
         }
         Map<String, Location> playerSpawns = LocationManagerUI.getLocationsByType(world.getName(),
@@ -898,6 +904,8 @@ public class GameListener implements Listener {
         GameSession session = activeGames.get(world);
         if (session == null) return;
         if (!session.players.contains(player)) return;
+        // 记录成功撤离的玩家（加入已退出集合）
+        session.exitedPlayers.add(player.getName());
         // 如果玩家处于倒地状态，清除倒地状态
         if (PlayerStats.INSTANCE.isDying(player)) {
             BukkitRunnable timer = PlayerListener.dyingTimers.remove(player);
@@ -909,12 +917,21 @@ public class GameListener implements Listener {
         // 从游戏会话中移除玩家
         session.removePlayer(player);
         PlayerStats.INSTANCE.stopInGame(player);
+        PlayerStats.INSTANCE.closeShield(player);
         // 清除准备状态
         clearPlayerReady(player, world.getName());
         // 传送到世界出生点
         Location spawn = world.getSpawnLocation();
         player.teleport(spawn);
-        player.sendMessage("§a撤离成功！返回上层");
+        // 计算用时（秒）
+        int elapsedSeconds = session.totalGameSeconds - session.remainingSeconds;
+        int minutes = elapsedSeconds / 60;
+        int seconds = elapsedSeconds % 60;
+        String timeStr = String.format("%d分%d秒", minutes, seconds);
+        // 获取收益
+        double profit = session.profits.getOrDefault(player.getUniqueId(), 0.0);
+        // 发送消息给玩家本人
+        player.sendMessage("§a[撤离成功] 用时: " + timeStr + " 收益: " + String.format("%.1f", profit));
     }
 
     @EventHandler
@@ -1075,22 +1092,7 @@ public class GameListener implements Listener {
         }.runTaskTimer(plugin, 0L, 4L);
         // 保留随机音符盒特效（不影响物品掉落）
         if (rand.nextInt(10) == 0) {
-            new BukkitRunnable() {
-                int count = 0;
-                @Override
-                public void run() {
-                    if (count >= gameOver.length) {
-                        this.cancel();
-                        return;
-                    }
-                    float pitch = 0.8f;
-                    if (gameOver[count] > 0) {
-                        pitch = 1.5f;
-                    }
-                    world.playSound(eyeLoc, Sound.BLOCK_NOTE_BLOCK_BIT, 1, pitch);
-                    count++;
-                }
-            }.runTaskTimer(plugin, 0L, 4L);
+            k.esterEgg0(eyeLoc);
         }
     }
 

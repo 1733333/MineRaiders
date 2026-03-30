@@ -25,7 +25,7 @@ public class GameStartCommand implements CommandExecutor {
     }
 
     public void openStartMenu(Player p){
-        Inventory inv = Bukkit.createInventory(p, 9, ChatColor.GOLD +""+ ChatColor.BOLD + "选择地图");
+        Inventory inv = Bukkit.createInventory(p, 9, ChatColor.DARK_BLUE +""+ ChatColor.BOLD + "选择地图");
         inv.addItem(xc2());
         p.openInventory(inv);
         playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.MAP_MENU);

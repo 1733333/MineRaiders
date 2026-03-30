@@ -12,6 +12,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -71,6 +72,7 @@ public class InventoryListener implements Listener {
                 case "地点管理" -> p.performCommand("mr locs gui");
                 case "帮助" ->
                         p.sendMessage("§e使用 §f/mr <子命令> §e查看详细用法，子命令包括: armor, weapon, gadget, drop, loot, recipe, freerecipe, getallitems, gamestart, lobby, gameend, debug, summondamagetester");
+                case "123456789" -> k.esterEgg0(p.getLocation());
             }
             return;
         }
@@ -186,6 +188,13 @@ public class InventoryListener implements Listener {
                         }
                     } else if (status != PlayerStats.MenuStatus.CRAFTING_MENU) {
                         if (p.isOp()) {
+                            ItemMeta meta = item.getItemMeta();
+                            if(meta != null && meta.hasLore()){
+                                List<String> lore = meta.getLore();
+                                lore.removeIf(line -> line != null && line.contains("§0."));
+                                lore.removeIf(line -> line != null && line.contains("§e权数: "));
+                                item.setItemMeta(meta);
+                            }
                             item.setAmount(1);
                             Item i = w.dropItem(p.getLocation(), item);
                             i.setPickupDelay(0);

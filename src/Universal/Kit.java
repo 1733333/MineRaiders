@@ -25,7 +25,16 @@ public enum Kit {
     INSTANCE;
     JavaPlugin plugin;
     Random r = new Random();
-
+    public int[] gameOver = new int[]{
+            0, 1, 0, 0, 0, 1, 1, 1,
+            0, 1, 0, 0, 0, 0, 0, 1,
+            0, 1, 0, 0, 1, 1, 0, 1,
+            0, 1, 0, 0, 0, 1, 0, 1,
+            0, 1, 0, 0, 1, 1, 1, 1,
+            0, 1, 0, 1, 0, 1, 1, 0,
+            0, 1, 0, 0, 0, 1, 0, 1,
+            0, 1, 0, 1, 0, 0, 1, 0,
+    };
     public void setPlugin(JavaPlugin plugin) {
         this.plugin = plugin;
     }
@@ -563,5 +572,34 @@ public enum Kit {
             double z = center.getZ() + radius * Math.sin(angle);
             world.spawnParticle(particle, x, y, z, 1, 0, 0, 0, 0);
         }
+    }
+    public ItemStack createMenuItem(Material material, String name, String... lore) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name);
+        if (lore.length > 0) {
+            meta.setLore(Arrays.asList(lore));
+        }
+        item.setItemMeta(meta);
+        return item;
+    }
+    public void esterEgg0(Location loc){
+        World world = loc.getWorld();
+        new BukkitRunnable() {
+            int count = 0;
+            @Override
+            public void run() {
+                if (count >= gameOver.length) {
+                    this.cancel();
+                    return;
+                }
+                float pitch = 0.8f;
+                if (gameOver[count] > 0) {
+                    pitch = 1.5f;
+                }
+                world.playSound(loc, Sound.BLOCK_NOTE_BLOCK_BIT, 1, pitch);
+                count++;
+            }
+        }.runTaskTimer(plugin, 0L, 4L);
     }
 }
