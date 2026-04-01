@@ -451,36 +451,7 @@ public class PlayerListener implements Listener {
         if (shield > 0 && newShield <= 0) {
             //play crack effect
             if (k.isArmored(p)) {
-                w.spawnParticle(Particle.SONIC_BOOM, p.getLocation().add(0, 1, 0), 1);
-                BukkitRunnable sound = new BukkitRunnable() {
-                    int count = 0;
-
-                    @Override
-                    public void run() {
-                        if (count > 21) {
-                            this.cancel();
-                        }
-                        if (count < 7) {
-                            if (count == 0) {
-                                w.playSound(p.getLocation(), Sound.ITEM_TRIDENT_HIT_GROUND, 1, 0.5f);
-                                w.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1, 0.5f);
-                                w.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE_FAR, 1, 0.8f);
-                                w.playSound(p.getLocation(), Sound.ITEM_TRIDENT_RIPTIDE_3, 1, 0.7f);
-                                w.playSound(p.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 0.3f, 1);
-                                w.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
-                                w.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
-                                w.playSound(p.getLocation(), Sound.BLOCK_GLASS_BREAK, 1, 1);
-                            }
-                            w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1, 2 - (0.1f * count));
-                        } else if (count > 10) {
-                            if (count % 3 == 1) {
-                                w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1, 1.8f);
-                            }
-                        }
-                        count += 1;
-                    }
-                };
-                sound.runTaskTimer(plugin, 0L, 2L);
+                k.shieldBreakEffect(p.getLocation().add(0,1,0));
                 Bukkit.getPluginManager().callEvent(new PlayerShieldBreakEvent(p));
             }
         }
@@ -614,5 +585,12 @@ public class PlayerListener implements Listener {
                 p.sendMessage("§a游戏结束，你已被传送回出生点。");
             }
         }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        int level = PlayerStats.INSTANCE.getIslandLevel(player);
+        Kit.INSTANCE.setInventoryLimit(player, level);
     }
 }

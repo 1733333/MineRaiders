@@ -6,7 +6,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
@@ -36,37 +38,38 @@ public enum PlayerStats {
         MAIN_MENU
     }
 
-    HashSet<Player> isDying = new HashSet<>();
-    HashSet<Player> isInGame = new HashSet<>();
-    HashMap<Player, Integer> PlayerSpectatingStatus = new HashMap<>();
-    HashMap<Player, Integer> playerReadyStatus = new HashMap<>();
+    HashSet<String> isDying = new HashSet<>();
+    HashSet<String> isInGame = new HashSet<>();
+    HashMap<String, Integer> PlayerSpectatingStatus = new HashMap<>();
+    HashMap<String, Integer> playerReadyStatus = new HashMap<>();
+    HashMap<String, Integer> playerIslandLevel = new HashMap<>();
 
     public int getMaxShield() {
         return MAX_SHIELD;
     }
 
     public boolean isDying(Player p) {
-        return isDying.contains(p);
+        return isDying.contains(p.getName());
     }
 
     public void setDying(Player p) {
-        isDying.add(p);
+        isDying.add(p.getName());
     }
 
     public void stopDying(Player p) {
-        isDying.remove(p);
+        isDying.remove(p.getName());
     }
 
     public boolean isInGame(Player p) {
-        return isInGame.contains(p);
+        return isInGame.contains(p.getName());
     }
 
     public void setInGame(Player p) {
-        isInGame.add(p);
+        isInGame.add(p.getName());
     }
 
     public void stopInGame(Player p) {
-        isInGame.remove(p);
+        isInGame.remove(p.getName());
     }
     //护盾相关函数
     public boolean isShieldOn(Player p) {
@@ -124,42 +127,116 @@ public enum PlayerStats {
         playerShield.put(p.getName(), shield);
     }
 
-    public void removePlayerShield(Player p) {
-        playerShield.remove(p.getName());
-    }
-
     // 准备状态相关方法
     public boolean isReady(Player p) {
-        return playerReadyStatus.containsKey(p);
+        return playerReadyStatus.containsKey(p.getName());
     }
 
     public int getReadyStatus(Player p) {
-        return playerReadyStatus.getOrDefault(p, -1);
+        return playerReadyStatus.getOrDefault(p.getName(), -1);
     }
 
     public void setReady(Player p, int mapId) {
-        playerReadyStatus.put(p, mapId);
+        playerReadyStatus.put(p.getName(), mapId);
     }
 
     public void stopReady(Player p) {
-        playerReadyStatus.remove(p);
+        playerReadyStatus.remove(p.getName());
     }
 
     // 观战状态相关方法
     public boolean isSpectating(Player p) {
-        return PlayerSpectatingStatus.containsKey(p);
+        return PlayerSpectatingStatus.containsKey(p.getName());
     }
 
     public int getSpectatingStatus(Player p) {
-        return PlayerSpectatingStatus.getOrDefault(p, -1);
+        return PlayerSpectatingStatus.getOrDefault(p.getName(), -1);
     }
 
     public void setSpectating(Player p, int worldId) {
-        PlayerSpectatingStatus.put(p, worldId);
+        PlayerSpectatingStatus.put(p.getName(), worldId);
     }
 
     public void stopSpectating(Player p) {
-        PlayerSpectatingStatus.remove(p);
+        PlayerSpectatingStatus.remove(p.getName());
     }
 
+    // ========== 岛屿等级相关方法 ==========
+    /**
+     * 获取玩家的岛屿等级，未设置时返回 0
+     */
+    public int getIslandLevel(Player p) {
+        return playerIslandLevel.getOrDefault(p.getName(), 0);
+    }
+
+    /**
+     * 设置玩家的岛屿等级
+     */
+    public void setIslandLevel(Player p, int level) {
+        playerIslandLevel.put(p.getName(), level);
+    }
+
+    /**
+     * 增加（或减少）玩家的岛屿等级
+     */
+    public void addIslandLevel(Player p, int amount) {
+        int current = getIslandLevel(p);
+        setIslandLevel(p, current + amount);
+    }
+
+    /**
+     * 检查玩家是否有岛屿等级记录
+     */
+    public boolean hasIslandLevel(Player p) {
+        return playerIslandLevel.containsKey(p.getName());
+    }
+
+    /**
+     * 从配置节加载所有岛屿等级（内部使用）
+     */
+    public void loadIslandLevels(ConfigurationSection section) {
+        if (section == null) return;
+        for (String playerName : section.getKeys(false)) {
+            int level = section.getInt(playerName, 0);
+            playerIslandLevel.put(playerName, level);
+        }
+    }
+
+    /**
+     * 将所有玩家的岛屿等级保存到配置节（内部使用）
+     */
+    public void saveIslandLevels(ConfigurationSection section) {
+        if (section == null) return;
+        for (String playerName : playerIslandLevel.keySet()) {
+            section.set(playerName, playerIslandLevel.get(playerName));
+        }
+    }
+
+    // ========== 集成到插件配置的便捷方法 ==========
+    /**
+     * 从插件的配置文件中加载岛屿等级数据
+     * @param plugin 插件实例
+     * @param configPath 配置路径，如 "island_levels"
+     */
+    public void loadIslandLevelsFromConfig(JavaPlugin plugin, String configPath) {
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection(configPath);
+        if (section == null) {
+            section = plugin.getConfig().createSection(configPath);
+        }
+        loadIslandLevels(section);
+    }
+
+    /**
+     * 将所有岛屿等级数据保存到插件的配置文件
+     * @param plugin 插件实例
+     * @param configPath 配置路径，如 "island_levels"
+     */
+    public void saveIslandLevelsToConfig(JavaPlugin plugin, String configPath) {
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection(configPath);
+        if (section == null) {
+            section = plugin.getConfig().createSection(configPath);
+        }
+        saveIslandLevels(section);
+        plugin.saveConfig(); // 立即写入磁盘
+    }
 }

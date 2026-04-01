@@ -509,7 +509,6 @@ public class GameListener implements Listener {
                 lootStand.setAI(false);
                 lootStand.setInvulnerable(true);
                 lootStand.setCustomName("§c" + player.getName() + " §7的遗物");
-                lootStand.setCustomNameVisible(true);
                 // 设置装备：玩家头颅 + 皮革护甲
                 // 玩家头颅
                 ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);
@@ -535,6 +534,7 @@ public class GameListener implements Listener {
         player.sendMessage("§c撤离失败，所有物品已丢失！");
         player.setHealth(20);
         player.setFoodLevel(20);
+        player.setCustomNameVisible(false);
         // 清除游戏状态标记
         PlayerStats.INSTANCE.stopInGame(player);
         PlayerStats.INSTANCE.removeShieldBar(player);
@@ -592,6 +592,7 @@ public class GameListener implements Listener {
             t.setGameMode(GameMode.ADVENTURE);
             t.setHealth(20);
             t.setFoodLevel(20);
+            t.setCustomNameVisible(false);
             playerStats.createShieldBar(t);
             if(k.isArmored(t)){
                 playerStats.openShield(t);
@@ -917,7 +918,8 @@ public class GameListener implements Listener {
         // 从游戏会话中移除玩家
         session.removePlayer(player);
         PlayerStats.INSTANCE.stopInGame(player);
-        PlayerStats.INSTANCE.closeShield(player);
+        PlayerStats.INSTANCE.removeShieldBar(player);
+        player.setCustomNameVisible(true);
         // 清除准备状态
         clearPlayerReady(player, world.getName());
         // 传送到世界出生点

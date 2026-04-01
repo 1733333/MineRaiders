@@ -169,7 +169,7 @@ public class GadgetListener implements Listener {
                         leaperUnit(p, hand);
                         interactEvent.setCancelled(true);
                         break;
-                    case "布满灰尘的石头":
+                    case "§f布满灰尘的石头":
                         ItemStack[] stones = lp.getStones();
                         w.dropItem(p.getLocation(), stones[r.nextInt(stones.length)]).setPickupDelay(0);
                         w.playSound(p.getLocation(), Sound.ITEM_BRUSH_BRUSHING_GENERIC, 1, 1);
@@ -179,8 +179,9 @@ public class GadgetListener implements Listener {
                             int amount = hand.getAmount();
                             hand.setAmount(amount - 1);
                         }
+                        interactEvent.setCancelled(true);
                         break;
-                    case "布满灰尘的木头":
+                    case "§f布满灰尘的木头":
                         ItemStack[] woods = lp.getWoods();
                         w.dropItem(p.getLocation(), woods[r.nextInt(woods.length)]).setPickupDelay(0);
                         w.playSound(p.getLocation(), Sound.ITEM_BRUSH_BRUSHING_GENERIC, 1, 1);
@@ -190,6 +191,7 @@ public class GadgetListener implements Listener {
                             int amount = hand.getAmount();
                             hand.setAmount(amount - 1);
                         }
+                        interactEvent.setCancelled(true);
                         break;
                 }
                 if (tag.contains("收纳盒")) {

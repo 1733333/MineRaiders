@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="MineRaidersDoor">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../MineRaidersDoor/out/artifacts/MineRaidersDoor/MineRaidersDoor.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

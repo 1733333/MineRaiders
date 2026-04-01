@@ -160,7 +160,7 @@ public enum DropPool {
         return i.clone();
     }
     public ItemStack shredderCore() {
-        ItemStack i = new ItemStack(Material.WITHER_SKELETON_SKULL);
+        ItemStack i = new ItemStack(Material.OBSERVER);
         ItemMeta meta = i.getItemMeta();
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(4);

@@ -10,7 +10,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -113,7 +116,7 @@ public class InventoryListener implements Listener {
         if(status == PlayerStats.MenuStatus.DEV_MENU){
             clickEvent.setCancelled(true);
             p.closeInventory();
-            p.performCommand("mrd " + slot);
+            p.performCommand("mr debug " + slot);
             return;
         }
         if (status != PlayerStats.MenuStatus.NOT_MENU) {
@@ -273,4 +276,43 @@ public class InventoryListener implements Listener {
         return inv;
     }
 
+    // ------------------------------
+    // 简化的事件拦截，通过Lore判断
+    // ------------------------------
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent e) {
+        if (e.getCurrentItem() != null && k.isLockedItem(e.getCurrentItem())) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent e) {
+        // 检查拖动的物品
+        if (e.getCursor() != null && k.isLockedItem(e.getCursor())) {
+            e.setCancelled(true);
+            return;
+        }
+        // 检查目标槽位
+        for (int slot : e.getInventorySlots()) {
+            if (k.isLockedItem(e.getInventory().getItem(slot))) {
+                e.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent e) {
+        if (k.isLockedItem(e.getItemDrop().getItemStack())) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerItemHeld(PlayerItemHeldEvent e) {
+        if (k.isLockedItem(e.getPlayer().getInventory().getItem(e.getNewSlot()))) {
+            e.setCancelled(true);
+        }
+    }
 }

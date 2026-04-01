@@ -188,9 +188,10 @@ public class ContainerListener implements Listener {
                     drop = true;
                     drops = new ItemStack[amount];
                     int result = lp.getRarity(hand) - 1;
+                    ItemStack[] randItem = lp.getPoolByRarity(result);
+                    ItemStack item = randItem[r.nextInt(randItem.length)];
                     for (int i = 0; i < amount; i++) {
-                        ItemStack[] randItem = lp.getPoolByRarity(result);
-                        drops[i] = randItem[r.nextInt(randItem.length)];
+                        drops[i] = item;
                     }
                 }
                 if(drop) {

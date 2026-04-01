@@ -23,6 +23,7 @@ import java.util.*;
 
 public enum Kit {
     INSTANCE;
+    private static final String LOCK_MARK = "§7locked";
     JavaPlugin plugin;
     Random r = new Random();
     public int[] gameOver = new int[]{
@@ -602,4 +603,134 @@ public enum Kit {
             }
         }.runTaskTimer(plugin, 0L, 4L);
     }
+
+    public void shieldBreakEffect(Location loc){
+        World w = loc.getWorld();
+        w.spawnParticle(Particle.SONIC_BOOM, loc, 1);
+        BukkitRunnable sound = new BukkitRunnable() {
+            int count = 0;
+
+            @Override
+            public void run() {
+                if (count > 21) {
+                    this.cancel();
+                }
+                if (count < 7) {
+                    if (count == 0) {
+                        w.playSound(loc, Sound.ITEM_TRIDENT_HIT_GROUND, 1, 0.5f);
+                        w.playSound(loc, Sound.BLOCK_BEACON_DEACTIVATE, 1, 0.5f);
+                        w.playSound(loc, Sound.ENTITY_FIREWORK_ROCKET_TWINKLE_FAR, 1, 0.8f);
+                        w.playSound(loc, Sound.ITEM_TRIDENT_RIPTIDE_3, 1, 0.7f);
+                        w.playSound(loc, Sound.ITEM_TRIDENT_THUNDER, 0.3f, 1);
+                        w.playSound(loc, Sound.BLOCK_GLASS_BREAK, 1, 1);
+                        w.playSound(loc, Sound.BLOCK_GLASS_BREAK, 1, 1);
+                        w.playSound(loc, Sound.BLOCK_GLASS_BREAK, 1, 1);
+                    }
+                    w.playSound(loc, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1, 2 - (0.1f * count));
+                } else if (count > 10) {
+                    if (count % 3 == 1) {
+                        w.playSound(loc, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1, 1.8f);
+                    }
+                }
+                count += 1;
+            }
+        };
+        sound.runTaskTimer(plugin, 0L, 2L);
+    }/**
+     * 核心函数：单函数完成背包解锁/锁定、物品转移、锁定物品填充
+     * @param player 目标玩家
+     * @param level 限制等级 0~3
+     */
+    public void setInventoryLimit(Player player, int level) {
+        // 限制等级范围
+        level = Math.max(0, Math.min(3, level));
+        int unlockedHotbar = 6 + level;
+        int unlockedCols = 3 + 2 * level;
+        var inventory = player.getInventory();
+
+        // 1. 清理旧的锁定物品
+        for (int i = 0; i < 36; i++) {
+            ItemStack item = inventory.getItem(i);
+            if (item != null && item.hasItemMeta()) {
+                ItemMeta meta = item.getItemMeta();
+                if (meta.hasLore() && meta.getLore().contains(LOCK_MARK)) {
+                    inventory.setItem(i, null);
+                }
+            }
+        }
+        if (level >= 3) return; // 全部解锁直接返回
+
+        // 2. 收集锁定格子内的玩家物品，清空锁定槽
+        List<ItemStack> playerItems = new ArrayList<>();
+        // 处理快捷栏
+        for (int slot = unlockedHotbar; slot <= 8; slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (item != null && !isLockedItem(item)) playerItems.add(item);
+            inventory.setItem(slot, null);
+        }
+        // 处理主背包
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                if (col >= unlockedCols) {
+                    int slot = 9 + row * 9 + col;
+                    ItemStack item = inventory.getItem(slot);
+                    if (item != null && !isLockedItem(item)) playerItems.add(item);
+                    inventory.setItem(slot, null);
+                }
+            }
+        }
+
+        // 3. 将玩家物品转移到解锁槽，放不下的掉落
+        for (ItemStack item : playerItems) {
+            boolean added = false;
+            // 优先放入主背包解锁槽
+            for (int row = 0; row < 3 && !added; row++) {
+                for (int col = 0; col < unlockedCols; col++) {
+                    int slot = 9 + row * 9 + col;
+                    if (inventory.getItem(slot) == null) {
+                        inventory.setItem(slot, item);
+                        added = true;
+                        break;
+                    }
+                }
+            }
+            if (added) continue;
+            // 其次放入快捷栏解锁槽
+            for (int slot = 0; slot < unlockedHotbar; slot++) {
+                if (inventory.getItem(slot) == null) {
+                    inventory.setItem(slot, item);
+                    added = true;
+                    break;
+                }
+            }
+            // 都放不下则掉落
+            if (!added) player.getWorld().dropItemNaturally(player.getLocation(), item);
+        }
+
+        // 4. 创建锁定玻璃板并填充锁定槽
+        ItemStack lockedPane = new ItemStack(Material.RED_STAINED_GLASS_PANE);
+        ItemMeta meta = lockedPane.getItemMeta();
+        meta.setDisplayName("§c已锁定|通过升级解锁");
+        meta.setLore(Collections.singletonList(LOCK_MARK));
+        lockedPane.setItemMeta(meta);
+
+        // 填充快捷栏锁定槽
+        for (int slot = unlockedHotbar; slot <= 8; slot++) inventory.setItem(slot, lockedPane);
+        // 填充主背包锁定槽
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                if (col >= unlockedCols) {
+                    inventory.setItem(9 + row * 9 + col, lockedPane);
+                }
+            }
+        }
+    }
+
+    // 工具方法：判断物品是否是锁定的玻璃板
+    public boolean isLockedItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        return meta.hasLore() && meta.getLore().contains(LOCK_MARK);
+    }
+
 }

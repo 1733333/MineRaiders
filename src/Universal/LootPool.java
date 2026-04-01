@@ -2056,7 +2056,7 @@ public enum LootPool {
         meta.setDisplayName(ChatColor.GREEN + "【寻常】狗窝");
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "狗窝");
-        lore.add(ChatColor.WHITE + "鸡应用不到这个吧");
+        lore.add(ChatColor.WHITE + "鸡应该用不到这个吧");
         lore.add(ChatColor.WHITE + "拿在手里，对着切石机按" + ChatColor.AQUA + "鼠标右键");
         lore.add(ChatColor.WHITE + "可以回收成大量制造材料");
         meta.setLore(lore);
@@ -2113,7 +2113,7 @@ public enum LootPool {
     }
 
     public ItemStack i118() {
-        ItemStack i = new ItemStack(Material.POWERED_RAIL);
+        ItemStack i = new ItemStack(Material.GLOW_ITEM_FRAME);
         ItemMeta meta = i.getItemMeta();
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】崭新的工具");
@@ -2143,7 +2143,7 @@ public enum LootPool {
     }
 
     public ItemStack i120() {
-        ItemStack i = new ItemStack(Material.CLOCK);
+        ItemStack i = new ItemStack(Material.BELL);
         ItemMeta meta = i.getItemMeta();
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "【稀有】名贵挂钟");
@@ -2267,7 +2267,7 @@ public enum LootPool {
         ItemMeta meta = i.getItemMeta();
         meta.setMaxStackSize(1);
         meta.setDisplayName(ChatColor.GOLD + "【珍奇】费洛分流器");
-        meta.addEnchant(Enchantment.MULTISHOT,0,true);
+        meta.addEnchant(Enchantment.MULTISHOT,1,true);
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "费洛分流器");
         lore.add(ChatColor.WHITE + "放在副手时，费洛的箭矢会被分成若干箭矢");
@@ -2281,8 +2281,8 @@ public enum LootPool {
     public ItemStack i129() {
         ItemStack i = new ItemStack(Material.COBBLESTONE);
         ItemMeta meta = i.getItemMeta();
-        meta.addEnchant(Enchantment.UNBREAKING,0,true);
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.addEnchant(Enchantment.UNBREAKING,1,true);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTMENTS);
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(16);
         meta.setDisplayName(ChatColor.GRAY + "【普通】布满灰尘的石头");
@@ -2298,8 +2298,8 @@ public enum LootPool {
     public ItemStack i130() {
         ItemStack i = new ItemStack(Material.OAK_LOG);
         ItemMeta meta = i.getItemMeta();
-        meta.addEnchant(Enchantment.UNBREAKING,0,true);
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.addEnchant(Enchantment.UNBREAKING,1,true);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTMENTS);
         ArrayList<String> lore = new ArrayList<>();
         meta.setMaxStackSize(8);
         meta.setDisplayName(ChatColor.GREEN + "【寻常】布满灰尘的木头");

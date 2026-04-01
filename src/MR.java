@@ -62,6 +62,7 @@ public class MR extends JavaPlugin {
         for (Player p : Bukkit.getOnlinePlayers()){
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP,1,2);
         }
+        PlayerStats.INSTANCE.loadIslandLevelsFromConfig(this,"island_levels");
     }
 
     @Override
@@ -72,5 +73,6 @@ public class MR extends JavaPlugin {
         }
         LocationManagerUI.saveToConfig();
         LocationManagerUI.backupLocationConfig();
+        PlayerStats.INSTANCE.saveIslandLevelsToConfig(this,"island_levels");
     }
 }
