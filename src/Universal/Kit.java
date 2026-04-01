@@ -23,7 +23,7 @@ import java.util.*;
 
 public enum Kit {
     INSTANCE;
-    private static final String LOCK_MARK = "§7locked";
+    private static final String LOCK_MARK = "§7已锁定";
     JavaPlugin plugin;
     Random r = new Random();
     public int[] gameOver = new int[]{
@@ -636,11 +636,8 @@ public enum Kit {
             }
         };
         sound.runTaskTimer(plugin, 0L, 2L);
-    }/**
-     * 核心函数：单函数完成背包解锁/锁定、物品转移、锁定物品填充
-     * @param player 目标玩家
-     * @param level 限制等级 0~3
-     */
+    }
+    
     public void setInventoryLimit(Player player, int level) {
         // 限制等级范围
         level = Math.max(0, Math.min(3, level));
@@ -648,7 +645,7 @@ public enum Kit {
         int unlockedCols = 3 + 2 * level;
         var inventory = player.getInventory();
 
-        // 1. 清理旧的锁定物品
+        // 1. 清理旧的锁定物品（所有带LOCK_MARK的物品）
         for (int i = 0; i < 36; i++) {
             ItemStack item = inventory.getItem(i);
             if (item != null && item.hasItemMeta()) {
@@ -707,23 +704,58 @@ public enum Kit {
             if (!added) player.getWorld().dropItemNaturally(player.getLocation(), item);
         }
 
-        // 4. 创建锁定玻璃板并填充锁定槽
-        ItemStack lockedPane = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-        ItemMeta meta = lockedPane.getItemMeta();
-        meta.setDisplayName("§c已锁定|通过升级解锁");
-        meta.setLore(Collections.singletonList(LOCK_MARK));
-        lockedPane.setItemMeta(meta);
-
+        // 4. 创建锁定玻璃板并填充锁定槽（根据所需等级区分颜色）
         // 填充快捷栏锁定槽
-        for (int slot = unlockedHotbar; slot <= 8; slot++) inventory.setItem(slot, lockedPane);
+        for (int slot = unlockedHotbar; slot <= 8; slot++) {
+            int requiredLevel = slot - 5; // 快捷栏索引6→等级1，7→2，8→3
+            inventory.setItem(slot, createLockedPane(requiredLevel));
+        }
         // 填充主背包锁定槽
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 if (col >= unlockedCols) {
-                    inventory.setItem(9 + row * 9 + col, lockedPane);
+                    int requiredLevel;
+                    if (col < 3) {
+                        requiredLevel = 0; // 不会进入此分支，因为col>=unlockedCols且unlockedCols≥3
+                    } else {
+                        requiredLevel = (col - 3) / 2 + 1; // col:3,4→1; 5,6→2; 7,8→3
+                    }
+                    int slot = 9 + row * 9 + col;
+                    inventory.setItem(slot, createLockedPane(requiredLevel));
                 }
             }
         }
+    }
+
+    /**
+     * 根据所需等级创建锁定玻璃板
+     * @param requiredLevel 所需等级（1/2/3）
+     * @return 对应颜色的锁定玻璃板
+     */
+    private ItemStack createLockedPane(int requiredLevel) {
+        Material material;
+        switch (requiredLevel) {
+            case 1:
+                material = Material.ORANGE_STAINED_GLASS_PANE;
+                break;
+            case 2:
+                material = Material.GREEN_STAINED_GLASS_PANE;
+                break;
+            case 3:
+                material = Material.BLUE_STAINED_GLASS_PANE;
+                break;
+            default:
+                material = Material.RED_STAINED_GLASS_PANE;
+        }
+        ItemStack pane = new ItemStack(material);
+        ItemMeta meta = pane.getItemMeta();
+        meta.setDisplayName("§c未解锁的格子");
+        List<String> lore = new ArrayList<>();
+        lore.add(LOCK_MARK);
+        lore.add("§7需要空岛阶段达到 " + requiredLevel + " 阶解锁");
+        meta.setLore(lore);
+        pane.setItemMeta(meta);
+        return pane;
     }
 
     // 工具方法：判断物品是否是锁定的玻璃板

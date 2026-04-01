@@ -45,6 +45,7 @@ public class GameListener implements Listener {
 
     public GameListener(JavaPlugin plugin) {
         GameListener.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     // ========================= 辅助方法：清理准备状态 =========================
@@ -324,6 +325,7 @@ public class GameListener implements Listener {
         // 标记充能中
         golem.setGlowing(false);
         golem.setCustomName("§e撤离点 (充能中 " + CHARGE_DURATION + "s)");
+        golem.setRotation(0, 0);
         session.addActiveGolem(golem);
         Location golemLoc = golem.getLocation();
         for (Player p : session.players) {
@@ -374,6 +376,7 @@ public class GameListener implements Listener {
         if (session.evacuationWindows.containsKey(golem)) return;
         // 设置窗口期外观
         golem.setGlowing(true);
+        golem.setRotation(0, 0);
         golem.setCustomName("§6撤离点 (可右键撤离, " + EVACUATION_WINDOW_DURATION + "s)");
         // 广播坐标给所有游戏内玩家
         Location loc = golem.getLocation();
@@ -401,6 +404,7 @@ public class GameListener implements Listener {
                     cancel();
                     session.evacuationWindows.remove(golem);
                     golem.setCustomName("§a撤离点");
+                    golem.setRotation(0, 0);
                     golem.setGlowing(true);
                     session.removeActiveGolem(golem);
                     for (Player p : session.players) {
@@ -437,6 +441,7 @@ public class GameListener implements Listener {
         if (!golem.isDead()) {
             golem.setGlowing(true);
             golem.setCustomName("§a撤离点");
+            golem.setRotation(0, 0);
         }
         // 从激活集合中移除，但保留在撤离点列表中，以便其他玩家重新激活
         session.removeActiveGolem(golem);
@@ -466,6 +471,7 @@ public class GameListener implements Listener {
         if (!golem.isDead()) {
             golem.setGlowing(true);
             golem.setCustomName("§a撤离点");
+            golem.setRotation(0, 0);
         }
         session.removeActiveGolem(golem);
     }
@@ -648,6 +654,7 @@ public class GameListener implements Listener {
             golem.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, 10));
             golem.setCustomName("§a撤离点");
             golem.setCustomNameVisible(true);
+            golem.setRotation(0, 0);
             session.evacuationGolems.add(golem);
         }
         // 怪物触发检测

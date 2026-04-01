@@ -1,6 +1,5 @@
 package Commands;
 
-import Listeners.InventoryListener;
 import OtherStuff.KiryuKazuma;
 import Universal.*;
 import org.bukkit.*;
@@ -21,13 +20,6 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
     private final JavaPlugin plugin;
     private final Map<String, CommandExecutor> subCommands = new HashMap<>();
     private final Map<String, TabCompleter> subCompleters = new HashMap<>();
-    Material[] mobMats = {
-            Material.STICK, Material.IRON_SWORD, Material.WRITABLE_BOOK, Material.CHEST,
-            Material.OBSERVER, Material.FERMENTED_SPIDER_EYE, Material.CREEPER_HEAD,
-            Material.MAGMA_CREAM, Material.SPYGLASS, Material.FIREWORK_STAR,
-            Material.CREAKING_HEART, Material.LODESTONE, Material.DISPENSER,
-            Material.PLAYER_HEAD, Material.DRAGON_HEAD
-    };
 
     public MineRaidersCommand(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -138,9 +130,8 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
         inv.setItem(10, k.createMenuItem(Material.NETHER_STAR, "§a大厅", "选择游戏世界并加入/观战"));
         inv.setItem(11, k.createMenuItem(Material.BARRIER, "§c强制结束游戏", "结束当前游戏 (OP)"));
         inv.setItem(12, k.createMenuItem(Material.COMMAND_BLOCK, "§d调试菜单", "打开调试功能菜单 (OP)"));
-        inv.setItem(13, k.createMenuItem(Material.ARMOR_STAND, "§e伤害测试假人", "在脚下召唤一个伤害测试假人"));
-        inv.setItem(14, k.createMenuItem(Material.BOOK, "§7帮助", "查看命令帮助"));
-        inv.setItem(15, k.createMenuItem(Material.COMPASS, "§b地点管理", "管理游戏地点（OP）"));
+        inv.setItem(13, k.createMenuItem(Material.BOOK, "§7帮助", "查看命令帮助"));
+        inv.setItem(14, k.createMenuItem(Material.COMPASS, "§b地点管理", "管理游戏地点（OP）"));
 
         inv.setItem(inv.getSize() -1, k.createMenuItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE
                 , "§k123456789", ""));
@@ -202,6 +193,7 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
                 w.strikeLightningEffect(p.getLocation());
                 kiryuKazuma.spawnBoss(p.getLocation());
             }
+            case 15 -> w.dropItem(p.getLocation(), forgiver());
             default -> p.sendMessage(ChatColor.RED + "无效的数字参数！");
         }
         return true;
@@ -210,21 +202,22 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
     private void openDebugMenu(Player p) {
         Inventory inv = Bukkit.createInventory(p, 27,
                 ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "测试菜单");
-        inv.addItem(k.createMenuItem(mobMats[0], "获得荒野大笛客"));
-        inv.addItem(k.createMenuItem(mobMats[1], "召唤伤害测试假人"));
-        inv.addItem(k.createMenuItem(mobMats[2], "清除自定义配方"));
-        inv.addItem(k.createMenuItem(mobMats[3], "重置容器状态"));
-        inv.addItem(k.createMenuItem(mobMats[4], "召唤粉碎者"));
-        inv.addItem(k.createMenuItem(mobMats[5], "召唤跳蚤"));
-        inv.addItem(k.createMenuItem(mobMats[6], "召唤爆爆"));
-        inv.addItem(k.createMenuItem(mobMats[7], "召唤火球"));
-        inv.addItem(k.createMenuItem(mobMats[8], "召唤告密者"));
-        inv.addItem(k.createMenuItem(mobMats[9], "召唤跳跃者"));
-        inv.addItem(k.createMenuItem(mobMats[10], "召唤堡垒"));
-        inv.addItem(k.createMenuItem(mobMats[11], "召唤机魂"));
-        inv.addItem(k.createMenuItem(mobMats[12], "召唤公爵"));
-        inv.addItem(k.createMenuItem(mobMats[13], "召唤模仿者"));
-        inv.addItem(k.createMenuItem(mobMats[14], "召唤“桐生一马”"));
+        inv.addItem(k.createMenuItem(Material.STICK, "获得荒野大笛客"));
+        inv.addItem(k.createMenuItem(Material.ARMOR_STAND, "召唤伤害测试假人"));
+        inv.addItem(k.createMenuItem(Material.WRITABLE_BOOK, "清除自定义配方"));
+        inv.addItem(k.createMenuItem(Material.ENDER_CHEST, "重置容器状态"));
+        inv.addItem(k.createMenuItem(Material.OBSERVER, "召唤粉碎者"));
+        inv.addItem(k.createMenuItem(Material.SPIDER_EYE, "召唤跳蚤"));
+        inv.addItem(k.createMenuItem(Material.TNT, "召唤爆爆"));
+        inv.addItem(k.createMenuItem(Material.FIRE_CHARGE, "召唤火球"));
+        inv.addItem(k.createMenuItem(Material.SPYGLASS, "召唤告密者"));
+        inv.addItem(k.createMenuItem(Material.MAGMA_BLOCK, "召唤跳跃者"));
+        inv.addItem(k.createMenuItem(Material.CREAKING_HEART, "召唤堡垒"));
+        inv.addItem(k.createMenuItem(Material.DROPPER, "召唤机魂"));
+        inv.addItem(k.createMenuItem(Material.DISPENSER, "召唤公爵"));
+        inv.addItem(k.createMenuItem(Material.PLAYER_HEAD, "召唤模仿者"));
+        inv.addItem(k.createMenuItem(Material.DRAGON_HEAD, "召唤“桐生一马”"));
+        inv.addItem(k.createMenuItem(Material.NETHERITE_HORSE_ARMOR, "获得宽恕者"));
         p.openInventory(inv);
         PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.DEV_MENU);
     }
@@ -237,6 +230,20 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
         meta.setLore(Arrays.asList(ChatColor.WHITE + "荒野大笛客", ChatColor.WHITE + "可以用来感化口人磨"));
         item.setItemMeta(meta);
         return item;
+    }
+    private ItemStack forgiver() {
+        ItemStack i = new ItemStack(Material.NETHERITE_HORSE_ARMOR);
+        ItemMeta meta = i.getItemMeta();
+        meta.setMaxStackSize(4);
+        meta.setDisplayName(ChatColor.AQUA + "宽恕者");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + "宽恕者");
+        lore.add(ChatColor.WHITE + "一把可以持续射击的激光枪");
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键" + ChatColor.WHITE + "射击");
+        lore.add(ChatColor.WHITE + "持续射击会提升武器的射速和精准度");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
     }
 
     private void damageTest(Location loc) {

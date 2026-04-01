@@ -32,6 +32,7 @@ public class LobbyCommand implements CommandExecutor, Listener {
 
     public LobbyCommand(JavaPlugin plugin) {
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @Override

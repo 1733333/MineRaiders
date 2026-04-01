@@ -94,6 +94,7 @@ public class ContainerListener implements Listener {
 
     public ContainerListener(JavaPlugin plugin){
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     public int getContainerRarity(Block b){

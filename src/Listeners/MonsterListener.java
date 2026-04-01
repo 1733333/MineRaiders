@@ -37,6 +37,7 @@ public class MonsterListener implements Listener {
 
     public MonsterListener(JavaPlugin plugin) {
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
@@ -497,6 +498,12 @@ public class MonsterListener implements Listener {
                             damageEvent.setCancelled(true);
                         }else{
                             damageEvent.setDamage(damage / 2);
+                        }
+                    }
+                    case "§a跳蚤" -> {
+                        if (type == DamageType.FALL) {
+                            damageEvent.setDamage(0);
+                            damageEvent.setCancelled(true);
                         }
                     }
                 }

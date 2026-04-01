@@ -35,6 +35,7 @@ public class ArmorListener implements Listener {
 
     public ArmorListener(JavaPlugin plugin){
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     public int hasArmor(Player p, String name) {
         EntityEquipment e = p.getEquipment();

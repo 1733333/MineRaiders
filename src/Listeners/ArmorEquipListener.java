@@ -15,10 +15,15 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
 public class ArmorEquipListener implements Listener {
+
+    public ArmorEquipListener(JavaPlugin plugin){
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
 
     String[]blockedMaterials = new String[]{
             "FURNACE",

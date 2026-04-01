@@ -79,6 +79,7 @@ public class GadgetListener implements Listener {
 
     public GadgetListener(JavaPlugin plugin) {
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler

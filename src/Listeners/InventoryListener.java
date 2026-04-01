@@ -8,12 +8,10 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -40,6 +38,7 @@ public class InventoryListener implements Listener {
 
     public InventoryListener(JavaPlugin plugin){
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
@@ -276,26 +275,78 @@ public class InventoryListener implements Listener {
         return inv;
     }
 
-    // ------------------------------
-    // 简化的事件拦截，通过Lore判断
-    // ------------------------------
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
-        if (e.getCurrentItem() != null && k.isLockedItem(e.getCurrentItem())) {
+        Player p = (Player) e.getWhoClicked();
+        ItemStack cursor = e.getCursor();
+        ItemStack current = e.getCurrentItem();
+
+        // 1. 光标上持有锁定物品 -> 禁止任何点击
+        if (k.isLockedItem(cursor)) {
             e.setCancelled(true);
+            p.updateInventory();
+            return;
+        }
+
+        // 2. 点击的是锁定物品 -> 禁止任何操作
+        if (k.isLockedItem(current)) {
+            e.setCancelled(true);
+            p.updateInventory();
+            return;
+        }
+
+        // 3. 针对数字键交换（快捷键移动）：检查目标快捷栏槽位
+        ClickType click = e.getClick();
+        if (click == ClickType.NUMBER_KEY) {
+            int hotbarSlot = e.getHotbarButton(); // 数字键对应的槽位 (0-8)
+            if (hotbarSlot >= 0 && hotbarSlot <= 8) {
+                ItemStack targetItem = p.getInventory().getItem(hotbarSlot);
+                if (k.isLockedItem(targetItem)) {
+                    e.setCancelled(true);
+                    p.updateInventory();
+                    return;
+                }
+            }
+        }
+
+        // 4. 针对 Shift+点击：如果源物品不是锁定物品，但目标容器中无可用空位（因锁定槽占满），应取消
+        if (e.isShiftClick()) {
+            Inventory targetInv = e.getView().getBottomInventory(); // 目标容器通常是玩家背包
+            ItemStack sourceItem = e.getCurrentItem();
+            if (sourceItem != null && !k.isLockedItem(sourceItem)) {
+                if (!canFit(sourceItem, targetInv)) {
+                    e.setCancelled(true);
+                    p.updateInventory();
+                    return;
+                }
+            }
+        }
+
+        // 5. 针对双击收集同类物品：检查所有可能被移动的槽位，如果有锁定物品则禁止
+        if (click == ClickType.DOUBLE_CLICK) {
+            Inventory inv = e.getInventory();
+            ItemStack doubleClickedItem = e.getCurrentItem();
+            if (doubleClickedItem != null && !k.isLockedItem(doubleClickedItem)) {
+                // 检查同类型物品在容器中是否有锁定物品混入
+                for (ItemStack item : inv.getContents()) {
+                    if (item != null && item.isSimilar(doubleClickedItem) && k.isLockedItem(item)) {
+                        e.setCancelled(true);
+                        p.updateInventory();
+                        return;
+                    }
+                }
+            }
         }
     }
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent e) {
-        // 检查拖动的物品
         if (e.getCursor() != null && k.isLockedItem(e.getCursor())) {
             e.setCancelled(true);
             return;
         }
-        // 检查目标槽位
         for (int slot : e.getInventorySlots()) {
-            if (k.isLockedItem(e.getInventory().getItem(slot))) {
+            if (k.isLockedItem(e.getView().getItem(slot))) {
                 e.setCancelled(true);
                 return;
             }
@@ -311,8 +362,37 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onPlayerItemHeld(PlayerItemHeldEvent e) {
-        if (k.isLockedItem(e.getPlayer().getInventory().getItem(e.getNewSlot()))) {
+        ItemStack newSlotItem = e.getPlayer().getInventory().getItem(e.getNewSlot());
+        if (k.isLockedItem(newSlotItem)) {
             e.setCancelled(true);
         }
+    }
+
+    // ========== 辅助方法 ==========
+    private boolean canFit(ItemStack item, Inventory target) {
+        int amount = item.getAmount();
+        // 先尝试合并到已有同类物品（排除锁定槽）
+        for (ItemStack existing : target.getContents()) {
+            if (existing != null && existing.isSimilar(item) && !k.isLockedItem(existing)) {
+                int space = existing.getMaxStackSize() - existing.getAmount();
+                if (space >= amount) return true;
+                amount -= space;
+                if (amount <= 0) return true;
+            }
+        }
+        // 再找空位（排除锁定槽）
+        for (int i = 0; i < target.getSize(); i++) {
+            ItemStack slotItem = target.getItem(i);
+            if (slotItem == null && !isSlotLocked(target, i)) {
+                if (amount <= item.getMaxStackSize()) return true;
+                amount -= item.getMaxStackSize();
+            }
+        }
+        return false;
+    }
+
+    private boolean isSlotLocked(Inventory inv, int slot) {
+        ItemStack item = inv.getItem(slot);
+        return item != null && k.isLockedItem(item);
     }
 }

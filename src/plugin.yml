@@ -3,7 +3,7 @@ version: 1.0
 author: YaoGuai
 main: MR
 api-version: 1.21
-softdepend: [MineRaidersDoor]
+depend: [MineRaidersDoor]
 commands:
   mineraiders:
     description: 主命令，用于访问所有游戏功能
