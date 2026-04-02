@@ -9,6 +9,7 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -594,14 +595,14 @@ public enum Kit {
                     this.cancel();
                     return;
                 }
-                float pitch = 0.8f;
+                float pitch = 0.9f;
                 if (gameOver[count] > 0) {
                     pitch = 1.5f;
                 }
                 world.playSound(loc, Sound.BLOCK_NOTE_BLOCK_BIT, 1, pitch);
                 count++;
             }
-        }.runTaskTimer(plugin, 0L, 4L);
+        }.runTaskTimer(plugin, 0L, 5L);
     }
 
     public void shieldBreakEffect(Location loc){
@@ -765,4 +766,13 @@ public enum Kit {
         return meta.hasLore() && meta.getLore().contains(LOCK_MARK);
     }
 
+    public void clearInventory(Player player) {
+        Inventory inv = player.getInventory();
+        ItemStack[] contents = inv.getContents();
+        for(ItemStack item : contents) {
+            if(item != null && !isLockedItem(item)) {
+                inv.remove(item);
+            }
+        }
+    }
 }

@@ -176,7 +176,9 @@ public class ContainerListener implements Listener {
         Action action = interactEvent.getAction();
         if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
             if(lp.getRarity(hand) >= 0){
-                interactEvent.setCancelled(true);
+                if(hand.getType().isBlock()) {
+                    interactEvent.setCancelled(true);
+                }
             }
             Block b = interactEvent.getClickedBlock();
             if(b.getType() == Material.STONECUTTER){

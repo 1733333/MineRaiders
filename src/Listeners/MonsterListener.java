@@ -44,6 +44,8 @@ public class MonsterListener implements Listener {
     public void damageEvent(EntityDamageEvent damageEvent) {
         Entity damaged = damageEvent.getEntity();
         double damage = damageEvent.getFinalDamage();
+        if(damage == 0)return;
+        if(damageEvent.isCancelled())return;
         if (damaged instanceof LivingEntity l) {
             String name = l.getName();
             if (name.contains("伤害测试假人")) {
@@ -406,8 +408,9 @@ public class MonsterListener implements Listener {
                     case "§6火球" -> Sound.ITEM_SHIELD_BLOCK;
                     case "§e机魂" -> Sound.ENTITY_VEX_HURT;
                     case "§c公爵" ->Sound.ENTITY_WITHER_BREAK_BLOCK;
-                    default -> Sound.UI_BUTTON_CLICK;
+                    default -> null;
                 };
+                if(s == null)return;
                 w.playSound(d.getLocation(),s,2,1);
                 if(damageEvent.getDamager() instanceof Player p){
                     p.playSound(p.getLocation(),s,1,1);
@@ -486,7 +489,7 @@ public class MonsterListener implements Listener {
             String name = l.getCustomName();
             if(name != null){
                 switch (name){
-                    case "§e机魂"->{
+                    case "§e机魂", "§7堡垒底盘", "§7堡垒炮塔" ->{
                         if(type == DamageType.IN_WALL){
                             damageEvent.setDamage(0);
                             damageEvent.setCancelled(true);

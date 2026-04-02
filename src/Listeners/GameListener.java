@@ -37,7 +37,7 @@ public class GameListener implements Listener {
     // 配置参数
     private static final int MIN_DISTANCE_TO_SPAWN = 20;       // 怪物生成点与玩家生成点最小距离
     private static final int TRIGGER_DISTANCE = 15;           // 触发怪物刷新的距离
-    private static final int CHARGE_DURATION = 60;            // 撤离点充能时间（秒）
+    private static final int CHARGE_DURATION = 45;            // 撤离点充能时间（秒）
     private static final int EVACUATION_WINDOW_DURATION = 20; // 撤离窗口期（秒）
     private static final double EVACUATION_RADIUS = 5.0;      // 撤离生效半径
     // 撤离失败物品存储（盔甲架 -> 物品列表）
@@ -65,7 +65,7 @@ public class GameListener implements Listener {
     }
 
     // ========================= 内部类：游戏会话 =========================
-    private static class GameSession {
+    static class GameSession {
         final World world;
         final Set<UUID> allPlayers;                 // 所有参与过本局游戏的玩家（包括离线）
         final Set<Player> onlinePlayers;            // 当前在线的玩家
@@ -554,7 +554,7 @@ public class GameListener implements Listener {
             // 收集玩家的所有物品，用于生成遗物盔甲架
             List<ItemStack> playerItems = new ArrayList<>();
             for (ItemStack item : player.getInventory().getContents()) {
-                if (item != null && !item.getType().isAir()) {
+                if (item != null && !item.getType().isAir() && !k.isLockedItem(item)) {
                     playerItems.add(item);
                 }
             }
@@ -585,7 +585,7 @@ public class GameListener implements Listener {
                 lootMap.put(lootStand, playerItems);
             }
         }
-        player.getInventory().clear();
+        k.clearInventory(player);
         // 传送到世界出生点
         player.teleport(world.getSpawnLocation());
         player.sendMessage("§c撤离失败，所有物品已丢失！");
@@ -605,8 +605,13 @@ public class GameListener implements Listener {
     public void onGameStart(GameStartEvent event) {
         World world = event.getWorld();
         int worldId = gameStatus.getWorldId(world.getName());
+        // 如果该世界已有活跃游戏，则拒绝重新开始并返回错误信息
         if (activeGames.containsKey(world)) {
-            activeGames.get(world).endGame();
+            for (Player p : world.getPlayers()) {
+                p.sendMessage("§c游戏已经开始，无法再次开始！");
+            }
+            plugin.getLogger().warning("尝试在已进行的游戏中再次启动游戏，已阻止。世界: " + world.getName());
+            return;
         }
         MRD mrd = (MRD) Bukkit.getPluginManager().getPlugin("MineRaidersDoor");
         mrd.setAllDoors(true);
@@ -1160,7 +1165,7 @@ public class GameListener implements Listener {
                 world.playSound(eyeLoc, s, 1, 1);
                 world.spawnParticle(Particle.EXPLOSION, eyeLoc, 1);
             }
-        }.runTaskTimer(plugin, 0L, 4L);
+        }.runTaskTimer(plugin, 0L, 5L);
         // 保留随机音符盒特效（不影响物品掉落）
         if (rand.nextInt(10) == 0) {
             k.esterEgg0(eyeLoc);

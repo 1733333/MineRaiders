@@ -2,6 +2,7 @@ package Universal;
 
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
@@ -43,6 +44,7 @@ public class PathParticle {
                 }
                 Location loc = path.get(index);
                 loc.getWorld().spawnParticle(particle, loc, 1, 0, 0, 0, 0);
+                loc.getWorld().playSound(loc, Sound.ENTITY_ENDER_EYE_DEATH, 1f, 1.0f);
                 index++;
             }
         }.runTaskTimer(plugin, 0, delayBetweenSteps);

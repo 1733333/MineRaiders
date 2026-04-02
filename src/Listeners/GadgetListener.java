@@ -160,7 +160,7 @@ public class GadgetListener implements Listener {
                         break;
                     case "§f荒野大笛客":
                         interactEvent.setCancelled(true);
-                        flute(p);
+                        flute(p,hand);
                         break;
                     case "§f狼群":
                         wolfPack(p, hand);
@@ -644,7 +644,7 @@ public class GadgetListener implements Listener {
                             @Override
                             public void run() {
                                 w.spawnParticle(Particle.EXPLOSION_EMITTER, nade.getLocation(), 1);
-                                k.explode(p, nade, 16, 1.5, 5, 1);
+                                k.explode(p, nade, 18, 1.5, 5, 1);
                                 for (int i = 0; i < 20; i++) {
                                     Vector shootVec = new Vector(r.nextDouble() - r.nextDouble(),
                                             r.nextDouble() - r.nextDouble(), r.nextDouble() - r.nextDouble());
@@ -1177,29 +1177,42 @@ public class GadgetListener implements Listener {
         }
     }
 
-    public void flute(Player p) {
-        BukkitRunnable task = playerTask.getOrDefault(p.getName(), null);
-        World w = p.getWorld();
-        if (task == null) {
-            BukkitRunnable play = new BukkitRunnable() {
-                int count = 0;
+    public void flute(Player p,ItemStack hand) {
+        if (p.getCooldown(hand.getType()) == 0) {
+            p.setCooldown(hand.getType(), 200);
+            GameListener.GameSession session = GameListener.getSession(p.getWorld());
+            Location loc = session.evacuationGolems.get(0).getLocation();
+            PathParticle.showPathWithAStar(
+                    plugin,
+                    p.getLocation(),
+                    loc,
+                    Particle.END_ROD,
+                    2L,    // 每 2 tick 显示一个粒子
+                    10000  // 最多迭代 10000 次
+            );
+            BukkitRunnable task = playerTask.getOrDefault(p.getName(), null);
+            World w = p.getWorld();
+            if (task == null) {
+                BukkitRunnable play = new BukkitRunnable() {
+                    int count = 0;
 
-                @Override
-                public void run() {
-                    if (count >= musicScore1.length) {
-                        this.cancel();
-                        playerTask.remove(p.getName());
-                        return;
+                    @Override
+                    public void run() {
+                        if (count >= musicScore1.length) {
+                            this.cancel();
+                            playerTask.remove(p.getName());
+                            return;
+                        }
+                        if (musicScore1[count] > 0) {
+                            Note n = new Note(musicScore1[count]);
+                            w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_FLUTE, 1, n.getPitch());
+                        }
+                        count += 1;
                     }
-                    if (musicScore1[count] > 0) {
-                        Note n = new Note(musicScore1[count]);
-                        w.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_FLUTE, 1, n.getPitch());
-                    }
-                    count += 1;
-                }
-            };
-            play.runTaskTimer(plugin, 0L, 1L);
-            playerTask.put(p.getName(), play);
+                };
+                play.runTaskTimer(plugin, 0L, 1L);
+                playerTask.put(p.getName(), play);
+            }
         }
     }
 
