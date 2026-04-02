@@ -284,14 +284,12 @@ public class InventoryListener implements Listener {
         // 1. 光标上持有锁定物品 -> 禁止任何点击
         if (k.isLockedItem(cursor)) {
             e.setCancelled(true);
-            p.updateInventory();
             return;
         }
 
         // 2. 点击的是锁定物品 -> 禁止任何操作
         if (k.isLockedItem(current)) {
             e.setCancelled(true);
-            p.updateInventory();
             return;
         }
 
@@ -303,7 +301,6 @@ public class InventoryListener implements Listener {
                 ItemStack targetItem = p.getInventory().getItem(hotbarSlot);
                 if (k.isLockedItem(targetItem)) {
                     e.setCancelled(true);
-                    p.updateInventory();
                     return;
                 }
             }
@@ -316,7 +313,6 @@ public class InventoryListener implements Listener {
             if (sourceItem != null && !k.isLockedItem(sourceItem)) {
                 if (!canFit(sourceItem, targetInv)) {
                     e.setCancelled(true);
-                    p.updateInventory();
                     return;
                 }
             }
@@ -331,7 +327,6 @@ public class InventoryListener implements Listener {
                 for (ItemStack item : inv.getContents()) {
                     if (item != null && item.isSimilar(doubleClickedItem) && k.isLockedItem(item)) {
                         e.setCancelled(true);
-                        p.updateInventory();
                         return;
                     }
                 }
@@ -393,6 +388,6 @@ public class InventoryListener implements Listener {
 
     private boolean isSlotLocked(Inventory inv, int slot) {
         ItemStack item = inv.getItem(slot);
-        return item != null && k.isLockedItem(item);
+        return k.isLockedItem(item);
     }
 }

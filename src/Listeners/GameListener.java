@@ -67,8 +67,9 @@ public class GameListener implements Listener {
     // ========================= 内部类：游戏会话 =========================
     private static class GameSession {
         final World world;
-        final Set<Player> players;
-        final Map<UUID, Double> profits;          // 玩家收益
+        final Set<UUID> allPlayers;                 // 所有参与过本局游戏的玩家（包括离线）
+        final Set<Player> onlinePlayers;            // 当前在线的玩家
+        final Map<UUID, Double> profits;            // 玩家收益
         final Map<Player, Scoreboard> playerScoreboards = new HashMap<>();   // 独立计分板
         final Map<Player, Objective> playerObjectives = new HashMap<>();     // 独立显示目标
         final BukkitTask timerTask;
@@ -92,10 +93,17 @@ public class GameListener implements Listener {
         final Map<Snowman, BukkitTask> chargeTasks = new HashMap<>();
         // 撤离窗口期任务管理
         final Map<Snowman, BukkitTask> evacuationWindows = new HashMap<>();
+        // 外部监听器引用（用于调用容器高亮等方法）
+        private final GameListener listener;
 
-        GameSession(World world, Set<Player> players, int totalSeconds) {
+        GameSession(World world, Set<Player> players, int totalSeconds, GameListener listener) {
             this.world = world;
-            this.players = new HashSet<>(players);
+            this.listener = listener;
+            this.onlinePlayers = new HashSet<>(players);
+            this.allPlayers = new HashSet<>();
+            for (Player p : players) {
+                allPlayers.add(p.getUniqueId());
+            }
             this.profits = new HashMap<>();
             this.totalGameSeconds = totalSeconds;  // 记录总时长
             for (Player p : players) {
@@ -104,7 +112,7 @@ public class GameListener implements Listener {
             this.remainingSeconds = totalSeconds;
             // 为每个玩家创建独立计分板
             ScoreboardManager manager = Bukkit.getScoreboardManager();
-            for (Player p : players) {
+            for (Player p : onlinePlayers) {
                 Scoreboard sb = manager.getNewScoreboard();
                 Objective obj = sb.registerNewObjective("game", "dummy", "§6MineRaiders");
                 obj.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -137,7 +145,7 @@ public class GameListener implements Listener {
                 if (remainingSeconds == 600) message = "§e游戏剩余时间：10分钟！";
                 else if (remainingSeconds == 300) message = "§e游戏剩余时间：5分钟！";
                 else message = "§c游戏剩余时间：1分钟！";
-                for (Player p : players) {
+                for (Player p : onlinePlayers) {
                     if (p.isOnline()) {
                         p.sendTitle("§6⚠ 时间预警", message, 10, 70, 20);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
@@ -154,7 +162,7 @@ public class GameListener implements Listener {
                 endGame();
             } else {
                 // 有激活的撤离点（充能中或窗口期），等待它们完成
-                for (Player p : players) {
+                for (Player p : onlinePlayers) {
                     if (p.isOnline()) {
                         p.sendMessage("§c游戏时间已到，等待所有撤离点关闭...");
                     }
@@ -173,8 +181,8 @@ public class GameListener implements Listener {
         }
 
         void updateScoreboard() {
-            // 为每个玩家独立更新计分板条目
-            for (Player p : players) {
+            // 为每个在线玩家独立更新计分板条目
+            for (Player p : onlinePlayers) {
                 if (!p.isOnline()) continue;
                 Scoreboard sb = playerScoreboards.get(p);
                 Objective obj = playerObjectives.get(p);
@@ -204,16 +212,58 @@ public class GameListener implements Listener {
             updateScoreboard();
         }
 
+        /**
+         * 从游戏中彻底移除玩家（撤离成功/失败或游戏结束）
+         */
         void removePlayer(Player player) {
-            players.remove(player);
-            // 移除计分板映射
+            onlinePlayers.remove(player);
+            allPlayers.remove(player.getUniqueId());
             playerScoreboards.remove(player);
             playerObjectives.remove(player);
-            player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-            // 如果所有玩家都已离开，游戏应该结束（无论是否在等待充能）
-            if (players.isEmpty()) {
+            if (player.isOnline()) {
+                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+            }
+            if (onlinePlayers.isEmpty()) {
                 endGame();
             }
+        }
+
+        /**
+         * 玩家掉线时调用（保留 allPlayers，仅移出 onlinePlayers）
+         */
+        void playerDisconnect(Player player) {
+            onlinePlayers.remove(player);
+            // 计分板映射不清除，重连时会重新设置
+            if (player.isOnline()) {
+                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+            }
+            // 如果所有玩家都掉线了，游戏不会立即结束，等时间到或重连
+        }
+
+        /**
+         * 玩家重连时调用（重新加入 onlinePlayers）
+         */
+        void playerReconnect(Player player) {
+            onlinePlayers.add(player);
+            // 恢复计分板
+            ScoreboardManager manager = Bukkit.getScoreboardManager();
+            Scoreboard sb = manager.getNewScoreboard();
+            Objective obj = sb.registerNewObjective("game", "dummy", "§6MineRaiders");
+            obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+            playerScoreboards.put(player, sb);
+            playerObjectives.put(player, obj);
+            player.setScoreboard(sb);
+            updateScoreboard();  // 立即刷新显示
+            // 恢复游戏状态
+            player.setGameMode(GameMode.ADVENTURE);
+            player.setHealth(20);
+            player.setFoodLevel(20);
+            player.setCustomNameVisible(false);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 0));
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            PlayerStats.INSTANCE.setInGame(player);
+            // 恢复容器高亮
+            listener.startContainerHighlight(player);
         }
 
         /**
@@ -271,7 +321,7 @@ public class GameListener implements Listener {
             BukkitTask task = new BukkitRunnable() {
                 @Override
                 public void run() {
-                    if (isEnding || players.isEmpty()) return; // 游戏已结束或无玩家，不再重生
+                    if (isEnding || onlinePlayers.isEmpty()) return; // 游戏已结束或无玩家，不再重生
                     regenerateMonsterTrigger(loc, isHalf);
                 }
             }.runTaskLater(plugin, 6000L); // 5分钟 = 6000 ticks
@@ -328,7 +378,7 @@ public class GameListener implements Listener {
         golem.setRotation(0, 0);
         session.addActiveGolem(golem);
         Location golemLoc = golem.getLocation();
-        for (Player p : session.players) {
+        for (Player p : session.onlinePlayers) {
             if (p.isOnline()) {
                 p.sendMessage("§b" + activator.getName() + "§a激活了位于§e" +
                         "[" + golemLoc.getBlockX() + "," + golemLoc.getBlockY() + "," + golemLoc.getBlockZ() + "]" +
@@ -380,7 +430,7 @@ public class GameListener implements Listener {
         golem.setCustomName("§6撤离点 (可右键撤离, " + EVACUATION_WINDOW_DURATION + "s)");
         // 广播坐标给所有游戏内玩家
         Location loc = golem.getLocation();
-        for (Player p : session.players) {
+        for (Player p : session.onlinePlayers) {
             if (p.isOnline()) {
                 p.sendMessage("位于§e" + "[" + loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ() + "]" +
                         "§a的撤离点已经开启，使用§b鼠标右键§a点击雪傀儡即可撤离");
@@ -407,7 +457,7 @@ public class GameListener implements Listener {
                     golem.setRotation(0, 0);
                     golem.setGlowing(true);
                     session.removeActiveGolem(golem);
-                    for (Player p : session.players) {
+                    for (Player p : session.onlinePlayers) {
                         if (p.isOnline()) {
                             p.sendMessage("§c一个撤离点已失效（窗口期结束），可重新激活。");
                         }
@@ -478,9 +528,10 @@ public class GameListener implements Listener {
 
     // ========================= 统一撤离失败处理 =========================
     private void performFailedExtract(Player player) {
-        performFailedExtract(player,false);
+        performFailedExtract(player, false);
     }
-    private void performFailedExtract(Player player,boolean isGameEnded) {
+
+    private void performFailedExtract(Player player, boolean isGameEnded) {
         World world = player.getWorld();
         GameSession session = activeGames.get(world);
         // 处理倒地状态（如果有）
@@ -492,10 +543,10 @@ public class GameListener implements Listener {
             player.removePotionEffect(PotionEffectType.MINING_FATIGUE);
         }
         // 从游戏会话中移除玩家（如果还在游戏中）
-        if (session != null && session.players.contains(player)) {
+        if (session != null && session.allPlayers.contains(player.getUniqueId())) {
             session.removePlayer(player);
         }
-        if(!isGameEnded) {
+        if (!isGameEnded) {
             // 记录退出玩家名称（用于禁止中途加入）
             if (session != null) {
                 session.exitedPlayers.add(player.getName());
@@ -600,11 +651,11 @@ public class GameListener implements Listener {
             t.setFoodLevel(20);
             t.setCustomNameVisible(false);
             playerStats.createShieldBar(t);
-            if(k.isArmored(t)){
+            if (k.isArmored(t)) {
                 playerStats.openShield(t);
                 GadgetListener gadgetListener = new GadgetListener(plugin);
-                gadgetListener.battery(t,5,20,new ItemStack(Material.NETHER_PORTAL));
-            }else {
+                gadgetListener.battery(t, 5, 20, new ItemStack(Material.NETHER_PORTAL));
+            } else {
                 playerStats.closeShield(t);
             }
         }
@@ -613,7 +664,7 @@ public class GameListener implements Listener {
             startContainerHighlight(p);
         }
         // 创建游戏会话
-        GameSession session = new GameSession(world, readyPlayers, 20 * 60);
+        GameSession session = new GameSession(world, readyPlayers, 20 * 60, this);
         // 处理怪物生成点（普通）
         Map<String, Location> monsterSpawns = LocationManagerUI.getLocationsByType(world.getName(),
                 LocationManagerUI.LocationType.MONSTER_SPAWN);
@@ -678,7 +729,7 @@ public class GameListener implements Listener {
                         continue;
                     }
                     boolean triggered = false;
-                    for (Player p : sess.players) {
+                    for (Player p : sess.onlinePlayers) {
                         if (p.getGameMode() == GameMode.SPECTATOR) continue;
                         if (p.isOnline() && p.getWorld().equals(world) &&
                                 p.getLocation().distance(as.getLocation()) <= TRIGGER_DISTANCE) {
@@ -721,15 +772,23 @@ public class GameListener implements Listener {
             player.sendMessage("§c游戏即将结束，无法中途加入。");
             return;
         }
-        if (session.players.contains(player)) {
+
+        // 判断玩家是否曾经属于本局游戏（掉线重连）
+        if (session.allPlayers.contains(player.getUniqueId())) {
+            // 掉线重连，恢复游戏状态
+            session.playerReconnect(player);
+            player.sendMessage("§a你已重新加入游戏！剩余时间：" +
+                    String.format("%02d:%02d", session.remainingSeconds / 60, session.remainingSeconds % 60));
+            Bukkit.broadcastMessage("§e" + player.getName() + " 重新加入了游戏！");
             return;
         }
-        // 检查是否在本局游戏中已经退出（无论成功撤离还是失败）
+
+        // 以下为中途新加入的逻辑（原代码不变）
         if (session.exitedPlayers.contains(player.getName())) {
             player.sendMessage("§c你已在本局游戏中退出，无法重新加入，只能观战。");
             player.setGameMode(GameMode.SPECTATOR);
             // 随机传送到一个在游戏中的玩家位置
-            List<Player> onlinePlayers = new ArrayList<>(session.players);
+            List<Player> onlinePlayers = new ArrayList<>(session.onlinePlayers);
             onlinePlayers.removeIf(p -> !p.isOnline() || p.getGameMode() == GameMode.SPECTATOR);
             if (!onlinePlayers.isEmpty()) {
                 Player target = onlinePlayers.get(rand.nextInt(onlinePlayers.size()));
@@ -759,7 +818,8 @@ public class GameListener implements Listener {
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 0));
         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-        session.players.add(player);
+        session.onlinePlayers.add(player);
+        session.allPlayers.add(player.getUniqueId());
         session.profits.put(player.getUniqueId(), 0.0);
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard sb = manager.getNewScoreboard();
@@ -784,7 +844,7 @@ public class GameListener implements Listener {
         World world = player.getWorld();
         GameSession session = activeGames.get(world);
         if (session == null) return;
-        if (!session.players.contains(player)) return;
+        if (!session.onlinePlayers.contains(player)) return;
         if (player.getGameMode() == GameMode.SPECTATOR) return;
         Entity clicked = event.getRightClicked();
         // 处理撤离点雪傀儡的交互
@@ -828,7 +888,7 @@ public class GameListener implements Listener {
     }
 
     @EventHandler
-    public void PlayerClickArmorStand(PlayerArmorStandManipulateEvent event){
+    public void PlayerClickArmorStand(PlayerArmorStandManipulateEvent event) {
         ArmorStand stand = event.getRightClicked();
         // 处理遗物盔甲架的右键交互
         if (isLootStand(stand)) {
@@ -843,7 +903,7 @@ public class GameListener implements Listener {
             World world = player.getWorld();
             GameSession session = activeGames.get(world);
             if (session == null) return;
-            if (!session.players.contains(player)) return;
+            if (!session.onlinePlayers.contains(player)) return;
             ItemStack item = event.getItem().getItemStack();
             double value = getItemValue(item);
             if (value > 0) {
@@ -858,7 +918,7 @@ public class GameListener implements Listener {
         World world = player.getWorld();
         GameSession session = activeGames.get(world);
         if (session == null) return;
-        if (!session.players.contains(player)) return;
+        if (!session.onlinePlayers.contains(player)) return;
         ItemStack item = event.getItemDrop().getItemStack();
         double value = getItemValue(item);
         if (value > 0) {
@@ -872,7 +932,7 @@ public class GameListener implements Listener {
         World world = player.getWorld();
         GameSession session = activeGames.get(world);
         if (session == null) return;
-        if (!session.players.contains(player)) return;
+        if (!session.allPlayers.contains(player.getUniqueId())) return;
         // 执行撤离失败处理
         performFailedExtract(player);
     }
@@ -880,15 +940,17 @@ public class GameListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        // 遍历所有活跃游戏，找到玩家所在的会话，支持跨世界退出的清理
+        // 遍历所有活跃游戏，找到玩家所在的会话
         for (Map.Entry<World, GameSession> entry : activeGames.entrySet()) {
             GameSession session = entry.getValue();
-            if (session.players.contains(player)) {
-                // 执行统一的撤离失败清理
-                performFailedExtract(player);
+            // 检查该玩家是否属于此游戏（通过 allPlayers 判断）
+            if (session.allPlayers.contains(player.getUniqueId())) {
+                // 玩家掉线，不执行撤离失败，仅从在线集合中移除
+                session.playerDisconnect(player);
                 break;
             }
         }
+
         // 无论玩家是否在游戏中，退出时都要清除其准备状态，避免状态残留
         if (PlayerStats.INSTANCE.isReady(player)) {
             int readyMapId = PlayerStats.INSTANCE.getReadyStatus(player);
@@ -911,7 +973,7 @@ public class GameListener implements Listener {
         World world = player.getWorld();
         GameSession session = activeGames.get(world);
         if (session == null) return;
-        if (!session.players.contains(player)) return;
+        if (!session.allPlayers.contains(player.getUniqueId())) return;
         // 记录成功撤离的玩家（加入已退出集合）
         session.exitedPlayers.add(player.getName());
         // 如果玩家处于倒地状态，清除倒地状态
@@ -948,7 +1010,7 @@ public class GameListener implements Listener {
         Player player = event.getPlayer();
         World world = player.getWorld();
         GameSession session = activeGames.get(world);
-        if (session == null || !session.players.contains(player)) return;
+        if (session == null || !session.allPlayers.contains(player.getUniqueId())) return;
 
         // 执行统一的撤离失败清理
         performFailedExtract(player);
@@ -1028,9 +1090,9 @@ public class GameListener implements Listener {
             }
         }
         // 8. 对所有游戏内玩家执行撤离失败
-        for (Player p : new ArrayList<>(session.players)) {
+        for (Player p : new ArrayList<>(session.onlinePlayers)) {
             if (p.isOnline()) {
-                performFailedExtract(p,true);
+                performFailedExtract(p, true);
             }
         }
         // 9. 清除该世界的所有准备状态
@@ -1092,7 +1154,7 @@ public class GameListener implements Listener {
                     case 5 -> Sound.UI_TOAST_CHALLENGE_COMPLETE;
                     default -> Sound.ENTITY_ITEM_PICKUP;
                 };
-                if(rarity < 0)rarity = 2;
+                if (rarity < 0) rarity = 2;
                 item.setTicksLived(6000 - (200 * (rarity + 1)));
                 item.setVelocity(spread.multiply(0.1));
                 world.playSound(eyeLoc, s, 1, 1);
@@ -1125,7 +1187,7 @@ public class GameListener implements Listener {
 
     public static int getPlayerCount(World world) {
         GameSession session = activeGames.get(world);
-        return session != null ? session.players.size() : 0;
+        return session != null ? session.onlinePlayers.size() : 0;
     }
 
     public static GameSession getSession(World world) {

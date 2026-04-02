@@ -91,8 +91,7 @@ public class LaserWeapon implements Listener {
         }
 
         // 伤害判定：击中实体则造成4点伤害（2颗心）
-        if (result != null && result.getHitEntity() instanceof LivingEntity) {
-            LivingEntity hitEntity = (LivingEntity) result.getHitEntity();
+        if (result != null && result.getHitEntity() instanceof LivingEntity hitEntity) {
             hitEntity.damage(4, player);
 
             // ========== 新增：击中实体的音效和粒子 ==========
@@ -117,7 +116,7 @@ public class LaserWeapon implements Listener {
         BukkitRunnable runnable = new BukkitRunnable() {
             @Override
             public void run() {
-                // 如果玩家不再手持豁免者武器，则停止
+                // 如果玩家不再手持宽恕者武器，则停止
                 if (!isExemptWeapon(player.getInventory().getItemInMainHand())) {
                     stopShooting(player);
                     return;
@@ -138,6 +137,7 @@ public class LaserWeapon implements Listener {
 
     // 停止发射并重置
     private void stopShooting(Player player) {
+        if (!isExemptWeapon(player.getInventory().getItemInMainHand())) return; // 只有在手持宽恕者武器时才处理停止
         Integer taskId = taskIds.remove(player);
         if (taskId != null) {
             plugin.getServer().getScheduler().cancelTask(taskId);
@@ -161,22 +161,4 @@ public class LaserWeapon implements Listener {
         }
     }
 
-    // 事件：左键或切换物品时停止（模拟松开右键）
-    @EventHandler
-    public void onLeftClick(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        if (event.getAction().name().startsWith("LEFT_CLICK")) {
-            stopShooting(player);
-        }
-    }
-
-    @EventHandler
-    public void onItemHeld(PlayerItemHeldEvent event) {
-        stopShooting(event.getPlayer());
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        stopShooting(event.getPlayer());
-    }
 }
