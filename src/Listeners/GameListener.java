@@ -468,6 +468,7 @@ public class GameListener implements Listener {
                 golem.setCustomName("§6撤离点 (可右键撤离, " + timeLeft + "s)");
                 // 粒子效果提醒
                 Location loc = golem.getLocation().add(0, 1, 0);
+                k.spawnCircleParticles(golem.getLocation(), EVACUATION_RADIUS, 50);
                 golem.getWorld().spawnParticle(Particle.END_ROD, loc, 15, 0.5, 0.5, 0.5, 0.5);
                 golem.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, loc, 5, 0.5, 0.5, 0.5, 0.05);
                 timeLeft--;

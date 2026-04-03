@@ -1,9 +1,7 @@
 package Universal;
 
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import MineRaiders.MRD;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -58,7 +56,12 @@ public class PathParticle {
     private static boolean isPassable(Location loc) {
         Block block = loc.getBlock();
         // 如果方块是固体（如石头、泥土等），则不可通行
-        if (block.getType().isSolid()) return false;
+        if (block.getType() != Material.AIR){
+            MRD mrd = (MRD) Bukkit.getPluginManager().getPlugin("MineRaidersDoor");
+            if(mrd.isLocationInDoor(loc)){
+                return true;
+            }else return !block.getType().isSolid();
+        }
         // 可根据需要添加更多条件，例如水、岩浆等
         return true;
     }

@@ -1187,7 +1187,7 @@ public class GadgetListener implements Listener {
                     p.getLocation(),
                     loc,
                     Particle.END_ROD,
-                    2L,    // 每 2 tick 显示一个粒子
+                    10L,    // 每 2 tick 显示一个粒子
                     10000  // 最多迭代 10000 次
             );
             BukkitRunnable task = playerTask.getOrDefault(p.getName(), null);

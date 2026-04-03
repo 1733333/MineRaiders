@@ -769,6 +769,7 @@ public enum Kit {
     public void clearInventory(Player player) {
         Inventory inv = player.getInventory();
         ItemStack[] contents = inv.getContents();
+        player.getEquipment().clear();
         for(ItemStack item : contents) {
             if(item != null && !isLockedItem(item)) {
                 inv.remove(item);
