@@ -419,10 +419,11 @@ public class ContainerListener implements Listener {
                         item2 = items2[0];
                     }
                 }
-                String message = searchProgress(bound,count);
+                String message = k.progressMessage("§f搜索进度[","§f]"
+                        ,"§b|","§c|",bound,count);
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        TextComponent.fromLegacy(ChatColor.AQUA + message
-                                + "(" + content.length +")"));
+                        TextComponent.fromLegacy(message + ChatColor.WHITE +
+                                "(" + content.length +")"));
                 if(count >= bound) {
                     if (getContainerRarity(container) < 0) {
                         Sound s = switch (getContainerRarity(container)) {
@@ -516,19 +517,6 @@ public class ContainerListener implements Listener {
             };
             particle.runTaskTimer(plugin, 0L, 3L);
         }
-    }
-    public String searchProgress(int total,int step){
-        StringBuilder progress = new StringBuilder();
-        progress.append("搜索进度：");
-        progress.append(ChatColor.BOLD);
-        for(int i = 0;i < total;i ++){
-            if(i < step){
-                progress.append("|");
-            }else {
-                progress.append("·");
-            }
-        }
-        return progress.toString();
     }
     public ItemStack[] smithContent(){
         List<ItemStack>contentList = new ArrayList<>();

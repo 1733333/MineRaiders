@@ -353,9 +353,10 @@ public class PlayerListener implements Listener {
                     }
                     if (reviving.contains(reviver)) {
                         check += 1;
-                        String progress = reviveProgress(step, check);
+                        String message = k.progressMessage("§b复活进度[","§b]"
+                                ,"§b|","§c|",step,check);
                         reviver.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                                TextComponent.fromLegacy(ChatColor.AQUA + "" + ChatColor.BOLD + progress));
+                                TextComponent.fromLegacy(message));
                         if (!p.isDead()) {
                             reviver.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 2, 0.6f + 0.1f * check);
                             reviver.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 2, 0.6f + 0.1f * check);
@@ -364,7 +365,7 @@ public class PlayerListener implements Listener {
                         beingRevive.add(p);
                         p.sendTitle(" ", ChatColor.AQUA + "正在被复活", 0, 20, 0);
                         p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                                TextComponent.fromLegacyText(ChatColor.AQUA + progress));
+                                TextComponent.fromLegacyText(message));
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 2, 0.6f + 0.1f * check);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 2, 0.6f + 0.1f * check);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 2, 0.6f + 0.1f * check);
@@ -375,20 +376,6 @@ public class PlayerListener implements Listener {
             checkReviving.runTaskTimer(plugin, 0L, 10L);
             playerTask.put(reviver.getName(), checkReviving);
         }
-    }
-
-    public String reviveProgress(int total, int step) {
-        StringBuilder progress = new StringBuilder();
-        if (step >= total) return "复活成功！";
-        progress.append("复活进度：");
-        for (int i = 0; i < total; i++) {
-            if (i < step) {
-                progress.append("|");
-            } else {
-                progress.append("·");
-            }
-        }
-        return progress.toString();
     }
 
     @EventHandler

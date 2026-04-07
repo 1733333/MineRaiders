@@ -776,4 +776,18 @@ public enum Kit {
             }
         }
     }
+    public String progressMessage(String title,String end,String done, String undone,int total,int step){
+        StringBuilder progress = new StringBuilder();
+        progress.append(title);
+        progress.append(ChatColor.BOLD);
+        for(int i = 0;i < total;i ++){
+            if(i < step){
+                progress.append(done);
+            }else {
+                progress.append(undone);
+            }
+        }
+        progress.append(end);
+        return progress.toString();
+    }
 }
