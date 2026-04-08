@@ -419,8 +419,8 @@ public class ContainerListener implements Listener {
                         item2 = items2[0];
                     }
                 }
-                String message = k.progressMessage("§f搜索进度[","§f]"
-                        ,"§b|","§c|",bound,count);
+                String message = k.progressMessage("§b搜索进度[","§b]"
+                        ,"§b||","§c||",bound,count);
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                         TextComponent.fromLegacy(message + ChatColor.WHITE +
                                 "(" + content.length +")"));
