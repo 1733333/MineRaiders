@@ -1,5 +1,4 @@
 package OtherStuff;
-
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -16,7 +15,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.noise.SimplexNoiseGenerator;
-
 import java.util.*;
 
 // ======================== 核心逻辑类（不继承 JavaPlugin） ========================
@@ -84,33 +82,28 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
         }
     }
 
-    // ========================= 内部类：地牢生成器（无变动） =========================
+    // ========================= 内部类：地牢生成器 =========================
     private static class DungeonGenerator {
-
         // ========== 可调参数（直接修改此处数值即可） ==========
-        private static final int DUNGEON_RADIUS = 30;          // 地牢边界半径
-        private static final int ROOM_SIZE = 3;                // 单个房间边长（建议奇数）
-        private static final int DOOR_SIZE = 1;                // 铁门宽度（铁块数量）
+        private static final int DUNGEON_RADIUS = 100;          // 地牢边界半径
+        private static final int ROOM_SIZE = 7;                // 单个房间边长（建议奇数）
+        private static final int DOOR_SIZE = 3;                // 铁门宽度（铁块数量）
         private static final double BIG_ROOM_CHANCE = 0.25;    // 生成大房间组合的概率
         private static final int BIG_ROOM_GRID = 2;            // 大房间由 N x N 个标准房间组成
         // ===================================================
-
         private final JavaPlugin plugin;
         private final Player player;
         private final World world;
         private final int centerX, centerY, centerZ;
         private final Random random = new Random();
         private final SimplexNoiseGenerator noise;
-
         private final List<Block> placedBlocks = new ArrayList<>();
         private final List<Entity> spawnedEntities = new ArrayList<>();
         private final Set<Location> generatedRoomCenters = new HashSet<>();
         private final Map<Location, BlockFace> doorFacingMap = new HashMap<>();
-
         private Zombie boss;
         private Block startChestBlock;
         private boolean bossSpawned = false;
-
         private enum RoomType { EMPTY, ENEMY, TRAP, TREASURE }
 
         public DungeonGenerator(JavaPlugin plugin, Player player) {
@@ -147,39 +140,42 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             startChestBlock = world.getBlockAt(centerX, centerY, centerZ);
             startChestBlock.setType(Material.BEDROCK);
             placedBlocks.add(startChestBlock);
-
             Location startCenter = new Location(world, centerX, centerY, centerZ);
             generatedRoomCenters.add(startCenter);
             placeRoom(centerX, centerY, centerZ, RoomType.EMPTY);
             player.sendMessage(ChatColor.GREEN + "起点房间已生成！右键铁门探索新区域。");
+
+            // 新增：起点房间生成的音效与粒子效果
+            Location startLoc = new Location(world, centerX + 0.5, centerY + 1, centerZ + 0.5);
+            world.playSound(startLoc, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+            world.spawnParticle(Particle.HAPPY_VILLAGER, startLoc, 30, 1, 1, 1, 0.1);
         }
 
         public void expandFromDoor(Block doorBlock, Player clicker) {
             Location doorLoc = doorBlock.getLocation();
             BlockFace facing = doorFacingMap.get(doorLoc);
             if (facing == null) return;
-
             int offset = (ROOM_SIZE / 2) + 1;
             int newCenterX = doorLoc.getBlockX() + facing.getModX() * (offset + ROOM_SIZE / 2);
             int newCenterZ = doorLoc.getBlockZ() + facing.getModZ() * (offset + ROOM_SIZE / 2);
-
             Location newCenter = new Location(world, newCenterX, centerY, newCenterZ);
             if (generatedRoomCenters.contains(newCenter)) {
                 clicker.sendMessage(ChatColor.RED + "这个方向已经探索过了！");
                 return;
             }
-
             if (Math.abs(newCenterX - centerX) > DUNGEON_RADIUS || Math.abs(newCenterZ - centerZ) > DUNGEON_RADIUS) {
                 clicker.sendMessage(ChatColor.RED + "无法扩展：超出地牢边界。");
                 return;
             }
-
             if (!canPlaceRoom(newCenterX, centerY, newCenterZ)) {
                 clicker.sendMessage(ChatColor.RED + "目标位置被阻挡，无法生成房间。");
                 return;
             }
-
             removeDoorBlocks(doorLoc, facing);
+
+            // 新增：铁门打开的音效与粒子效果
+            world.playSound(doorLoc, Sound.BLOCK_IRON_DOOR_OPEN, 1.0f, 1.0f);
+            world.spawnParticle(Particle.CLOUD, doorLoc.clone().add(0.5, 1, 0.5), 10, 0.5, 0.5, 0.5, 0.05);
 
             boolean isBigRoom = random.nextDouble() < BIG_ROOM_CHANCE;
             if (isBigRoom) {
@@ -189,13 +185,11 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                 placeRoom(newCenterX, centerY, newCenterZ, type);
                 generatedRoomCenters.add(newCenter);
             }
-
             if (generatedRoomCenters.size() >= 5 && !bossSpawned) {
                 spawnBossAt(newCenterX, centerY, newCenterZ);
                 bossSpawned = true;
                 clicker.sendMessage(ChatColor.RED + "你感受到了强大的敌意... Boss 出现了！");
             }
-
             clicker.sendMessage(ChatColor.GREEN + "铁门消失，新的区域出现了！");
         }
 
@@ -203,6 +197,7 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             BlockFace perpendicular = getPerpendicular(facing);
             int half = DOOR_SIZE / 2;
             for (int i = -half; i <= half; i++) {
+                if (DOOR_SIZE % 2 == 0 && i == half) continue;
                 Block b = world.getBlockAt(doorLoc.clone().add(perpendicular.getModX() * i, 0, perpendicular.getModZ() * i));
                 if (b.getType() == Material.IRON_BLOCK) {
                     b.setType(Material.AIR);
@@ -270,21 +265,23 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                     placedBlocks.add(ceiling);
                 }
             }
-
             if (ROOM_SIZE > 1) {
                 Block torch = world.getBlockAt(x, y + 1, z);
                 torch.setType(Material.REDSTONE_TORCH);
                 placedBlocks.add(torch);
             }
-
             Location center = new Location(world, x + 0.5, y + 1, z + 0.5);
             switch (type) {
                 case ENEMY -> spawnEnemies(center);
                 case TRAP -> placeTrap(x, y, z);
                 case TREASURE -> placeTreasureChest(x, y, z);
             }
-
             createIronDoors(x, y, z);
+
+            // 新增：房间生成的基础音效与粒子
+            Location roomCenter = new Location(world, x + 0.5, y + 1, z + 0.5);
+            world.playSound(roomCenter, Sound.BLOCK_STONE_PLACE, 0.8f, 0.8f);
+            world.spawnParticle(Particle.ELECTRIC_SPARK, roomCenter, 20, 0.5, 1, 0.5, 0.1);
         }
 
         private Material getNoiseMaterial(int bx, int bz) {
@@ -300,12 +297,9 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             BlockFace[] faces = {BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
             for (BlockFace face : faces) {
                 if (random.nextDouble() > 0.5) continue;
-
                 int doorX = x + face.getModX() * (ROOM_SIZE / 2 + 1);
                 int doorZ = z + face.getModZ() * (ROOM_SIZE / 2 + 1);
-
                 if (Math.abs(doorX - centerX) > DUNGEON_RADIUS || Math.abs(doorZ - centerZ) > DUNGEON_RADIUS) continue;
-
                 BlockFace perpendicular = getPerpendicular(face);
                 int half = DOOR_SIZE / 2;
                 for (int i = -half; i <= half; i++) {
@@ -315,7 +309,6 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                     Block doorBlock = world.getBlockAt(bx, y, bz);
                     Block above = world.getBlockAt(bx, y + 1, bz);
                     if (!doorBlock.isEmpty() || !above.isEmpty()) continue;
-
                     doorBlock.setType(Material.IRON_BLOCK);
                     above.setType(Material.IRON_BLOCK);
                     placedBlocks.add(doorBlock);
@@ -338,6 +331,10 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                 if (e instanceof Monster m) m.setRemoveWhenFarAway(false);
                 spawnedEntities.add(e);
             }
+
+            // 新增：敌人出现的音效与粒子
+            world.playSound(center, Sound.ENTITY_ZOMBIE_AMBIENT, 1.0f, 0.8f);
+            world.spawnParticle(Particle.ENTITY_EFFECT, center, 15, 0.5, 0.5, 0.5, 0.2);
         }
 
         private void placeTrap(int x, int y, int z) {
@@ -350,6 +347,11 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                     }
                 }
             }
+
+            // 新增：陷阱激活的音效与粒子
+            Location trapCenter = new Location(world, x + 0.5, y + 0.5, z + 0.5);
+            world.playSound(trapCenter, Sound.BLOCK_LAVA_AMBIENT, 1.0f, 1.0f);
+            world.spawnParticle(Particle.LAVA, trapCenter, 10, 0.5, 0, 0.5, 0.1);
         }
 
         private void placeTreasureChest(int x, int y, int z) {
@@ -359,6 +361,11 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             if (chestBlock.getState() instanceof Chest chest) {
                 chest.getInventory().addItem(generateReward());
             }
+
+            // 新增：宝箱出现的音效与粒子
+            Location chestLoc = chestBlock.getLocation().add(0.5, 0.5, 0.5);
+            world.playSound(chestLoc, Sound.BLOCK_ANVIL_PLACE, 1.0f, 1.2f);
+            world.spawnParticle(Particle.HEART, chestLoc, 10, 0.5, 0.5, 0.5, 0.1);
         }
 
         private ItemStack generateReward() {
@@ -380,6 +387,12 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             boss.getEquipment().setHelmet(new ItemStack(Material.IRON_HELMET));
             boss.getEquipment().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
             spawnedEntities.add(boss);
+
+            // 新增：Boss生成的震撼音效与粒子效果
+            world.playSound(loc, Sound.ENTITY_WITHER_SPAWN, 1.5f, 0.8f);
+            world.spawnParticle(Particle.EXPLOSION, loc, 5, 0, 0, 0, 0);
+            world.spawnParticle(Particle.LARGE_SMOKE, loc, 20, 1, 1, 1, 0.2);
+            world.spawnParticle(Particle.FLAME, loc, 30, 1, 1, 1, 0.1);
         }
 
         public void complete(Player killer) {
@@ -388,6 +401,13 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                 chest.getInventory().addItem(new ItemStack(Material.DIAMOND, 5));
             }
             killer.sendMessage(ChatColor.GOLD + "恭喜通关！获得 5 颗钻石！");
+
+            // 新增：通关的胜利音效与粒子
+            Location completeLoc = startChestBlock.getLocation().add(0.5, 1, 0.5);
+            world.playSound(completeLoc, Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0f, 1.0f);
+            world.spawnParticle(Particle.FIREWORK, completeLoc, 50, 2, 2, 2, 0.2);
+            world.spawnParticle(Particle.HAPPY_VILLAGER, completeLoc, 30, 1, 1, 1, 0.1);
+
             plugin.getServer().getScheduler().runTaskLater(plugin, this::cleanup, 20L);
         }
 
