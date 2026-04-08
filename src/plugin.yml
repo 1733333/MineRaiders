@@ -9,3 +9,6 @@ commands:
     description: 主命令，用于访问所有游戏功能
     usage: /<command> [子命令]
     aliases: [mr]
+  roguelike:
+    description: 启动Roguelike地牢游戏
+    usage: /roguelike start
