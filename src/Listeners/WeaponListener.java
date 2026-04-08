@@ -224,6 +224,16 @@ public class WeaponListener implements Listener {
                     }.runTaskTimer(plugin,0L,2L);
                 }
             }
+            case "§f战斧" -> {
+                pr.remove();
+                if(p instanceof Player player) {
+                    if(player.isSneaking()) {
+                        shootLaser(p, player.isSneaking(), 3 - shootBowEvent.getForce() / 3);
+                    }
+                }else {
+                    shootLaser(p, false, 1f);
+                }
+            }
         }
     }
     @EventHandler
@@ -267,6 +277,15 @@ public class WeaponListener implements Listener {
                     case "§f海神重锤" ->{
                         smashGround(p,hand);
                         interactEvent.setCancelled(true);
+                    }
+                    case "§f战斧" ->{
+                        if(!p.isSneaking()) {
+                            interactEvent.setCancelled(true);
+                            if (p.getCooldown(hand.getType()) == 0) {
+                                p.setCooldown(hand.getType(), 20);
+                                shootLaser(p, false, 1f);
+                            }
+                        }
                     }
                 }
             }
@@ -384,6 +403,7 @@ public class WeaponListener implements Listener {
                             @Override
                             public void run() {
                                 if(p.getGameMode() != GameMode.CREATIVE) {
+                                    item.setAmount(1);
                                     Item i = w.dropItem(p.getLocation(), item);
                                     i.setPickupDelay(0);
                                     i.setOwner(p.getUniqueId());
@@ -499,5 +519,87 @@ public class WeaponListener implements Listener {
             arrow.setDamage(3);
             arrow.setShooter(shooter);
         }
+    }
+
+    /**
+     * 发射激光武器。
+     * @param shooter       发射者
+     * @param sniperMode    是否收束模式（按住潜行）
+     * @param chargePercent 蓄力百分比（0.0 ~ 1.0），散射模式下该参数无效
+     */
+    public void shootLaser(LivingEntity shooter, boolean sniperMode, float chargePercent) {
+        // 可在此处修改预设值
+        double SCATTER_RANGE = 12.0;      // 散射射程
+        double SCATTER_DAMAGE = 18.0;     // 散射固定伤害
+        double SCATTER_ANGLE = 15.0;      // 散射角度(度)
+        int SCATTER_RAYS = 5;             // 散射射线数
+        double SNIPER_RANGE = 30.0;       // 收束射程
+        double SNIPER_MIN_DAMAGE = 2.0;   // 收束最低伤害
+        double SNIPER_MAX_DAMAGE = 10.0;  // 收束满蓄力伤害
+        double PARTICLE_STEP = 0.2;       // 粒子密度
+        World world = shooter.getWorld();
+        Location eye = shooter.getEyeLocation();
+        Vector baseDir = eye.getDirection().normalize();
+
+        double range, damage, scatterAngle;
+        int rayCount;
+        Particle particle;
+        Sound sound;
+
+        if (sniperMode) {
+            range = SNIPER_RANGE;
+            damage = SNIPER_MIN_DAMAGE + (SNIPER_MAX_DAMAGE - SNIPER_MIN_DAMAGE) * chargePercent;
+            scatterAngle = 0;
+            rayCount = 1;
+            particle = Particle.ELECTRIC_SPARK;
+            sound = Sound.ENTITY_GUARDIAN_ATTACK;
+        } else {
+            range = SCATTER_RANGE;
+            damage = SCATTER_DAMAGE;
+            scatterAngle = SCATTER_ANGLE;
+            rayCount = SCATTER_RAYS;
+            particle = Particle.FIREWORK;
+            sound = Sound.ENTITY_BLAZE_SHOOT;
+        }
+
+        world.playSound(eye, sound, 1, 1);
+
+        for (int i = 0; i < rayCount; i++) {
+            Vector dir = baseDir.clone();
+            if (scatterAngle > 0) {
+                dir = rotate(dir,
+                        (r.nextDouble() - 0.5) * scatterAngle,
+                        (r.nextDouble() - 0.5) * scatterAngle);
+            }
+            Location from = eye.clone();
+            double dist = 0;
+            boolean hit = false;
+            while (dist < range) {
+                from.add(dir.clone().multiply(PARTICLE_STEP));
+                dist += PARTICLE_STEP;
+                world.spawnParticle(particle, from, 1, 0, 0, 0, 0);
+                if (from.getBlock().getType().isSolid()) break;
+                if (!hit) {
+                    var result = world.rayTraceEntities(from, dir, PARTICLE_STEP, 0,
+                            e -> e instanceof LivingEntity && !e.equals(shooter));
+                    if (result != null && result.getHitEntity() != null) {
+                        ((LivingEntity) result.getHitEntity()).damage(damage, shooter);
+                        hit = true;
+                    }
+                }
+            }
+        }
+    }
+
+    private static Vector rotate(Vector v, double yawDeg, double pitchDeg) {
+        double yaw = Math.toRadians(yawDeg), pitch = Math.toRadians(pitchDeg);
+        double cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+        double cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+        double x = v.getX(), y = v.getY(), z = v.getZ();
+        double nx = x * cosY - z * sinY;
+        double nz = x * sinY + z * cosY;
+        double ny = y * cosP - nz * sinP;
+        nz = y * sinP + nz * cosP;
+        return new Vector(nx, ny, nz);
     }
 }

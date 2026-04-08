@@ -3,7 +3,11 @@ package Universal;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -379,6 +383,8 @@ public enum LootPool {
         processArray(mysticItem, totalMap);
         processItem(i112(), totalMap);
         processItem(i113(), totalMap);
+        processItem(i131(), totalMap);
+        processItem(i132(), totalMap);
 
         // 构建结果列表，保持原有顺序
         List<ItemStack> result = new ArrayList<>(totalMap.size());
@@ -2307,6 +2313,36 @@ public enum LootPool {
         lore.add(ChatColor.WHITE + "表面有一层非常厚的灰尘");
         lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键"
         + ChatColor.WHITE + "擦去表面的灰尘，获得随机木头");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+    public ItemStack i131() {
+        ItemStack i = new ItemStack(Material.IRON_SWORD);
+        ItemMeta meta = i.getItemMeta();
+        Attribute attribute1 = Attribute.ATTACK_SPEED;
+        Attribute attribute2 = Attribute.ATTACK_DAMAGE;
+        AttributeModifier modifier1 = new AttributeModifier(NamespacedKey.randomKey(),-1.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        AttributeModifier modifier2 = new AttributeModifier(NamespacedKey.randomKey(),1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HAND);
+        meta.addAttributeModifier(attribute1,modifier1);
+        meta.addAttributeModifier(attribute2,modifier2);
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(8);
+        meta.setDisplayName(ChatColor.DARK_RED + "【神话】名刀「绍钢」");
+        lore.add(ChatColor.WHITE + "名刀「绍钢」的复制品，只有收藏价值");
+        lore.add(ChatColor.WHITE + "因其曾经斩过恶鬼“大只”，而又得名「大只切」");
+        meta.setLore(lore);
+        i.setItemMeta(meta);
+        return i;
+    }
+
+    public ItemStack i132() {
+        ItemStack i = new ItemStack(Material.BOWL);
+        ItemMeta meta = i.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        meta.setMaxStackSize(8);
+        meta.setDisplayName(ChatColor.DARK_RED + "【神话】倾盆大瓢");
+        lore.add(ChatColor.WHITE + "比盆还大的瓢");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i;

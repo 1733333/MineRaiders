@@ -193,7 +193,7 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
                 w.strikeLightningEffect(p.getLocation());
                 kiryuKazuma.spawnBoss(p.getLocation());
             }
-            case 15 -> w.dropItem(p.getLocation(), forgiver());
+            case 15 -> w.dropItem(p.getLocation(), tomahawk());
             default -> p.sendMessage(ChatColor.RED + "无效的数字参数！");
         }
         return true;
@@ -217,7 +217,7 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
         inv.addItem(k.createMenuItem(Material.DISPENSER, "召唤公爵"));
         inv.addItem(k.createMenuItem(Material.PLAYER_HEAD, "召唤模仿者"));
         inv.addItem(k.createMenuItem(Material.DRAGON_HEAD, "召唤“桐生一马”"));
-        inv.addItem(k.createMenuItem(Material.NETHERITE_HORSE_ARMOR, "获得宽恕者"));
+        inv.addItem(k.createMenuItem(Material.BOW, "获得錾斧"));
         p.openInventory(inv);
         PlayerStats.playerMenuStatus.put(p.getName(), PlayerStats.MenuStatus.DEV_MENU);
     }
@@ -231,16 +231,16 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
         item.setItemMeta(meta);
         return item;
     }
-    private ItemStack forgiver() {
+    private ItemStack tomahawk() {
         ItemStack i = new ItemStack(Material.NETHERITE_HORSE_ARMOR);
         ItemMeta meta = i.getItemMeta();
         meta.setMaxStackSize(4);
-        meta.setDisplayName(ChatColor.AQUA + "宽恕者");
+        meta.setDisplayName(ChatColor.AQUA + "战斧");
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.WHITE + "宽恕者");
-        lore.add(ChatColor.WHITE + "一把可以持续射击的激光枪");
-        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "鼠标右键" + ChatColor.WHITE + "射击");
-        lore.add(ChatColor.WHITE + "持续射击会提升武器的射速和精准度");
+        lore.add(ChatColor.WHITE + "战斧");
+        lore.add(ChatColor.WHITE + "装有收束装置的激光枪");
+        lore.add(ChatColor.WHITE + "按" + ChatColor.AQUA + "鼠标右键" + ChatColor.WHITE + "使用散射模式射击");
+        lore.add(ChatColor.WHITE + "按住" + ChatColor.AQUA + "潜行键 + 鼠标右键" + ChatColor.WHITE + "使用收束模式蓄力射击");
         meta.setLore(lore);
         i.setItemMeta(meta);
         return i;

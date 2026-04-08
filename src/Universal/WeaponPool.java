@@ -352,6 +352,7 @@ public enum WeaponPool {
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.setDisplayName(ChatColor.AQUA + "金胡萝卜神的赐福");
         itemMeta.addEnchant(Enchantment.DENSITY,5,true);
+        itemMeta.setMaxStackSize(1);
         ArrayList<String> lore = new ArrayList<>();
         lore.add(ChatColor.WHITE + "金胡萝卜神的赐福");
         lore.add(ChatColor.WHITE + "可以使用金胡萝卜神的魔法");
