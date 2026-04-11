@@ -1,34 +1,38 @@
 package OtherStuff;
 
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.noise.SimplexNoiseGenerator;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 
 import java.util.*;
 
 /**
- * 地牢冒险插件核心类
- * 实现命令执行和事件监听，管理地牢生成、房间交互、Boss战等核心逻辑
+ * 地牢冒险插件主类
+ * 完全重构后的完整插件，整合了所有核心逻辑
  */
 public class RoguelikePlugin implements CommandExecutor, Listener {
-
     private final JavaPlugin plugin;
-    private DungeonGenerator activeDungeon; // 当前激活的地牢实例
+    private DungeonManager activeDungeon; // 当前激活的地牢实例，使用新的管理类
 
     /**
      * 插件初始化
@@ -49,26 +53,32 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             sender.sendMessage(ChatColor.RED + "Only players can use this command.");
             return true;
         }
-
         // 处理start子命令 - 启动地牢
         if (args.length > 0 && args[0].equalsIgnoreCase("start")) {
-            if (activeDungeon != null) {
+            if (activeDungeon != null && !activeDungeon.isCompleted()) {
                 player.sendMessage(ChatColor.RED + "A dungeon is already active. Finish or clean it first.");
                 return true;
             }
-
             // 初始化玩家状态：生存模式 + 基础装备
             player.setGameMode(GameMode.SURVIVAL);
+            player.getInventory().clear(); // 清空背包，避免干扰
             ItemStack ironSword = new ItemStack(Material.IRON_SWORD);
-            ItemStack steak = new ItemStack(Material.COOKED_BEEF, 10);
-            HashMap<Integer, ItemStack> remaining = player.getInventory().addItem(ironSword, steak);
+            ItemStack steak = new ItemStack(Material.COOKED_BEEF, 16);
+            ItemStack healthPotion = new ItemStack(Material.POTION, 1);
+            // 给初始治疗药水
+            PotionMeta potionMeta = (PotionMeta) healthPotion.getItemMeta();
+            potionMeta.addCustomEffect(new PotionEffect(PotionEffectType.INSTANT_HEALTH, 1, 1), true);
+            potionMeta.setColor(Color.RED);
+            healthPotion.setItemMeta(potionMeta);
+
+            HashMap<Integer, ItemStack> remaining = player.getInventory().addItem(ironSword, steak, healthPotion);
             for (ItemStack leftover : remaining.values()) {
                 player.getWorld().dropItem(player.getLocation(), leftover);
             }
-            player.sendMessage(ChatColor.GREEN + "你已进入生存模式，并获得铁剑和牛排！");
+            player.sendMessage(ChatColor.GREEN + "你已进入生存模式，并获得初始装备：铁剑、牛排和治疗药水！");
 
             // 生成地牢
-            DungeonGenerator generator = new DungeonGenerator(plugin, player);
+            DungeonManager generator = new DungeonManager(plugin, player);
             String error = generator.checkBlocked();
             if (error != null) {
                 player.sendMessage(ChatColor.RED + "Cannot generate dungeon: " + error);
@@ -76,6 +86,17 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             }
             generator.generateStartRoom();
             activeDungeon = generator;
+            return true;
+        }
+        // 处理clean命令 - 清理地牢
+        else if (args.length > 0 && args[0].equalsIgnoreCase("clean")) {
+            if (activeDungeon != null) {
+                activeDungeon.cleanup();
+                activeDungeon = null;
+                player.sendMessage(ChatColor.GREEN + "地牢已清理完成！");
+            } else {
+                player.sendMessage(ChatColor.RED + "没有激活的地牢可以清理。");
+            }
             return true;
         }
         return false;
@@ -88,7 +109,7 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
     public void onDoorInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         Block block = event.getClickedBlock();
-        if (block == null || activeDungeon == null) return;
+        if (block == null || activeDungeon == null || activeDungeon.isCompleted()) return;
 
         // 门交互 - 扩展地牢
         if (activeDungeon.isDoorBlock(block)) {
@@ -107,7 +128,7 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
      */
     @EventHandler
     public void onBossDeath(EntityDeathEvent event) {
-        if (activeDungeon == null) return;
+        if (activeDungeon == null || activeDungeon.isCompleted()) return;
         if (event.getEntity().equals(activeDungeon.getBoss())) {
             Player killer = event.getEntity().getKiller();
             if (killer != null) {
@@ -126,32 +147,36 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
         }
     }
 
-    // ==================== 内部类：地牢生成器 ====================
-    private static class DungeonGenerator {
-        // ========== 核心配置参数 ==========
-        private static final int GRID_SIZE = 4;          // 地牢网格大小（房间数量）
-        private static final int ROOM_SIZE = 13;         // 单房间尺寸（方块数）
-        private static final int DOOR_WIDTH = 7;         // 门宽度
-        private static final int DOOR_HEIGHT = 4;        // 门高度
-        private static final int WALL_HEIGHT = 6;        // 墙壁高度
-        private static final double ENEMY_CHANCE = 0.35; // 怪物房间概率
-        private static final double TRAP_CHANCE = 0.20;  // 陷阱房间概率
-        private static final double TREASURE_CHANCE = 0.20; // 宝藏房间概率
-        private static final double BUFF_CHANCE = 0.15;  // 增益房间概率
-        private static final double ALTAR_CHANCE = 0.10; // 祭坛房间概率
+    // ==================== 内部类：地牢核心管理类（重构后的完整逻辑） ====================
+    private static class DungeonManager {
+        // ========== 核心配置参数（可根据需求调整） ==========
+        private static final int GRID_SIZE = 5;              // 地牢网格大小（房间数量，更大的网格带来更长的冒险）
+        private static final int ROOM_SIZE = 13;             // 单房间尺寸（方块数）
+        private static final int DOOR_WIDTH = 7;             // 门宽度
+        private static final int DOOR_HEIGHT = 4;            // 门高度
+        private static final int WALL_HEIGHT = 6;            // 墙壁高度
+        private static final double ENEMY_CHANCE = 0.30;     // 普通怪物房间概率
+        private static final double ELITE_ENEMY_CHANCE = 0.10;// 精英怪物房间概率
+        private static final double TRAP_CHANCE = 0.15;      // 陷阱房间概率
+        private static final double TREASURE_CHANCE = 0.20;  // 宝藏房间概率
+        private static final double RARE_TREASURE_CHANCE = 0.05; // 稀有宝藏房间概率
+        private static final double BUFF_CHANCE = 0.12;      // 增益房间概率
+        private static final double ALTAR_CHANCE = 0.08;     // 祭坛房间概率
 
         // 地板材质列表（随机噪声选择）
         private static final Material[] FLOOR_MATERIALS = {
                 Material.STONE_BRICKS, Material.CRACKED_STONE_BRICKS,
                 Material.MOSSY_STONE_BRICKS, Material.SMOOTH_STONE,
-                Material.ANDESITE, Material.DIORITE, Material.GRANITE
+                Material.ANDESITE, Material.DIORITE, Material.GRANITE,
+                Material.DEEPSLATE_BRICKS
         };
 
         // 墙壁材质列表（随机噪声选择）
         private static final Material[] WALL_MATERIALS = {
                 Material.STONE_BRICKS, Material.MOSSY_STONE_BRICKS,
                 Material.CHISELED_STONE_BRICKS, Material.POLISHED_ANDESITE,
-                Material.POLISHED_DIORITE, Material.POLISHED_GRANITE
+                Material.POLISHED_DIORITE, Material.POLISHED_GRANITE,
+                Material.POLISHED_DEEPSLATE
         };
 
         // ========== 核心成员变量 ==========
@@ -168,19 +193,21 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
         private final Map<Location, Door> doorMap = new HashMap<>(); // 门方块映射
         private final Set<Location> altars = new HashSet<>();        // 祭坛位置集合
 
-        private Zombie boss;          // Boss实体
-        private Block startChestBlock;// 起点奖励箱
+        private Monster boss;          // Boss实体
         private boolean bossSpawned = false; // Boss是否已生成
+        private boolean isCompleted = false; // 地牢是否已完成
 
         // ========== 内部枚举：房间类型 ==========
-        private enum RoomType {
-            EMPTY,    // 空房间（起点）
-            ENEMY,    // 怪物房间
-            TRAP,     // 陷阱房间
-            TREASURE, // 宝藏房间
-            BUFF,     // 增益房间
-            ALTAR,    // 祭坛房间
-            BOSS      // Boss房间
+        public enum RoomType {
+            EMPTY,        // 空房间（起点）
+            ENEMY,       // 普通怪物房间
+            ELITE_ENEMY, // 精英怪物房间
+            TRAP,        // 陷阱房间
+            TREASURE,    // 普通宝藏房间
+            RARE_TREASURE,// 稀有宝藏房间
+            BUFF,        // 增益房间
+            ALTAR,       // 祭坛房间
+            BOSS         // Boss房间
         }
 
         // ========== 内部类：门 ==========
@@ -210,6 +237,7 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             final int worldX, worldZ;  // 房间世界坐标（西北角）
             final List<Block> placedBlocks = new ArrayList<>(); // 房间生成的方块
             final List<Entity> spawnedEntities = new ArrayList<>(); // 房间生成的实体
+            final int distanceFromStart; // 距离起点的曼哈顿距离，用于难度缩放
 
             Room(int gridX, int gridZ, RoomType type) {
                 this.gridX = gridX;
@@ -218,6 +246,8 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                 this.worldX = centerX + gridX * ROOM_SIZE;
                 this.worldZ = centerZ + gridZ * ROOM_SIZE;
                 this.generated = false;
+                // 计算距离起点的距离，用于难度缩放
+                this.distanceFromStart = Math.abs(gridX) + Math.abs(gridZ);
             }
 
             /**
@@ -225,21 +255,22 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
              */
             void generate() {
                 if (generated) return;
-
                 // 生成基础结构
                 placeFloorAndWalls();
                 // 生成房间特色内容（怪物/陷阱/宝藏等）
                 placeRoomContents();
                 // 创建房间所有门
                 createAllDoors();
-
                 generated = true;
 
-                // Boss房间特殊处理：生成Boss
+                // 特殊房间处理
                 if (type == RoomType.BOSS && !bossSpawned) {
                     spawnBossAt(this);
                     bossSpawned = true;
-                    player.sendMessage(ChatColor.RED + "你进入了Boss房间！强大的敌人出现了！");
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "⚠ 你进入了Boss房间！强大的地牢守护者出现了！");
+                    player.playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 1.0f, 0.5f);
+                } else if (type == RoomType.ELITE_ENEMY) {
+                    player.sendMessage(ChatColor.DARK_PURPLE + "你感受到了强大的气息...这里有精英怪物！");
                 }
 
                 // 播放生成特效
@@ -304,7 +335,6 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                     for (int dz = -half; dz <= half; dz++) {
                         // 仅处理房间边缘
                         if (Math.abs(dx) != half && Math.abs(dz) != half) continue;
-
                         boolean isNorth = (dz == half);
                         boolean isSouth = (dz == -half);
                         boolean isEast  = (dx == half);
@@ -438,6 +468,7 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                         if (h == 0 && w == DOOR_WIDTH / 2) primaryBlock = loc;
                     }
                 }
+
                 if (primaryBlock == null) return;
 
                 // 注册门到映射表
@@ -454,52 +485,120 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
 
                 // 根据房间类型生成内容
                 switch (type) {
-                    case ENEMY -> spawnEnemies(center);       // 怪物房间
-                    case TRAP -> placeTrap(worldX, worldZ, floorY); // 陷阱房间
-                    case TREASURE -> placeTreasureChest(worldX, worldZ, floorY); // 宝藏房间
-                    case BUFF -> applyBuffToPlayer(player, center); // 增益房间
+                    case ENEMY -> spawnEnemies(center, false);       // 普通怪物房间
+                    case ELITE_ENEMY -> spawnEnemies(center, true);  // 精英怪物房间
+                    case TRAP -> placeAdvancedTrap(worldX, worldZ, floorY); // 高级陷阱房间
+                    case TREASURE -> placeTreasureChest(worldX, worldZ, floorY, false); // 普通宝藏
+                    case RARE_TREASURE -> placeTreasureChest(worldX, worldZ, floorY, true); // 稀有宝藏
+                    case BUFF -> applyAdvancedBuffToPlayer(player, center); // 高级增益房间
                     case ALTAR -> placeAltar(worldX, worldZ, floorY); // 祭坛房间
-                    default -> {} // 空房间/起点/Boss房间无额外内容
+                    default -> {} // 空房间/Boss房间无额外内容
                 }
 
-                // 房间中心红石火把标记
+                // 房间中心火把标记
                 Block torch = world.getBlockAt(worldX, centerY, worldZ);
-                torch.setType(Material.REDSTONE_TORCH);
+                torch.setType(type == RoomType.BOSS ? Material.SOUL_TORCH : Material.REDSTONE_TORCH);
                 placedBlocks.add(torch);
             }
 
             /**
-             * 生成怪物（怪物房间）
+             * 生成怪物（支持普通/精英，带难度缩放）
              */
-            private void spawnEnemies(Location center) {
-                int count = random.nextInt(3) + 1; // 1-3只怪物
+            private void spawnEnemies(Location center, boolean isElite) {
+                int count = isElite ? random.nextInt(2) + 2 : random.nextInt(3) + 1; // 精英房间更多怪物
+
                 for (int i = 0; i < count; i++) {
-                    // 随机怪物类型：僵尸/骷髅/蜘蛛
-                    EntityType type = switch (random.nextInt(3)) {
-                        case 0 -> EntityType.ZOMBIE;
-                        case 1 -> EntityType.SKELETON;
-                        default -> EntityType.SPIDER;
-                    };
+                    // 随机怪物类型，精英房间有更高概率出强力怪物
+                    EntityType type;
+                    if (isElite) {
+                        type = switch (random.nextInt(4)) {
+                            case 0 -> EntityType.ZOMBIE;
+                            case 1 -> EntityType.SKELETON;
+                            case 2 -> EntityType.SPIDER;
+                            default -> EntityType.EVOKER; // 精英房间会出唤魔者
+                        };
+                    } else {
+                        type = switch (random.nextInt(3)) {
+                            case 0 -> EntityType.ZOMBIE;
+                            case 1 -> EntityType.SKELETON;
+                            default -> EntityType.SPIDER;
+                        };
+                    }
 
                     // 生成怪物
                     Entity e = world.spawnEntity(center.clone().add(random.nextDouble() - 0.5, 0, random.nextDouble() - 0.5), type);
-                    if (e instanceof Monster m) m.setRemoveWhenFarAway(false);
-                    spawnedEntities.add(e);
+                    if (e instanceof Monster monster) {
+                        monster.setRemoveWhenFarAway(false);
+
+                        // 根据房间距离给怪物加装备和属性（难度缩放）
+                        int level = Math.min(distanceFromStart, 5);
+                        applyMonsterEquipment(monster, level, isElite);
+
+                        spawnedEntities.add(monster);
+                    }
                 }
 
                 // 播放特效
-                world.playSound(center, Sound.ENTITY_ZOMBIE_AMBIENT, 1.0f, 0.8f);
-                world.spawnParticle(Particle.ENTITY_EFFECT, center, 15, 0.5, 0.5, 0.5, 0.2, Color.ORANGE);
+                if (isElite) {
+                    world.playSound(center, Sound.ENTITY_RAVAGER_AMBIENT, 1.0f, 0.8f);
+                    world.spawnParticle(Particle.ENTITY_EFFECT, center, 30, 0.5, 0.5, 0.5, 0.2, Color.PURPLE);
+                } else {
+                    world.playSound(center, Sound.ENTITY_ZOMBIE_AMBIENT, 1.0f, 0.8f);
+                    world.spawnParticle(Particle.ENTITY_EFFECT, center, 15, 0.5, 0.5, 0.5, 0.2, Color.ORANGE);
+                }
             }
 
             /**
-             * 放置陷阱（陷阱房间：岩浆块）
+             * 给怪物应用装备和属性，根据等级和是否精英
              */
-            private void placeTrap(int roomX, int roomZ, int floorY) {
+            private void applyMonsterEquipment(Monster monster, int level, boolean isElite) {
+                // 提升生命
+                double health = 20.0 + level * 5.0;
+                if (isElite) health *= 1.5;
+                monster.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
+                monster.setHealth(health);
+
+                // 提升攻击伤害
+                double damage = 3.0 + level * 1.0;
+                if (isElite) damage *= 1.3;
+                monster.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(damage);
+
+                // 精英怪物加药水效果
+                if (isElite) {
+                    monster.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, PotionEffect.INFINITE_DURATION, 0));
+                    monster.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, 0));
+                }
+
+                // 给怪物加武器
+                ItemStack weapon;
+                if (level >= 4) {
+                    weapon = new ItemStack(isElite ? Material.DIAMOND_SWORD : Material.IRON_SWORD);
+                    if (isElite) {
+                        weapon.addEnchantment(Enchantment.SHARPNESS, 2);
+                        weapon.addEnchantment(Enchantment.FIRE_ASPECT, 1);
+                    }
+                } else if (level >= 2) {
+                    weapon = new ItemStack(Material.IRON_SWORD);
+                } else {
+                    weapon = new ItemStack(Material.STONE_SWORD);
+                }
+
+                if (weapon != null) {
+                    monster.getEquipment().setItemInMainHand(weapon);
+                    monster.getEquipment().setItemInMainHandDropChance(0.1f); // 低概率掉落
+                }
+            }
+
+            /**
+             * 放置高级陷阱（岩浆块+隐藏压力板+发射器）
+             */
+            private void placeAdvancedTrap(int roomX, int roomZ, int floorY) {
                 int half = ROOM_SIZE / 2;
+
+                // 1. 岩浆块陷阱
                 for (int dx = -half + 1; dx <= half - 1; dx++) {
                     for (int dz = -half + 1; dz <= half - 1; dz++) {
-                        if (random.nextDouble() < 0.3) { // 30%概率生成岩浆块
+                        if (random.nextDouble() < 0.35) { // 35%概率生成岩浆块
                             Block b = world.getBlockAt(roomX + dx, floorY, roomZ + dz);
                             b.setType(Material.MAGMA_BLOCK);
                             placedBlocks.add(b);
@@ -507,53 +606,104 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                     }
                 }
 
+                // 2. 隐藏压力板陷阱
+                if (random.nextBoolean()) {
+                    int px = roomX + random.nextInt(half*2) - half;
+                    int pz = roomZ + random.nextInt(half*2) - half;
+                    Block plate = world.getBlockAt(px, floorY, pz);
+                    plate.setType(Material.STONE_PRESSURE_PLATE);
+                    placedBlocks.add(plate);
+
+                    // 在压力板后面放发射器
+                    Block dispenser = world.getBlockAt(px, floorY + 1, pz);
+                    dispenser.setType(Material.DISPENSER);
+                    placedBlocks.add(dispenser);
+
+                    // 填充发射器的箭
+                    org.bukkit.block.Dispenser dState = (org.bukkit.block.Dispenser) dispenser.getState();
+                    dState.getInventory().addItem(new ItemStack(Material.ARROW, 16));
+                    dState.update();
+                }
+
                 // 播放特效
                 Location trapCenter = new Location(world, roomX + 0.5, floorY + 0.5, roomZ + 0.5);
                 world.playSound(trapCenter, Sound.BLOCK_LAVA_AMBIENT, 1.0f, 1.0f);
-                world.spawnParticle(Particle.LAVA, trapCenter, 10, 0.5, 0, 0.5, 0.1);
+                world.spawnParticle(Particle.LAVA, trapCenter, 15, 0.5, 0, 0.5, 0.1);
             }
 
             /**
-             * 放置宝藏箱（宝藏房间）
+             * 放置宝藏箱（支持普通/稀有）
              */
-            private void placeTreasureChest(int roomX, int roomZ, int floorY) {
+            private void placeTreasureChest(int roomX, int roomZ, int floorY, boolean isRare) {
                 Block chestBlock = world.getBlockAt(roomX, floorY, roomZ);
                 chestBlock.setType(Material.CHEST);
                 placedBlocks.add(chestBlock);
 
                 // 填充宝箱奖励
                 if (chestBlock.getState() instanceof Chest chest) {
-                    chest.getInventory().addItem(generateReward());
+                    if (isRare) {
+                        // 稀有宝藏：附魔装备、药水、钻石
+                        chest.getInventory().addItem(generateRareReward());
+                        chest.getInventory().addItem(new ItemStack(Material.DIAMOND, random.nextInt(3) + 2));
+                        chest.getInventory().addItem(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 1));
+                    } else {
+                        // 普通宝藏：基础资源
+                        chest.getInventory().addItem(generateNormalReward());
+                    }
                 }
 
                 // 播放特效
                 Location chestLoc = chestBlock.getLocation().add(0.5, 0.5, 0.5);
-                world.playSound(chestLoc, Sound.BLOCK_ANVIL_PLACE, 1.0f, 1.2f);
-                world.spawnParticle(Particle.HEART, chestLoc, 10, 0.5, 0.5, 0.5, 0.1);
+                if (isRare) {
+                    world.playSound(chestLoc, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+                    world.spawnParticle(Particle.TOTEM_OF_UNDYING, chestLoc, 20, 0.5, 0.5, 0.5, 0.1);
+                } else {
+                    world.playSound(chestLoc, Sound.BLOCK_ANVIL_PLACE, 1.0f, 1.2f);
+                    world.spawnParticle(Particle.HEART, chestLoc, 10, 0.5, 0.5, 0.5, 0.1);
+                }
             }
 
             /**
-             * 生成宝箱奖励
+             * 生成普通宝箱奖励
              */
-            private ItemStack generateReward() {
+            private ItemStack generateNormalReward() {
                 int r = random.nextInt(10);
-                if (r < 3) return new ItemStack(Material.IRON_INGOT, random.nextInt(5) + 1);  // 铁锭（1-5）
-                if (r < 6) return new ItemStack(Material.GOLD_INGOT, random.nextInt(3) + 1);  // 金锭（1-3）
-                if (r < 9) return new ItemStack(Material.DIAMOND, 1);                        // 钻石（1）
-                return new ItemStack(Material.EMERALD, random.nextInt(3) + 1);               // 绿宝石（1-3）
+                if (r < 3) return new ItemStack(Material.IRON_INGOT, random.nextInt(5) + 1);
+                if (r < 6) return new ItemStack(Material.GOLD_INGOT, random.nextInt(3) + 1);
+                if (r < 9) return new ItemStack(Material.DIAMOND, 1);
+                return new ItemStack(Material.EMERALD, random.nextInt(3) + 1);
             }
 
             /**
-             * 给玩家添加增益（增益房间）
+             * 生成稀有宝箱奖励
              */
-            private void applyBuffToPlayer(Player target, Location center) {
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 30 * 20, 1));    // 速度II（30秒）
-                target.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 30 * 20, 0)); // 力量I（30秒）
-                target.sendMessage(ChatColor.LIGHT_PURPLE + "你进入了一个祝福房间！获得速度 II 和力量 I (30秒)");
+            private ItemStack generateRareReward() {
+                // 随机附魔武器
+                ItemStack weapon = new ItemStack(Material.DIAMOND_SWORD);
+                weapon.addEnchantment(Enchantment.SHARPNESS, 3);
+                weapon.addEnchantment(Enchantment.LOOTING, 2);
+                ItemMeta meta = weapon.getItemMeta();
+                meta.setDisplayName(ChatColor.AQUA + "地牢征服者之剑");
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                weapon.setItemMeta(meta);
+                return weapon;
+            }
+
+            /**
+             * 给玩家添加高级增益（比原来更强，持续更久）
+             */
+            private void applyAdvancedBuffToPlayer(Player target, Location center) {
+                // 更长的持续时间，更强的效果
+                target.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60 * 20, 2));    // 速度III（60秒）
+                target.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 60 * 20, 1)); // 力量II（60秒）
+                target.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 30 * 20, 1)); // 生命恢复II（30秒）
+                target.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 45 * 20, 0)); // 抗性I（45秒）
+
+                target.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "✨ 你进入了祝福圣殿！获得了强大的祝福效果！");
 
                 // 播放特效
                 world.playSound(center, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-                world.spawnParticle(Particle.HAPPY_VILLAGER, center, 30, 0.5, 0.5, 0.5, 0.1);
+                world.spawnParticle(Particle.HAPPY_VILLAGER, center, 50, 0.5, 0.5, 0.5, 0.1);
             }
 
             /**
@@ -561,15 +711,15 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
              */
             private void placeAltar(int roomX, int roomZ, int floorY) {
                 Block altar = world.getBlockAt(roomX, floorY, roomZ);
-                altar.setType(Material.GOLD_BLOCK);
+                altar.setType(Material.NETHERITE_BLOCK); // 用下界合金块代替原来的金块，更稀有
                 placedBlocks.add(altar);
                 altars.add(altar.getLocation());
 
                 // 提示玩家
-                player.sendMessage(ChatColor.GOLD + "你发现了一个祭坛！右键金块以获得奖励（或惩罚）");
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "⛩ 你发现了神秘的命运祭坛！右键它来赌上你的命运...");
 
                 // 播放特效
-                world.playSound(altar.getLocation().add(0.5, 0.5, 0.5), Sound.BLOCK_ANVIL_LAND, 0.8f, 1.2f);
+                world.playSound(altar.getLocation().add(0.5, 0.5, 0.5), Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.2f);
             }
 
             /**
@@ -590,11 +740,13 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             }
         }
 
-        // ========== DungeonGenerator 核心方法 ==========
+        // ========== DungeonManager 核心方法 ==========
         /**
-         * 构造地牢生成器
+         * 构造地牢管理器
+         * @param plugin 主插件实例
+         * @param player 进入地牢的玩家
          */
-        public DungeonGenerator(JavaPlugin plugin, Player player) {
+        public DungeonManager(JavaPlugin plugin, Player player) {
             this.plugin = plugin;
             this.player = player;
             this.world = player.getWorld();
@@ -613,7 +765,7 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
         }
 
         /**
-         * 生成地牢布局（随机游走 + 分支）
+         * 生成地牢布局（随机游走 + 分支，保证Boss在最远点）
          */
         private void generateLayout() {
             layout = new boolean[GRID_SIZE][GRID_SIZE];
@@ -636,7 +788,7 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
                 Collections.shuffle(directions, r);
                 boolean moved = false;
 
-                // 尝试向随机方向移动
+                // 尝试向随机方向移动，优先向Boss方向移动
                 for (int[] dir : directions) {
                     int nx = curX + dir[0];
                     int nz = curZ + dir[1];
@@ -656,11 +808,11 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             // 2. 随机添加分支房间
             for (int i = 0; i < GRID_SIZE; i++) {
                 for (int j = 0; j < GRID_SIZE; j++) {
-                    if (visited[i][j] && r.nextDouble() < 0.3) {
+                    if (visited[i][j] && r.nextDouble() < 0.4) { // 更高的分支概率，更多选择
                         for (int[] dir : new int[][]{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}) {
                             int ni = i + dir[0];
                             int nj = j + dir[1];
-                            if (ni >= 0 && ni < GRID_SIZE && nj >= 0 && nj < GRID_SIZE && !visited[ni][nj] && r.nextDouble() < 0.5) {
+                            if (ni >= 0 && ni < GRID_SIZE && nj >= 0 && nj < GRID_SIZE && !visited[ni][nj] && r.nextDouble() < 0.6) {
                                 visited[ni][nj] = true;
                                 break;
                             }
@@ -678,7 +830,6 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             for (int i = 0; i < GRID_SIZE; i++) {
                 for (int j = 0; j < GRID_SIZE; j++) {
                     if (!layout[i][j]) continue;
-
                     RoomType type;
                     if (i == 0 && j == 0) {
                         type = RoomType.EMPTY; // 起点房间为空
@@ -693,19 +844,30 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
         }
 
         /**
-         * 随机选择房间类型（按概率）
+         * 随机选择房间类型（按概率权重）
          */
         private RoomType selectRandomRoomType() {
             double r = random.nextDouble();
-            double cum = ENEMY_CHANCE;
+            double cum = 0;
 
+            cum += ENEMY_CHANCE;
             if (r < cum) return RoomType.ENEMY;
+
+            cum += ELITE_ENEMY_CHANCE;
+            if (r < cum) return RoomType.ELITE_ENEMY;
+
             cum += TRAP_CHANCE;
             if (r < cum) return RoomType.TRAP;
+
             cum += TREASURE_CHANCE;
             if (r < cum) return RoomType.TREASURE;
+
+            cum += RARE_TREASURE_CHANCE;
+            if (r < cum) return RoomType.RARE_TREASURE;
+
             cum += BUFF_CHANCE;
             if (r < cum) return RoomType.BUFF;
+
             return RoomType.ALTAR;
         }
 
@@ -730,7 +892,7 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
         }
 
         /**
-         * 获取路径材质（固定金块）
+         * 获取路径材质
          */
         private Material getPathMaterial() {
             return Material.GOLD_BLOCK;
@@ -747,26 +909,27 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             };
         }
 
+        // ========== 对外暴露的接口方法（主类调用） ==========
+
         /**
-         * 检查地牢区域是否被阻挡（有非空/非液体方块）
+         * 检查地牢区域是否被阻挡
+         * @return 错误信息，如果没问题返回null
          */
         public String checkBlocked() {
             int floorY = centerY - 1;
             for (int i = 0; i < GRID_SIZE; i++) {
                 for (int j = 0; j < GRID_SIZE; j++) {
                     if (!layout[i][j]) continue;
-
                     int worldX = centerX + i * ROOM_SIZE;
                     int worldZ = centerZ + j * ROOM_SIZE;
-                    int half = ROOM_SIZE / 2;
 
-                    // 检查房间周围扩展区域
-                    for (int dx = -half - 1; dx <= half + 1; dx++) {
-                        for (int dz = -half - 1; dz <= half + 1; dz++) {
-                            for (int dy = 0; dy < WALL_HEIGHT + 3; dy++) {
-                                Block b = world.getBlockAt(worldX + dx, floorY + dy, worldZ + dz);
+                    // 检查3x3的区域是否有阻挡
+                    for (int dx = -ROOM_SIZE/2; dx <= ROOM_SIZE/2; dx++) {
+                        for (int dz = -ROOM_SIZE/2; dz <= ROOM_SIZE/2; dz++) {
+                            for (int h = 0; h <= WALL_HEIGHT; h++) {
+                                Block b = world.getBlockAt(worldX + dx, floorY + h, worldZ + dz);
                                 if (!b.isEmpty() && !b.isLiquid()) {
-                                    return "Area blocked at " + b.getLocation().toVector();
+                                    return "区域被阻挡: " + b.getType();
                                 }
                             }
                         }
@@ -780,166 +943,168 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
          * 生成起点房间
          */
         public void generateStartRoom() {
-            int floorY = centerY - 1;
-            startChestBlock = world.getBlockAt(centerX, floorY, centerZ);
-            startChestBlock.setType(Material.BEDROCK); // 起点标记（基岩）
-
-            // 生成起点房间
-            Room startRoom = rooms[0][0];
-            startRoom.generate();
-
-            // 提示玩家
-            player.sendMessage(ChatColor.GREEN + "起点房间已生成！右键铁门探索新区域。");
-            Location startLoc = new Location(world, centerX + 0.5, centerY, centerZ + 0.5);
-            world.playSound(startLoc, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-            world.spawnParticle(Particle.HAPPY_VILLAGER, startLoc, 30, 1, 1, 1, 0.1);
+            rooms[0][0].generate();
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "🏰 地牢已开启！探索房间，击败Boss来通关！");
+            player.sendMessage(ChatColor.GRAY + "提示：点击铁门来解锁并进入新的房间，输入/roguelike clean可以手动清理地牢");
         }
 
         /**
-         * 从门扩展地牢（生成邻居房间）
+         * 检查方块是否是门方块
          */
-        public void expandFromDoor(Block clickedBlock, Player clicker) {
-            Door door = doorMap.get(clickedBlock.getLocation());
+        public boolean isDoorBlock(Block block) {
+            return doorMap.containsKey(block.getLocation());
+        }
+
+        /**
+         * 从门扩展地牢
+         */
+        public void expandFromDoor(Block block, Player player) {
+            Door door = doorMap.get(block.getLocation());
             if (door == null) return;
 
-            // 获取邻居房间坐标
-            int neighborX = door.toX, neighborZ = door.toZ;
-            if (neighborX < 0 || neighborX >= GRID_SIZE || neighborZ < 0 || neighborZ >= GRID_SIZE) {
-                clicker.sendMessage(ChatColor.RED + "这个方向没有房间。");
-                return;
-            }
-            if (!layout[neighborX][neighborZ]) {
-                clicker.sendMessage(ChatColor.RED + "这个方向没有房间。");
-                return;
+            Room targetRoom = rooms[door.toX][door.toZ];
+            if (targetRoom != null && !targetRoom.generated) {
+                targetRoom.generate();
             }
 
-            // 检查邻居房间是否已生成
-            Room neighborRoom = rooms[neighborX][neighborZ];
-            if (neighborRoom.generated) {
-                clicker.sendMessage(ChatColor.RED + "这个方向已经探索过了！");
-                return;
-            }
-
-            // 移除门方块
+            // 移除门方块，让玩家可以通过
             for (Location loc : door.blocks) {
-                Block b = world.getBlockAt(loc);
-                if (b.getType() == Material.IRON_BLOCK) {
-                    b.setType(Material.AIR);
-                }
+                world.getBlockAt(loc).setType(Material.AIR);
                 doorMap.remove(loc);
             }
 
-            // 播放开门特效
-            Location doorCenter = door.blocks.get(0).clone().add(0.5, 0.5, 0.5);
-            world.playSound(doorCenter, Sound.BLOCK_IRON_DOOR_OPEN, 1.0f, 1.0f);
-            world.spawnParticle(Particle.CLOUD, doorCenter, 20, 0.5, 0.5, 0.5, 0.1);
-
-            // 生成邻居房间
-            neighborRoom.generate();
-            clicker.sendMessage(ChatColor.GREEN + "铁门消失，新的区域出现了！");
+            player.sendMessage(ChatColor.YELLOW + "你打开了一扇门，新的区域展现在你面前...");
         }
 
         /**
-         * 处理祭坛交互（奖励/惩罚）
+         * 检查方块是否是祭坛方块
          */
-        public void onAltarInteract(Player clicker, Block altarBlock) {
-            Location loc = altarBlock.getLocation();
-            if (!altars.contains(loc)) return;
-            altars.remove(loc);
+        public boolean isAltarBlock(Block block) {
+            return altars.contains(block.getLocation());
+        }
 
-            // 查找祭坛所属房间
-            Room targetRoom = null;
-            for (int i = 0; i < GRID_SIZE; i++) {
-                for (int j = 0; j < GRID_SIZE; j++) {
-                    if (rooms[i][j] != null && rooms[i][j].placedBlocks.contains(altarBlock)) {
-                        targetRoom = rooms[i][j];
-                        break;
-                    }
-                }
-            }
+        /**
+         * 处理祭坛交互
+         */
+        public void onAltarInteract(Player player, Block block) {
+            altars.remove(block.getLocation());
 
-            // 随机触发奖励/惩罚
-            int r = random.nextInt(10);
-            if (r < 4) { // 40%概率：增益效果
-                PotionEffectType type = switch (random.nextInt(3)) {
-                    case 0 -> PotionEffectType.SPEED;
-                    case 1 -> PotionEffectType.STRENGTH;
-                    default -> PotionEffectType.REGENERATION;
-                };
-                clicker.addPotionEffect(new PotionEffect(type, 30 * 20, 1));
-                clicker.sendMessage(ChatColor.AQUA + "祭坛赐予你 " + type.getName() + " 效果！");
-                world.playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-                world.spawnParticle(Particle.HAPPY_VILLAGER, loc.add(0.5, 0.5, 0.5), 20, 0.5, 0.5, 0.5, 0.1);
-            } else if (r < 7) { // 30%概率：钻石奖励
-                ItemStack reward = new ItemStack(Material.DIAMOND, random.nextInt(2) + 1);
-                clicker.getInventory().addItem(reward);
-                clicker.sendMessage(ChatColor.YELLOW + "祭坛给了你 " + reward.getAmount() + " 颗钻石！");
-                world.playSound(loc, Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
-                world.spawnParticle(Particle.HEART, loc.add(0.5, 0.5, 0.5), 15, 0.5, 0.5, 0.5, 0.1);
-            } else { // 30%概率：陷阱（生成僵尸）
-                int mobCount = random.nextInt(2) + 1;
-                for (int i = 0; i < mobCount; i++) {
-                    Entity e = world.spawnEntity(loc.clone().add(0.5, 1, 0.5), EntityType.ZOMBIE);
-                    if (e instanceof Monster m) m.setRemoveWhenFarAway(false);
-                    if (targetRoom != null) targetRoom.spawnedEntities.add(e);
+            // 命运随机：70%好结果，30%坏结果
+            double roll = random.nextDouble();
+            if (roll < 0.7) {
+                // 好结果
+                if (roll < 0.3) {
+                    // 永久生命提升
+                    player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(player.getAttribute(Attribute.MAX_HEALTH).getValue() + 2.0);
+                    player.setHealth(player.getHealth() + 2.0);
+                    player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✨ 祭坛赐予你力量！你的最大生命值永久提升了2点！");
+                } else if (roll < 0.5) {
+                    // 满生命+饥饿
+                    player.setHealth(player.getMaxHealth());
+                    player.setFoodLevel(20);
+                    player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "💚 祭坛治愈了你的所有伤势！");
+                } else {
+                    // 强力临时buff
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 120 * 20, 2));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 120 * 20, 1));
+                    player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "💪 祭坛赐予你战斗祝福！2分钟的强力增益！");
                 }
-                clicker.sendMessage(ChatColor.RED + "祭坛触发了陷阱！怪物出现了！");
-                world.playSound(loc, Sound.ENTITY_ZOMBIE_AMBIENT, 1.0f, 1.0f);
-                world.spawnParticle(Particle.LARGE_SMOKE, loc.add(0.5, 0.5, 0.5), 20, 0.5, 0.5, 0.5, 0.05);
+
+                world.playSound(block.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.0f);
+                world.spawnParticle(Particle.TOTEM_OF_UNDYING, block.getLocation().add(0.5, 0.5, 0.5), 30, 0.5, 0.5, 0.5, 0.1);
+            } else {
+                // 坏结果
+                if (roll < 0.85) {
+                    // 扣血
+                    player.damage(6.0);
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "💔 祭坛的力量反噬了你！你受到了6点伤害！");
+                } else {
+                    // 负面效果
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 30 * 20, 1));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 30 * 20, 1));
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "☠ 祭坛诅咒了你！30秒的虚弱与缓慢！");
+                }
+
+                world.playSound(block.getLocation(), Sound.ENTITY_WITHER_HURT, 1.0f, 1.0f);
+                world.spawnParticle(Particle.SQUID_INK, block.getLocation().add(0.5, 0.5, 0.5), 30, 0.5, 0.5, 0.5, 0.1);
             }
 
             // 移除祭坛方块
-            altarBlock.setType(Material.AIR);
-            if (targetRoom != null) targetRoom.placedBlocks.remove(altarBlock);
+            block.setType(Material.AIR);
         }
 
         /**
-         * 在Boss房间生成Boss
+         * 获取Boss实体
          */
-        private void spawnBossAt(Room bossRoom) {
-            Location loc = new Location(world, bossRoom.worldX + 0.5, centerY, bossRoom.worldZ + 0.5);
-            boss = (Zombie) world.spawnEntity(loc, EntityType.ZOMBIE);
-
-            // 设置Boss属性
-            boss.setCustomName(ChatColor.RED + "地牢守卫");
-            boss.setCustomNameVisible(true);
-            boss.setMaxHealth(80.0);
-            boss.setHealth(80.0);
-            boss.getEquipment().setItemInMainHand(new ItemStack(Material.IRON_SWORD));
-            boss.getEquipment().setHelmet(new ItemStack(Material.IRON_HELMET));
-            boss.getEquipment().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-            bossRoom.spawnedEntities.add(boss);
-
-            // 播放Boss生成特效
-            world.playSound(loc, Sound.ENTITY_WITHER_SPAWN, 1.5f, 0.8f);
-            world.spawnParticle(Particle.EXPLOSION, loc, 5, 0, 0, 0, 0);
-            world.spawnParticle(Particle.LARGE_SMOKE, loc, 20, 1, 1, 1, 0.2);
-            world.spawnParticle(Particle.FLAME, loc, 30, 1, 1, 1, 0.1);
+        public Monster getBoss() {
+            return boss;
         }
 
         /**
-         * 地牢通关处理（奖励 + 清理）
+         * 生成Boss
+         */
+        private void spawnBossAt(Room room) {
+            Location center = new Location(world, room.worldX + 0.5, centerY, room.worldZ + 0.5);
+
+            // 生成Boss：变异僵尸守卫
+            Zombie zombie = (Zombie) world.spawnEntity(center, EntityType.ZOMBIE);
+            zombie.setBaby(false);
+            zombie.setCustomName(ChatColor.RED + "" + ChatColor.BOLD + "地牢守护者");
+            zombie.setCustomNameVisible(true);
+
+            // Boss属性
+            zombie.getAttribute(Attribute.MAX_HEALTH).setBaseValue(150.0);
+            zombie.setHealth(150.0);
+            zombie.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(8.0);
+            zombie.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.35);
+            zombie.getAttribute(Attribute.KNOCKBACK_RESISTANCE).setBaseValue(0.8);
+
+            // Boss装备
+            ItemStack bossSword = new ItemStack(Material.NETHERITE_SWORD);
+            bossSword.addEnchantment(Enchantment.SHARPNESS, 5);
+            bossSword.addEnchantment(Enchantment.FIRE_ASPECT, 2);
+            bossSword.addEnchantment(Enchantment.SWEEPING_EDGE, 3);
+            ItemMeta meta = bossSword.getItemMeta();
+            meta.setDisplayName(ChatColor.RED + "守护者的巨剑");
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            bossSword.setItemMeta(meta);
+
+            zombie.getEquipment().setItemInMainHand(bossSword);
+            zombie.getEquipment().setItemInMainHandDropChance(1.0f); // 必掉武器
+
+            ItemStack bossHelmet = new ItemStack(Material.NETHERITE_HELMET);
+            bossHelmet.addEnchantment(Enchantment.PROTECTION, 4);
+            zombie.getEquipment().setHelmet(bossHelmet);
+
+            // Boss永久buff
+            zombie.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, PotionEffect.INFINITE_DURATION, 1));
+            zombie.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, PotionEffect.INFINITE_DURATION, 1));
+            zombie.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, PotionEffect.INFINITE_DURATION, 0));
+
+            this.boss = zombie;
+            room.spawnedEntities.add(zombie);
+        }
+
+        /**
+         * 完成地牢
          */
         public void complete(Player killer) {
-            int floorY = centerY - 1;
+            if (isCompleted) return;
+            isCompleted = true;
 
-            // 生成通关奖励箱（起点位置）
-            startChestBlock.setType(Material.CHEST);
-            if (startChestBlock.getState() instanceof Chest chest) {
-                chest.getInventory().addItem(new ItemStack(Material.DIAMOND, 5));
-            }
-
-            // 提示玩家
-            killer.sendMessage(ChatColor.GOLD + "恭喜通关！获得 5 颗钻石！");
+            // 给玩家通关奖励
+            killer.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "🎉 恭喜你！你击败了地牢守护者，通关了地牢！");
+            killer.sendMessage(ChatColor.GRAY + "地牢正在清理中...");
 
             // 播放通关特效
-            Location completeLoc = startChestBlock.getLocation().add(0.5, 1, 0.5);
-            world.playSound(completeLoc, Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0f, 1.0f);
-            world.spawnParticle(Particle.FIREWORK, completeLoc, 50, 2, 2, 2, 0.2);
-            world.spawnParticle(Particle.HAPPY_VILLAGER, completeLoc, 30, 1, 1, 1, 0.1);
+            world.playSound(killer.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+            world.spawnParticle(Particle.FIREWORK, killer.getLocation(), 100, 1, 1, 1, 0.5);
 
-            // 延迟1秒清理地牢
-            plugin.getServer().getScheduler().runTaskLater(plugin, this::cleanup, 20L);
+            // 给玩家经验奖励
+            killer.giveExpLevels(10);
+
+            // 自动清理地牢
+            cleanup();
         }
 
         /**
@@ -949,29 +1114,27 @@ public class RoguelikePlugin implements CommandExecutor, Listener {
             // 清理所有房间
             for (int i = 0; i < GRID_SIZE; i++) {
                 for (int j = 0; j < GRID_SIZE; j++) {
-                    if (rooms[i][j] != null) rooms[i][j].cleanup();
+                    if (rooms[i][j] != null) {
+                        rooms[i][j].cleanup();
+                    }
                 }
             }
 
-            // 清理映射表
+            // 清理Boss
+            if (boss != null && !boss.isDead()) {
+                boss.remove();
+            }
+
+            // 清空映射
             doorMap.clear();
             altars.clear();
-
-            // 提示玩家
-            if (player.isOnline()) player.sendMessage(ChatColor.GRAY + "地牢已清理。");
         }
 
-        // ========== 工具方法 ==========
-        public boolean isDoorBlock(Block block) {
-            return doorMap.containsKey(block.getLocation());
-        }
-
-        public boolean isAltarBlock(Block block) {
-            return altars.contains(block.getLocation());
-        }
-
-        public Zombie getBoss() {
-            return boss;
+        /**
+         * 检查地牢是否已完成
+         */
+        public boolean isCompleted() {
+            return isCompleted;
         }
     }
 }

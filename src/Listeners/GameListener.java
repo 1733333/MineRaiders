@@ -650,20 +650,28 @@ public class GameListener implements Listener {
             // 清除准备状态
             clearPlayerReady(t, world.getName());
             t.teleport(spawnLoc);
-            t.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 0));
+            t.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 30, 0));
             t.playSound(t.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             t.setGameMode(GameMode.ADVENTURE);
             t.setHealth(20);
             t.setFoodLevel(20);
             t.setCustomNameVisible(false);
-            playerStats.createShieldBar(t);
-            if (k.isArmored(t)) {
-                playerStats.openShield(t);
-                GadgetListener gadgetListener = new GadgetListener(plugin);
-                gadgetListener.battery(t, 5, 20, new ItemStack(Material.NETHER_PORTAL));
-            } else {
-                playerStats.closeShield(t);
-            }
+            BukkitRunnable createShield = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (t.isOnline()) {
+                        playerStats.createShieldBar(t);
+                        if (k.isArmored(t)) {
+                            playerStats.openShield(t);
+                            GadgetListener gadgetListener = new GadgetListener(plugin);
+                            gadgetListener.battery(t, 5, 20, new ItemStack(Material.NETHER_PORTAL));
+                        } else {
+                            playerStats.closeShield(t);
+                        }
+                    }
+                }
+            };
+            createShield.runTaskLater(plugin, 5L);
         }
         // 为每个玩家添加容器高亮任务
         for (Player p : playersToTeleport) {
@@ -842,6 +850,20 @@ public class GameListener implements Listener {
         player.sendMessage("§a你已中途加入游戏！剩余时间：" +
                 String.format("%02d:%02d", session.remainingSeconds / 60, session.remainingSeconds % 60));
         Bukkit.broadcastMessage("§e" + player.getName() + " 中途加入了游戏！");
+        BukkitRunnable createShield = new BukkitRunnable() {
+            @Override
+            public void run() {
+                playerStats.createShieldBar(player);
+                if (k.isArmored(player)) {
+                    playerStats.openShield(player);
+                    GadgetListener gadgetListener = new GadgetListener(plugin);
+                    gadgetListener.battery(player, 5, 20, new ItemStack(Material.NETHER_PORTAL));
+                } else {
+                    playerStats.closeShield(player);
+                }
+            }
+        };
+        createShield.runTaskLater(plugin, 5L);
     }
 
     @EventHandler
@@ -1009,6 +1031,9 @@ public class GameListener implements Listener {
         double profit = session.profits.getOrDefault(player.getUniqueId(), 0.0);
         // 发送消息给玩家本人
         player.sendMessage("§a[撤离成功] 用时: " + timeStr + " 收益: " + String.format("%.1f", profit));
+
+        //记得删
+        k.clearInventory(player);
     }
 
     @EventHandler
@@ -1082,7 +1107,7 @@ public class GameListener implements Listener {
         for (Player p : world.getPlayers()) {
             if (PlayerStats.INSTANCE.isSpectating(p) && PlayerStats.INSTANCE.getSpectatingStatus(p) == worldId) {
                 p.teleport(world.getSpawnLocation());
-                p.setGameMode(GameMode.SURVIVAL);
+                p.setGameMode(GameMode.ADVENTURE);
                 PlayerStats.INSTANCE.stopSpectating(p);
                 // 观战玩家也清除准备状态
                 clearPlayerReady(p, world.getName());
