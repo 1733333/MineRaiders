@@ -256,10 +256,8 @@ public class GameListener implements Listener {
             updateScoreboard();  // 立即刷新显示
             // 恢复游戏状态
             player.setGameMode(GameMode.ADVENTURE);
-            player.setHealth(20);
-            player.setFoodLevel(20);
             player.setCustomNameVisible(false);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 0));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 30, 0));
             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             PlayerStats.INSTANCE.setInGame(player);
             // 恢复容器高亮
@@ -672,6 +670,9 @@ public class GameListener implements Listener {
                 }
             };
             createShield.runTaskLater(plugin, 5L);
+            //记得删
+            k.clearInventory(t);
+            k.freeKit(t);
         }
         // 为每个玩家添加容器高亮任务
         for (Player p : playersToTeleport) {
@@ -864,6 +865,9 @@ public class GameListener implements Listener {
             }
         };
         createShield.runTaskLater(plugin, 5L);
+        //记得删
+        k.clearInventory(player);
+        k.freeKit(player);
     }
 
     @EventHandler
