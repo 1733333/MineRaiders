@@ -13,6 +13,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -32,6 +34,9 @@ public class GameListener implements Listener {
     private static final Map<World, GameSession> activeGames = new HashMap<>();
     Kit k = Kit.INSTANCE;
     LootPool lp = LootPool.INSTANCE;
+    ArmorPool ap = ArmorPool.INSTANCE;
+    GadgetPool gp = GadgetPool.INSTANCE;
+    WeaponPool wp = WeaponPool.INSTANCE;
     PlayerStats playerStats = PlayerStats.INSTANCE;
     GameStatus gameStatus = GameStatus.INSTANCE;
     // 配置参数
@@ -594,6 +599,8 @@ public class GameListener implements Listener {
         // 清除游戏状态标记
         PlayerStats.INSTANCE.stopInGame(player);
         PlayerStats.INSTANCE.removeShieldBar(player);
+        int level = PlayerStats.INSTANCE.getIslandLevel(player);
+        Kit.INSTANCE.setInventoryLimit(player, level);
         if (session != null) {
             clearPlayerReady(player, world.getName());
         }
@@ -654,25 +661,23 @@ public class GameListener implements Listener {
             t.setHealth(20);
             t.setFoodLevel(20);
             t.setCustomNameVisible(false);
+            playerStats.createShieldBar(t);
             BukkitRunnable createShield = new BukkitRunnable() {
                 @Override
                 public void run() {
-                    if (t.isOnline()) {
-                        playerStats.createShieldBar(t);
                         if (k.isArmored(t)) {
                             playerStats.openShield(t);
                             GadgetListener gadgetListener = new GadgetListener(plugin);
-                            gadgetListener.battery(t, 5, 20, new ItemStack(Material.NETHER_PORTAL));
+                            gadgetListener.battery(t, 5, playerStats.getMaxShield() + 1, new ItemStack(Material.NETHER_PORTAL));
                         } else {
                             playerStats.closeShield(t);
                         }
-                    }
                 }
             };
             createShield.runTaskLater(plugin, 5L);
             //记得删
             k.clearInventory(t);
-            k.freeKit(t);
+            freeKit(t);
         }
         // 为每个玩家添加容器高亮任务
         for (Player p : playersToTeleport) {
@@ -851,10 +856,10 @@ public class GameListener implements Listener {
         player.sendMessage("§a你已中途加入游戏！剩余时间：" +
                 String.format("%02d:%02d", session.remainingSeconds / 60, session.remainingSeconds % 60));
         Bukkit.broadcastMessage("§e" + player.getName() + " 中途加入了游戏！");
+        playerStats.createShieldBar(player);
         BukkitRunnable createShield = new BukkitRunnable() {
             @Override
             public void run() {
-                playerStats.createShieldBar(player);
                 if (k.isArmored(player)) {
                     playerStats.openShield(player);
                     GadgetListener gadgetListener = new GadgetListener(plugin);
@@ -867,7 +872,7 @@ public class GameListener implements Listener {
         createShield.runTaskLater(plugin, 5L);
         //记得删
         k.clearInventory(player);
-        k.freeKit(player);
+        freeKit(player);
     }
 
     @EventHandler
@@ -1228,4 +1233,35 @@ public class GameListener implements Listener {
     public static GameSession getSession(World world) {
         return activeGames.get(world);
     }
+
+    public void freeKit(Player p){
+        int level = PlayerStats.INSTANCE.getIslandLevel(p);
+        Kit.INSTANCE.setInventoryLimit(p, level);
+        Inventory inv = p.getInventory();
+        EntityEquipment equipment = p.getEquipment();
+        equipment.setHelmet(ap.woodHelm());
+        equipment.setChestplate(ap.woodChest());
+        equipment.setLeggings(ap.woodLeg());
+        equipment.setBoots(ap.woodBoot());
+        inv.addItem(new ItemStack(Material.WOODEN_SWORD));
+        inv.addItem(wp.ferro());
+        inv.addItem(new ItemStack(Material.ARROW, 16));
+        inv.addItem(gp.copperBattery());
+        inv.addItem(gp.baitNade());
+        inv.addItem(new ItemStack(Material.BREAD, 5));
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        int level = PlayerStats.INSTANCE.getIslandLevel(player);
+        Kit.INSTANCE.setInventoryLimit(player, level);
+    }
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        int level = PlayerStats.INSTANCE.getIslandLevel(player);
+        Kit.INSTANCE.setInventoryLimit(player, level);
+    }
+
 }

@@ -129,9 +129,11 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
         inv.setItem(9, k.createMenuItem(Material.LODESTONE, "§a开始游戏", "选择地图并开始游戏"));
         inv.setItem(10, k.createMenuItem(Material.NETHER_STAR, "§a大厅", "选择游戏世界并加入/观战"));
         inv.setItem(11, k.createMenuItem(Material.BARRIER, "§c强制结束游戏", "结束当前游戏 (OP)"));
-        inv.setItem(12, k.createMenuItem(Material.COMMAND_BLOCK, "§d调试菜单", "打开调试功能菜单 (OP)"));
+        inv.setItem(12, k.createMenuItem(Material.STRUCTURE_BLOCK, "§d调试菜单", "打开调试功能菜单 (OP)"));
         inv.setItem(13, k.createMenuItem(Material.BOOK, "§7帮助", "查看命令帮助"));
         inv.setItem(14, k.createMenuItem(Material.COMPASS, "§b地点管理", "管理游戏地点（OP）"));
+        inv.setItem(15,k.createMenuItem(Material.COMMAND_BLOCK, "重载插件","§d重新加载插件"
+                ,"§d随意使用可能会造成严重后果","§d当遇到奇怪的BUG时才能用"));
 
         inv.setItem(inv.getSize() -1, k.createMenuItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE
                 , "§k123456789", ""));
@@ -232,7 +234,7 @@ public class MineRaidersCommand implements CommandExecutor ,TabCompleter{
         return item;
     }
     private ItemStack tomahawk() {
-        ItemStack i = new ItemStack(Material.NETHERITE_HORSE_ARMOR);
+        ItemStack i = new ItemStack(Material.BOW);
         ItemMeta meta = i.getItemMeta();
         meta.setMaxStackSize(4);
         meta.setDisplayName(ChatColor.AQUA + "战斧");

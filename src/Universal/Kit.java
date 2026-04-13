@@ -27,9 +27,6 @@ public enum Kit {
     private static final String LOCK_MARK = "§7已锁定";
     JavaPlugin plugin;
     Random r = new Random();
-    ArmorPool ap = ArmorPool.INSTANCE;
-    WeaponPool wp = WeaponPool.INSTANCE;
-    GadgetPool gp = GadgetPool.INSTANCE;
     public int[] gameOver = new int[]{
             0, 1, 0, 0, 0, 1, 1, 1,
             0, 1, 0, 0, 0, 0, 0, 1,
@@ -792,20 +789,5 @@ public enum Kit {
         }
         progress.append(end);
         return progress.toString();
-    }
-
-    public void freeKit(Player p){
-        Inventory inv = p.getInventory();
-        EntityEquipment equipment = p.getEquipment();
-        equipment.setHelmet(ap.woodHelm());
-        equipment.setChestplate(ap.woodChest());
-        equipment.setLeggings(ap.woodLeg());
-        equipment.setBoots(ap.woodBoot());
-        inv.addItem(new ItemStack(Material.WOODEN_SWORD));
-        inv.addItem(wp.ferro());
-        inv.addItem(new ItemStack(Material.ARROW, 16));
-        inv.addItem(gp.copperBattery());
-        inv.addItem(gp.baitNade());
-        inv.addItem(new ItemStack(Material.BREAD, 5));
     }
 }

@@ -26,9 +26,6 @@ public class LobbyCommand implements CommandExecutor, Listener {
     private final JavaPlugin plugin;
     private static final String MENU_TITLE = "§6大厅菜单，点击地图即可加入对应大厅";
     private final Map<UUID, Boolean> spectatorMode = new HashMap<>();
-    // 防抖：记录玩家最后一次点击菜单的时间（毫秒）
-    private final Map<UUID, Long> lastClickTime = new HashMap<>();
-    private static final long CLICK_COOLDOWN_MS = 300; // 300毫秒内重复点击忽略
 
     GameStatus gameStatus = GameStatus.INSTANCE;
     Random r = new Random();
@@ -137,21 +134,15 @@ public class LobbyCommand implements CommandExecutor, Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (!event.getView().getTitle().equals(MENU_TITLE)) return;
-
-        // 防抖：避免快速重复点击
-        long now = System.currentTimeMillis();
-        Long last = lastClickTime.get(player.getUniqueId());
-        if (last != null && (now - last) < CLICK_COOLDOWN_MS) {
-            return; // 忽略本次点击
-        }
-        lastClickTime.put(player.getUniqueId(), now);
-
         event.setCancelled(true);
+
+        //防抖
+        if (player.getCooldown(Material.STRUCTURE_BLOCK) != 0)return;
 
         // 检查点击的物品是否存在
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getType() == Material.AIR) return;
-
+        player.setCooldown(Material.STRUCTURE_BLOCK,10);
         int slot = event.getSlot();
         int cancelSlot = event.getInventory().getSize() - 2;
         int lastSlot = event.getInventory().getSize() - 1;

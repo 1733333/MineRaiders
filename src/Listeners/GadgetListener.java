@@ -215,22 +215,22 @@ public class GadgetListener implements Listener {
         double shield = playerStats.getShield(p);
         switch (tag) {
             case "§f爆炸地雷":
-                explodeMine(p);
+                explodeMine(p, item);
                 break;
             case "§f火焰地雷":
-                pyroMine(p);
+                pyroMine(p, item);
                 break;
             case "§f毒气地雷":
-                gasMine(p);
+                gasMine(p, item);
                 break;
             case "§f电击地雷":
-                shockMine(p);
+                shockMine(p, item);
                 break;
             case "§f霜雪图腾":
-                snowGolem(p);
+                snowGolem(p, item);
                 break;
             case "§f钢铁图腾":
-                ironGolem(p);
+                ironGolem(p, item);
                 break;
             case "§f狩猎图腾":
                 wolfGolem(p, consumeEvent);
@@ -270,32 +270,33 @@ public class GadgetListener implements Listener {
                 if (shield == -1 || shield == 20) {
                     consumeEvent.setCancelled(true);
                 } else {
-                    p.setCooldown(item, 160);
                     battery(p, 8, 8, item);
+                    p.setCooldown(item, 160);
+                    Bukkit.broadcastMessage("Battery use");
                 }
                 break;
             case "§f铁质电池":
                 if (shield == -1 || shield == 20) {
                     consumeEvent.setCancelled(true);
                 } else {
-                    p.setCooldown(item, 80);
                     battery(p, 4, 8, item);
+                    p.setCooldown(item, 80);
                 }
                 break;
             case "§f黄金电池":
                 if (shield == -1 || shield == 20) {
                     consumeEvent.setCancelled(true);
                 } else {
-                    p.setCooldown(item, 120);
                     battery(p, 6, 12, item);
+                    p.setCooldown(item, 120);
                 }
                 break;
             case "§f钻石电池":
                 if (shield == -1 || shield == 20) {
                     consumeEvent.setCancelled(true);
                 } else {
-                    p.setCooldown(item, 80);
                     battery(p, 4, 16, item);
+                    p.setCooldown(item, 80);
                 }
                 break;
             case "§f下界电池":
@@ -381,7 +382,9 @@ public class GadgetListener implements Listener {
         }
     }
 
-    public void snowGolem(Player p) {
+    public void snowGolem(Player p,ItemStack item) {
+        if(p.getCooldown(item) > 0)return;
+        p.setCooldown(item, 10);
         World w = p.getWorld();
         w.playSound(p.getLocation(), Sound.BLOCK_SNOW_BREAK, 1, 1);
         w.playSound(p.getLocation(), Sound.BLOCK_SNOW_BREAK, 1, 1);
@@ -475,7 +478,9 @@ public class GadgetListener implements Listener {
         shoot.runTaskTimer(plugin, 0L, 20L);
     }
 
-    public void ironGolem(Player p) {
+    public void ironGolem(Player p, ItemStack item) {
+        if(p.getCooldown(item) > 0)return;
+        p.setCooldown(item, 10);
         World w = p.getWorld();
         IronGolem g = (IronGolem) w.spawnEntity(p.getLocation(), EntityType.IRON_GOLEM);
         w.playSound(p.getLocation(), Sound.BLOCK_IRON_BREAK, 1, 1);
@@ -884,7 +889,9 @@ public class GadgetListener implements Listener {
         }
     }
 
-    public void explodeMine(Player p) {
+    public void explodeMine(Player p, ItemStack item) {
+        if(p.getCooldown(item) > 0)return;
+        p.setCooldown(item, 10);
         World w = p.getWorld();
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
@@ -945,7 +952,9 @@ public class GadgetListener implements Listener {
         trigger.runTaskTimer(plugin, 30L, 20L);
     }
 
-    public void pyroMine(Player p) {
+    public void pyroMine(Player p, ItemStack item) {
+        if(p.getCooldown(item) > 0)return;
+        p.setCooldown(item, 10);
         World w = p.getWorld();
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
@@ -1008,7 +1017,9 @@ public class GadgetListener implements Listener {
         trigger.runTaskTimer(plugin, 30L, 20L);
     }
 
-    public void gasMine(Player p) {
+    public void gasMine(Player p, ItemStack item) {
+        if(p.getCooldown(item) > 0)return;
+        p.setCooldown(item, 10);
         World w = p.getWorld();
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
@@ -1071,7 +1082,9 @@ public class GadgetListener implements Listener {
         trigger.runTaskTimer(plugin, 30L, 20L);
     }
 
-    public void shockMine(Player p) {
+    public void shockMine(Player p, ItemStack item) {
+        if(p.getCooldown(item) > 0)return;
+        p.setCooldown(item, 10);
         World w = p.getWorld();
         Location shootLoc = p.getEyeLocation();
         Vector shootVec = shootLoc.getDirection().normalize();
@@ -1328,19 +1341,21 @@ public class GadgetListener implements Listener {
     }
 
     public void battery(Player p, int seconds, double shieldAmount, ItemStack item) {
+        if(p.getCooldown(item) > 0)return;
         isChargingShield.add(p);
         BossBar bar = PlayerStats.playerShieldBar.getOrDefault(p.getName(), null);
         if (bar != null) {
             bar.setColor(BarColor.WHITE);
         }
         BukkitRunnable recover = new BukkitRunnable() {
-            int count = 0;
             int step = seconds * 4;
+            double amount = shieldAmount / step;
+            double toBeIncremented = shieldAmount;
+
 
             @Override
             public void run() {
-                double shield = playerStats.getShield(p);
-                if (count > step - 1 || shield >= 20 || !isChargingShield.contains(p)) {
+                if(!isChargingShield.contains(p) || toBeIncremented <= 0){
                     if (bar != null) {
                         bar.setColor(BarColor.BLUE);
                     }
@@ -1349,8 +1364,9 @@ public class GadgetListener implements Listener {
                     this.cancel();
                     return;
                 }
-                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, shieldAmount / step));
-                count += 1;
+                double actualIncrement = Math.max(Math.min(toBeIncremented, amount), 0);
+                Bukkit.getPluginManager().callEvent(new PlayerShieldAmountChangeEvent(p, actualIncrement));
+                toBeIncremented -= amount;
             }
         };
         recover.runTaskTimer(plugin, 0L, 5L);

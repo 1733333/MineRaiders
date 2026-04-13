@@ -575,16 +575,4 @@ public class PlayerListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        int level = PlayerStats.INSTANCE.getIslandLevel(player);
-        Kit.INSTANCE.setInventoryLimit(player, level);
-    }
-    @EventHandler
-    public void onPlayerRespawn(PlayerRespawnEvent event) {
-        Player player = event.getPlayer();
-        int level = PlayerStats.INSTANCE.getIslandLevel(player);
-        Kit.INSTANCE.setInventoryLimit(player, level);
-    }
 }

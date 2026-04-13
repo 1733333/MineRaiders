@@ -518,6 +518,7 @@ public class WeaponListener implements Listener {
             arrow.setCritical(true);
             arrow.setDamage(3);
             arrow.setShooter(shooter);
+            arrow.setTicksLived(1200);
         }
     }
 

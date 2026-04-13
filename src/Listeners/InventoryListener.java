@@ -72,6 +72,10 @@ public class InventoryListener implements Listener {
                 case "调试菜单" -> p.performCommand("mr debug");
                 case "伤害测试假人" -> p.performCommand("mr summondamagetester");
                 case "地点管理" -> p.performCommand("mr locs gui");
+                case "重载插件" -> {
+                    Bukkit.broadcastMessage(ChatColor.RED + p.getName() + "使用菜单重载了插件");
+                    p.performCommand("plugman reload mineraiders");
+                }
                 case "帮助" ->
                         p.sendMessage("§e使用 §f/mr <子命令> §e查看详细用法，子命令包括: armor, weapon, gadget, drop, loot, recipe, freerecipe, getallitems, gamestart, lobby, gameend, debug, summondamagetester");
                 case "123456789" -> k.esterEgg0(p.getLocation());
