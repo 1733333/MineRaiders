@@ -272,7 +272,6 @@ public class GadgetListener implements Listener {
                 } else {
                     battery(p, 8, 8, item);
                     p.setCooldown(item, 160);
-                    Bukkit.broadcastMessage("Battery use");
                 }
                 break;
             case "§f铁质电池":

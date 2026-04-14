@@ -75,6 +75,7 @@ public class InventoryListener implements Listener {
                 case "重载插件" -> {
                     Bukkit.broadcastMessage(ChatColor.RED + p.getName() + "使用菜单重载了插件");
                     p.performCommand("plugman reload mineraiders");
+                    p.closeInventory();
                 }
                 case "帮助" ->
                         p.sendMessage("§e使用 §f/mr <子命令> §e查看详细用法，子命令包括: armor, weapon, gadget, drop, loot, recipe, freerecipe, getallitems, gamestart, lobby, gameend, debug, summondamagetester");

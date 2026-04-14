@@ -1,5 +1,6 @@
 import Listeners.*;
 import OtherStuff.RoguelikePlugin;
+import OtherStuff.VampireSurvivorGame;
 import Universal.*;
 import Commands.*;
 import org.bukkit.Bukkit;
@@ -30,6 +31,7 @@ public class MR extends JavaPlugin {
         new RoguelikePlugin(this);
         LocationManagerUI.init(this);
 
+        getCommand("survivor").setExecutor(new VampireSurvivorGame(this));
         getCommand("mineraiders").setExecutor(new MineRaidersCommand(this));
         getCommand("mr").setTabCompleter(new MineRaidersCommand(this));
 

@@ -1247,6 +1247,9 @@ public class GameListener implements Listener {
         inv.addItem(wp.ferro());
         inv.addItem(new ItemStack(Material.ARROW, 16));
         inv.addItem(gp.copperBattery());
+        inv.addItem(gp.copperBattery());
+        inv.addItem(gp.copperBattery());
+        inv.addItem(gp.copperBattery());
         inv.addItem(gp.baitNade());
         inv.addItem(new ItemStack(Material.BREAD, 5));
     }

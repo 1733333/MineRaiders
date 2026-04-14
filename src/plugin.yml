@@ -12,3 +12,6 @@ commands:
   roguelike:
     description: 启动Roguelike地牢游戏
     usage: /roguelike start
+  survivor:
+    description: 开始吸血鬼幸存者游戏
+    usage: /survivor
