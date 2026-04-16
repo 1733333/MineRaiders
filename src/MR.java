@@ -1,6 +1,6 @@
 import Listeners.*;
-import OtherStuff.RoguelikePlugin;
 import OtherStuff.VampireSurvivorGame;
+import RogueLike.RogueLikePlugin;
 import Universal.*;
 import Commands.*;
 import org.bukkit.Bukkit;
@@ -8,8 +8,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.noise.SimplexNoiseGenerator;
+import org.joml.SimplexNoise;
 
 public class MR extends JavaPlugin {
+    RogueLikePlugin rogueLike;
     @Override
     public void onEnable() {
         Recipes recipes = Recipes.INSTANCE;
@@ -28,8 +31,9 @@ public class MR extends JavaPlugin {
         new WeaponListener(this);
         new GameListener(this);
         new LobbyCommand(this);
-        new RoguelikePlugin(this);
         LocationManagerUI.init(this);
+        rogueLike = new RogueLikePlugin(this);
+        rogueLike.register();
 
         getCommand("survivor").setExecutor(new VampireSurvivorGame(this));
         getCommand("mineraiders").setExecutor(new MineRaidersCommand(this));
@@ -57,8 +61,12 @@ public class MR extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (rogueLike != null) {
+            rogueLike.cleanup();
+        }
         Bukkit.broadcastMessage(ChatColor.RED + "插件已卸载");
         for (Player p : Bukkit.getOnlinePlayers()){
+            p.closeInventory();
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP,1,1);
         }
         LocationManagerUI.saveToConfig();

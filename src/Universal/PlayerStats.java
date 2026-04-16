@@ -8,6 +8,7 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -20,6 +21,7 @@ public enum PlayerStats {
     public static HashMap<String, MenuStatus> playerMenuStatus = new HashMap<>();
     public static HashMap<String, Double> playerShield = new HashMap<>();
     public static HashMap<String, BossBar> playerShieldBar = new HashMap<>();
+    public static HashMap<String, ItemStack[]> recordedPlayerItems = new HashMap<>();
 
     public enum MenuStatus {
         NOT_MENU,
@@ -238,5 +240,13 @@ public enum PlayerStats {
         }
         saveIslandLevels(section);
         plugin.saveConfig(); // 立即写入磁盘
+    }
+
+    public ItemStack[] getRecordedItems(Player p) {
+        return recordedPlayerItems.getOrDefault(p.getName(), null);
+    }
+
+    public void recordPlayerItems(Player p, ItemStack[] items) {
+        recordedPlayerItems.put(p.getName(), items);
     }
 }

@@ -1,6 +1,7 @@
 package Universal;
 
 import Events.PlayerShieldAmountChangeEvent;
+import io.github.Alligrater.DelayedGive;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -766,16 +767,28 @@ public enum Kit {
         return meta.hasLore() && meta.getLore().contains(LOCK_MARK);
     }
 
-    public void clearInventory(Player player) {
+    public void clearInventory(Player p){
+        clearInventory(p,false);
+    }
+
+    public void clearInventory(Player player,boolean record) {
         Inventory inv = player.getInventory();
         ItemStack[] contents = inv.getContents();
         player.getEquipment().clear();
+        List<ItemStack> itemsToSend = new ArrayList<>();
         for(ItemStack item : contents) {
             if(item != null && !isLockedItem(item)) {
+                if(record) {
+                    itemsToSend.add(item);
+                }
                 inv.remove(item);
             }
         }
+        if(record){
+            PlayerStats.INSTANCE.recordPlayerItems(player,itemsToSend.toArray(new ItemStack[0]));
+        }
     }
+
     public String progressMessage(String title,String end,String done, String undone,int total,int step){
         StringBuilder progress = new StringBuilder();
         progress.append(title);

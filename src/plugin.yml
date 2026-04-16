@@ -3,15 +3,15 @@ version: 1.0
 author: YaoGuai
 main: MR
 api-version: 1.21
-depend: [MineRaidersDoor]
+depend: [MineRaidersDoor,DelayedGive]
 commands:
   mineraiders:
     description: 主命令，用于访问所有游戏功能
     usage: /<command> [子命令]
     aliases: [mr]
-  roguelike:
-    description: 启动Roguelike地牢游戏
-    usage: /roguelike start
+  rougelike:
+    description: Roguelike地牢命令
+    usage: /rougelike <start|clean>
   survivor:
     description: 开始吸血鬼幸存者游戏
     usage: /survivor

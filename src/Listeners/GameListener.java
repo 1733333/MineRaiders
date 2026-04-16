@@ -1267,4 +1267,15 @@ public class GameListener implements Listener {
         Kit.INSTANCE.setInventoryLimit(player, level);
     }
 
+    @EventHandler
+    public void onPlayerCommand(PlayerCommandPreprocessEvent event){
+        Player player = event.getPlayer();
+        if (PlayerStats.INSTANCE.isInGame(player)) {
+            if(!player.isOp()) {
+                player.sendMessage("§c你还在游戏中，奇袭者，打起精神来！");
+                event.setCancelled(true);
+            }
+        }
+    }
+
 }

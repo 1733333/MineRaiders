@@ -26,24 +26,23 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 import org.bukkit.util.Vector;
+import org.bukkit.util.EulerAngle;
 import org.bukkit.util.noise.SimplexNoiseGenerator;
-
 import java.util.*;
 import java.util.function.Consumer;
-
+import java.util.function.Supplier;
 /**
  * 吸血鬼幸存者完整版 - 单文件实现
- * 包含：多武器、敌人种类、被动道具、经验球、BOSS波次、炫酷博彩特效（非抽奖）
+ * 包含：多武器、敌人种类、被动道具、经验球、BOSS波次、炫酷博彩特效
+ * 已升级：武器炫酷特效、随机武器从内部数组随机挑选
  */
 public class VampireSurvivorGame implements Listener, CommandExecutor {
-
     private final JavaPlugin plugin;
     private Player player;
     private final Set<LivingEntity> enemies = new HashSet<>();
     private final List<Weapon> weapons = new ArrayList<>();
     private final List<PassiveItem> passives = new ArrayList<>();
     private final Random random = new Random();
-
     // 竞技场
     private final List<Block> arenaBlocks = new ArrayList<>();
     private Location arenaCenter;
@@ -61,7 +60,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             // 击败4个BOSS：晶亮水晶风格
             {Material.QUARTZ_BLOCK, Material.CALCITE, Material.AMETHYST_BLOCK}
     };
-
     // 游戏状态
     private int killCount = 0;
     private int totalKills = 0;
@@ -74,31 +72,25 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
     private boolean bossWave = false;
     private boolean running = false;
     private BukkitRunnable gameTask;
-
     // UI组件
     private BossBar expBar;
     private Scoreboard scoreboard;
     private Objective objective;
     private UpgradeMenu currentMenu;
-
     // 玩家属性
     private double maxHealth = 20.0;
     private double armor = 0.0;
     private double pickupRange = 3.0;
     private double damageMultiplier = 1.0;
     private double cooldownReduction = 0.0;
-
     // 经验球列表
     private final List<ExperienceOrb> expOrbs = new ArrayList<>();
-
     // 博彩特效相关
     private final String[] slotSymbols = {"♠", "♥", "♦", "♣", "★", "☀", "♛", "♚", "♞", "♝"};
     private int slotTaskId = -1;
-
     public VampireSurvivorGame(JavaPlugin plugin) {
         this.plugin = plugin;
     }
-
     // ---------- 命令 ----------
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -111,12 +103,10 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         start();
         return true;
     }
-
     // ---------- 游戏控制 ----------
     public void start() {
         if (running || player == null) return;
         running = true;
-
         // 重置玩家
         player.setGameMode(GameMode.ADVENTURE);
         player.getInventory().clear();
@@ -126,24 +116,19 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         player.setFoodLevel(20);
         player.setLevel(playerLevel);
         player.setExp(0);
-
         arenaCenter = player.getLocation().clone();
         generateArena(arenaCenter, 14);
-
         weapons.clear();
         passives.clear();
         weapons.add(new WhipWeapon());
         // 初始赠送一个小磁铁被动
         passives.add(new MagnetPassive());
-
         // UI初始化
         initScoreboard();
         expBar = Bukkit.createBossBar("经验值", BarColor.GREEN, BarStyle.SEGMENTED_10);
         expBar.addPlayer(player);
         expBar.setProgress(0);
-
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-
         gameTask = new BukkitRunnable() {
             int tick = 0;
             @Override
@@ -152,15 +137,12 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                     stop();
                     return;
                 }
-
                 // 边界限制
                 if (player.getLocation().distance(arenaCenter) > 14) {
                     Vector back = arenaCenter.toVector().subtract(player.getLocation().toVector()).normalize();
                     player.setVelocity(back.multiply(0.6));
                 }
-
                 Location playerLoc = player.getLocation();
-
                 // 敌人AI
                 Iterator<LivingEntity> enemyIter = enemies.iterator();
                 while (enemyIter.hasNext()) {
@@ -172,13 +154,11 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                     Vector dir = playerLoc.toVector().subtract(e.getLocation().toVector()).normalize();
                     e.setVelocity(dir.multiply(e instanceof Monster ? 0.18 : 0.1));
                 }
-
                 // 武器攻击
                 long effectiveCooldown = (long) (1.0 / (1.0 + cooldownReduction * 0.01));
                 for (Weapon w : weapons) {
                     w.tryUse(player, enemies, playerLoc, effectiveCooldown);
                 }
-
                 // 经验球拾取
                 double actualPickupRange = pickupRange;
                 Iterator<ExperienceOrb> orbIter = expOrbs.iterator();
@@ -198,7 +178,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                         player.playSound(playerLoc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.5f);
                     }
                 }
-
                 // 波次管理
                 if (enemies.isEmpty() && spawnedThisWave >= enemiesToSpawn) {
                     advanceWave();
@@ -206,36 +185,29 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                     spawnEnemy();
                     spawnedThisWave++;
                 }
-
                 // 更新计分板
                 updateScoreboard();
-
                 // 更新BossBar
                 expBar.setProgress(Math.min(1.0, (double) exp / expToNextLevel));
                 expBar.setTitle(ChatColor.GOLD + "⚡ 等级 " + playerLevel + " | 经验 " + exp + "/" + expToNextLevel + " ⚡");
-
                 tick++;
             }
         };
         gameTask.runTaskTimer(plugin, 0L, 1L);
-
         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "★ 吸血鬼幸存者开始！活下来！ ★");
         player.sendMessage(ChatColor.YELLOW + "击杀敌人获得经验，升级选择强化！");
         playSlotMachineEffect(player, "游戏开始", 40);
     }
-
     public void stop() {
         if (!running) return;
         running = false;
-
         if (gameTask != null) gameTask.cancel();
-        HandlerList.unregisterAll(this);
+        HandlerList.unregisterAll(plugin);
         enemies.forEach(Entity::remove);
         enemies.clear();
         expOrbs.forEach(ExperienceOrb::remove);
         expOrbs.clear();
         removeArena();
-
         if (expBar != null) {
             expBar.removeAll();
             expBar = null;
@@ -243,14 +215,12 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         if (scoreboard != null) {
             player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
         }
-
         if (player != null && player.isOnline()) {
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "游戏结束！ 总计杀敌: " + totalKills + " 达到第 " + wave + " 波");
             player.setGameMode(GameMode.SURVIVAL);
             AttributeInstance maxHpAttr = player.getAttribute(Attribute.MAX_HEALTH);
             if (maxHpAttr != null) maxHpAttr.setBaseValue(20);
         }
-
         // 重置属性
         killCount = 0;
         totalKills = 0;
@@ -264,7 +234,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         currentMaterialSet = 0;
         player = null;
     }
-
     private void advanceWave() {
         wave++;
         bossWave = (wave % 5 == 0);
@@ -282,7 +251,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         // 波次博彩特效
         playWaveEffect();
     }
-
     private void spawnBoss() {
         Location spawnLoc = getSpawnLocation(12);
         Giant giant = (Giant) arenaCenter.getWorld().spawnEntity(spawnLoc, EntityType.GIANT);
@@ -295,7 +263,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         enemies.add(giant);
         spawnedThisWave++;
     }
-
     private void addExperience(int amount) {
         exp += amount;
         while (exp >= expToNextLevel) {
@@ -304,25 +271,20 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         }
         player.setLevel(exp);
     }
-
     private void levelUp() {
         playerLevel++;
         expToNextLevel = (int) (expToNextLevel * 1.3);
         player.setLevel(playerLevel);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f);
         player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "✨ 升级！等级 " + playerLevel + " ✨");
-
         // 博彩老虎机特效
         playSlotMachineEffect(player, "升级奖励", 60);
-
         // 恢复部分生命
         player.setHealth(Math.min(player.getHealth() + 2, maxHealth));
-
         // 打开升级菜单
         currentMenu = new UpgradeMenu(player, weapons, passives, this::onUpgradeSelected);
         currentMenu.open();
     }
-
     private void onUpgradeSelected(Consumer<Player> action) {
         action.accept(player);
         currentMenu = null;
@@ -330,19 +292,16 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         // 升级后重新计算属性
         recalculateStats();
     }
-
     private void recalculateStats() {
         maxHealth = 20.0 + passives.stream().filter(p -> p instanceof HealthPassive).count() * 4;
         armor = passives.stream().filter(p -> p instanceof ArmorPassive).count() * 2.0;
         pickupRange = 3.0 + passives.stream().filter(p -> p instanceof MagnetPassive).count() * 2.0;
         damageMultiplier = 1.0 + passives.stream().filter(p -> p instanceof StrengthPassive).count() * 0.2;
         cooldownReduction = passives.stream().filter(p -> p instanceof CooldownPassive).count() * 10.0;
-
         AttributeInstance maxHpAttr = player.getAttribute(Attribute.MAX_HEALTH);
         if (maxHpAttr != null) maxHpAttr.setBaseValue(maxHealth);
         if (player.getHealth() > maxHealth) player.setHealth(maxHealth);
     }
-
     // ---------- 地图生成 ----------
     private void generateArena(Location center, int radius) {
         World world = center.getWorld();
@@ -351,13 +310,11 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         int y = center.getBlockY() - 1;
         SimplexNoiseGenerator noise = new SimplexNoiseGenerator(12345); // 固定种子保证纹理一致
         Material[] currentSet = MATERIAL_SETS[Math.min(currentMaterialSet, MATERIAL_SETS.length - 1)];
-
         for (int x = cx - radius; x <= cx + radius; x++) {
             for (int z = cz - radius; z <= cz + radius; z++) {
                 if (Math.sqrt((x - cx) * (x - cx) + (z - cz) * (z - cz)) > radius) continue;
                 Block b = world.getBlockAt(x, y, z);
                 arenaBlocks.add(b);
-
                 // 根据 simplex 噪声生成自然混合的地面材质
                 double noiseValue = noise.noise(x * 0.1, z * 0.1);
                 Material mat;
@@ -383,13 +340,11 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             }
         }
     }
-
     private void regenerateArenaMaterials() {
         if (arenaCenter == null || arenaBlocks.isEmpty()) return;
         SimplexNoiseGenerator noise = new SimplexNoiseGenerator(12345); // 相同种子保证纹理布局不变
         Material[] currentSet = MATERIAL_SETS[Math.min(currentMaterialSet, MATERIAL_SETS.length - 1)];
         int groundY = arenaCenter.getBlockY() - 1;
-
         for (Block b : arenaBlocks) {
             // 只更新地面方块，保留边界光柱
             if (b.getY() == groundY) {
@@ -411,19 +366,16 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         }
         player.playSound(arenaCenter, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.0f);
     }
-
     private void removeArena() {
         for (Block b : arenaBlocks) b.setType(Material.AIR);
         arenaBlocks.clear();
     }
-
     private Location getSpawnLocation(double dist) {
         double angle = random.nextDouble() * 2 * Math.PI;
         Location loc = arenaCenter.clone().add(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
         loc.setY(arenaCenter.getWorld().getHighestBlockYAt(loc) + 1);
         return loc;
     }
-
     private void spawnEnemy() {
         Location spawnLoc = getSpawnLocation(11 + random.nextInt(3));
         EntityType type;
@@ -431,7 +383,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         if (wave >= 4 && r < 0.3) type = EntityType.SKELETON;
         else if (wave >= 3 && r < 0.5) type = EntityType.SPIDER;
         else type = EntityType.ZOMBIE;
-
         LivingEntity enemy = (LivingEntity) arenaCenter.getWorld().spawnEntity(spawnLoc, type);
         enemy.setRemoveWhenFarAway(false);
         if (enemy instanceof Zombie z) z.setAdult();
@@ -442,7 +393,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         enemy.setHealth(hpAttr != null ? hpAttr.getBaseValue() : 20);
         enemies.add(enemy);
     }
-
     // ---------- 事件 ----------
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
@@ -453,24 +403,20 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             totalKills++;
             event.getDrops().clear();
             event.setDroppedExp(0);
-
             // 掉落经验球（博彩风格）
             int orbValue = 5 + (e instanceof Giant ? 30 : 0);
             ExperienceOrb orb = new ExperienceOrb(e.getLocation(), orbValue);
             expOrbs.add(orb);
-
             // 击杀特效
             e.getWorld().spawnParticle(Particle.FIREWORK, e.getLocation().add(0, 1, 0), 8, 0.5, 0.5, 0.5, 0.1);
             if (random.nextDouble() < 0.2) {
                 e.getWorld().playSound(e.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 2f);
             }
-
             // 如果是BOSS，额外奖励
             if (e instanceof Giant) {
                 addExperience(100);
                 player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "🎰 BOSS 击败！获得大量经验！ 🎰");
                 playJackpotEffect(player);
-
                 // 击败BOSS后切换竞技场材质
                 currentMaterialSet++;
                 if (currentMaterialSet < MATERIAL_SETS.length) {
@@ -480,7 +426,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             }
         }
     }
-
     @EventHandler
     public void onPlayerDamage(EntityDamageByEntityEvent event) {
         if (!running) return;
@@ -493,7 +438,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             event.setDamage(0);
         }
     }
-
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent event) {
         if (!running) return;
@@ -505,7 +449,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             fb.remove();
         }
     }
-
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!event.getWhoClicked().equals(player)) return;
@@ -515,12 +458,10 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             currentMenu = null;
         }
     }
-
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         if (event.getPlayer().equals(player)) stop();
     }
-
     // ---------- 计分板 ----------
     private void initScoreboard() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
@@ -529,7 +470,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         player.setScoreboard(scoreboard);
     }
-
     private void updateScoreboard() {
         for (String entry : scoreboard.getEntries()) {
             scoreboard.resetScores(entry);
@@ -543,7 +483,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         objective.getScore("").setScore(line--);
         objective.getScore(ChatColor.GRAY + "经验: " + exp + "/" + expToNextLevel).setScore(line--);
     }
-
     // ---------- 博彩特效 ----------
     private void playSlotMachineEffect(Player player, String title, int durationTicks) {
         if (slotTaskId != -1) Bukkit.getScheduler().cancelTask(slotTaskId);
@@ -566,7 +505,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             }
         }.runTaskTimer(plugin, 0L, 2L).getTaskId();
     }
-
     private void playWaveEffect() {
         player.getWorld().playSound(arenaCenter, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.7f, 1f);
         for (int i = 0; i < 36; i++) {
@@ -576,7 +514,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             player.getWorld().spawnParticle(Particle.END_ROD, arenaCenter.clone().add(x, 0.5, z), 1, 0, 0, 0, 0);
         }
     }
-
     private void playJackpotEffect(Player player) {
         player.sendTitle(ChatColor.GOLD + "💰 JACKPOT! 💰", ChatColor.YELLOW + "大量经验奖励", 10, 40, 10);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, 1f, 1f);
@@ -584,14 +521,12 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             player.getWorld().spawnParticle(Particle.FIREWORK, player.getLocation().add(0, 1, 0), 0, 0.5, 0.5, 0.5, 0.2);
         }
     }
-
     // ---------- 内部类：经验球 ----------
     private class ExperienceOrb {
         private final Location location;
         private final int value;
         private int age = 0;
         private final Item displayItem;
-
         public ExperienceOrb(Location loc, int value) {
             this.location = loc.clone();
             this.value = value;
@@ -600,7 +535,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             displayItem.setGlowing(true);
             displayItem.setVelocity(new Vector(0, 0.1, 0));
         }
-
         public void tick() {
             age++;
             if (age % 5 == 0) {
@@ -612,24 +546,19 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                 displayItem.setVelocity(dir.multiply(0.2));
             }
         }
-
         public boolean isValid() {
             return displayItem != null && displayItem.isValid();
         }
-
         public Location getLocation() {
             return displayItem.getLocation();
         }
-
         public int getValue() {
             return value;
         }
-
         public void remove() {
             displayItem.remove();
         }
     }
-
     // ---------- 武器系统基类 ----------
     private static abstract class Weapon {
         protected final String name;
@@ -637,55 +566,72 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
         protected int level = 1;
         protected long lastUseTime = 0;
         protected final long baseCooldownMillis;
-
         public Weapon(String name, Material icon, long cooldownMillis) {
             this.name = name;
             this.icon = icon;
             this.baseCooldownMillis = cooldownMillis;
         }
-
         public boolean canUse(long cooldownFactor) {
             long effectiveCd = (long) (baseCooldownMillis / (1 + cooldownFactor * 0.01));
             return System.currentTimeMillis() - lastUseTime >= effectiveCd;
         }
-
         public void tryUse(Player player, Collection<LivingEntity> enemies, Location center, long cooldownFactor) {
             if (!canUse(cooldownFactor)) return;
             doAttack(player, enemies, center);
             lastUseTime = System.currentTimeMillis();
         }
-
         protected abstract void doAttack(Player player, Collection<LivingEntity> enemies, Location center);
-
         public void levelUp() {
             level++;
             onLevelUp();
         }
-
         protected void onLevelUp() {}
-
         public String getName() { return name + (level > 1 ? " +" + (level - 1) : ""); }
         public Material getIcon() { return icon; }
         public int getLevel() { return level; }
     }
+    // ---------- 具体武器（已全部升级炫酷特效 + 新增武器） ----------
 
-    // ---------- 具体武器 ----------
+    /**
+     * 鞭子武器 - 升级后增加弧形轨迹粒子与命中震波特效
+     */
     private class WhipWeapon extends Weapon {
         public WhipWeapon() { super("鞭子", Material.LEAD, 700); }
         @Override
         protected void doAttack(Player player, Collection<LivingEntity> enemies, Location center) {
             double range = 3.2 + level * 0.4;
             double damage = (5.0 + level) * damageMultiplier;
+
+            // 鞭子挥动音效升级
             player.getWorld().playSound(center, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.8f, 1.3f);
+            player.getWorld().playSound(center, Sound.ENTITY_ARROW_SHOOT, 0.4f, 1.8f);
+
+            // 生成炫酷弧形挥动轨迹粒子
+            for (int i = 0; i < 20; i++) {
+                double angle = (i / 20.0) * Math.PI;
+                double x = Math.cos(angle) * range;
+                double z = Math.sin(angle) * range;
+                Location loc = center.clone().add(x, 0.8, z);
+                player.getWorld().spawnParticle(Particle.SWEEP_ATTACK, loc, 1);
+                player.getWorld().spawnParticle(Particle.ENCHANTED_HIT, loc, 1, 0.1, 0.1, 0.1);
+            }
+
+            // 命中检测与特效
             for (LivingEntity e : enemies) {
                 if (e.getLocation().distance(center) <= range) {
                     e.damage(damage, player);
-                    player.getWorld().spawnParticle(Particle.SWEEP_ATTACK, e.getLocation().add(0, 1, 0), 1);
+                    // 命中震波特效
+                    Location hitLoc = e.getLocation().add(0, 1, 0);
+                    player.getWorld().spawnParticle(Particle.FLASH, hitLoc, 3, 0.3, 0.3, 0.3,Color.WHITE);
+                    player.getWorld().spawnParticle(Particle.CLOUD, hitLoc, 5, 0.2, 0.2, 0.2);
                 }
             }
         }
     }
 
+    /**
+     * 魔法杖武器 - 升级后增加魔法尾迹与命中爆炸特效
+     */
     private class MagicWandWeapon extends Weapon {
         public MagicWandWeapon() { super("魔法杖", Material.BLAZE_ROD, 1000); }
         @Override
@@ -705,7 +651,27 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             fireball.setShooter(player);
             fireball.setCustomName("MagicMissile");
             fireball.setCustomNameVisible(false);
+
+            // 魔法发射音效
             player.getWorld().playSound(center, Sound.ENTITY_BLAZE_SHOOT, 0.6f, 2f);
+            player.getWorld().playSound(center, Sound.ENTITY_ILLUSIONER_CAST_SPELL, 0.5f, 1.5f);
+
+            // 魔法弹尾迹特效任务
+            new BukkitRunnable() {
+                int tick = 0;
+                @Override
+                public void run() {
+                    if (!fireball.isValid() || tick++ > 40) {
+                        this.cancel();
+                        return;
+                    }
+                    // 魔法尾迹粒子
+                    Location fbLoc = fireball.getLocation();
+                    player.getWorld().spawnParticle(Particle.SOUL, fbLoc, 2, 0, 0, 0);
+                    player.getWorld().spawnParticle(Particle.FLAME, fbLoc, 1, 0.1, 0.1, 0.1);
+                }
+            }.runTaskTimer(plugin, 0L, 1L);
+
             // 多重射击升级
             if (level >= 3) {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -713,38 +679,96 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                     fb2.setVelocity(dir.clone().rotateAroundY(0.3).multiply(1.8));
                     fb2.setShooter(player);
                     fb2.setCustomName("MagicMissile");
+                    // 副弹也加尾迹
+                    new BukkitRunnable() {
+                        int t = 0;
+                        @Override
+                        public void run() {
+                            if (!fb2.isValid() || t++ > 40) cancel();
+                            player.getWorld().spawnParticle(Particle.SOUL, fb2.getLocation(), 1);
+                        }
+                    }.runTaskTimer(plugin, 0L, 1L);
                 }, 2L);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    Fireball fb3 = player.getWorld().spawn(eye, Fireball.class);
+                    fb3.setVelocity(dir.clone().rotateAroundY(-0.3).multiply(1.8));
+                    fb3.setShooter(player);
+                    fb3.setCustomName("MagicMissile");
+                    new BukkitRunnable() {
+                        int t = 0;
+                        @Override
+                        public void run() {
+                            if (!fb3.isValid() || t++ > 40) cancel();
+                            player.getWorld().spawnParticle(Particle.SOUL, fb3.getLocation(), 1);
+                        }
+                    }.runTaskTimer(plugin, 0L, 1L);
+                }, 4L);
             }
         }
     }
 
+    /**
+     * 大蒜武器 - 升级后增加扩散光环粒子与渐变色特效
+     */
     private class GarlicWeapon extends Weapon {
         public GarlicWeapon() { super("大蒜", Material.BEETROOT_SOUP, 200); }
         @Override
         protected void doAttack(Player player, Collection<LivingEntity> enemies, Location center) {
             double range = 2.5 + level * 0.4;
             double damage = (2.0 + level * 0.8) * damageMultiplier;
-            player.getWorld().spawnParticle(Particle.DUST, center, 15, range, 0.5, range, 0, new Particle.DustOptions(Color.RED, 1));
+
+            // 光环音效
+            player.getWorld().playSound(center, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.6f, 1.2f);
+
+            // 生成多层扩散光环粒子
+            for (int r = 1; r <= range; r++) {
+                for (int i = 0; i < 16; i++) {
+                    double angle = (i / 16.0) * 2 * Math.PI;
+                    double x = Math.cos(angle) * r;
+                    double z = Math.sin(angle) * r;
+                    Location loc = center.clone().add(x, 0.5, z);
+                    // 渐变色粒子
+                    Color color = Color.fromRGB(255, 100 + (int)(r*30), 100);
+                    player.getWorld().spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0, new Particle.DustOptions(color, 1.2f));
+                    if (r == 1) player.getWorld().spawnParticle(Particle.HEART, loc, 1);
+                }
+            }
+
+            // 伤害与击退
             for (LivingEntity e : enemies) {
-                if (e.getLocation().distance(center) <= range) {
+                double dist = e.getLocation().distance(center);
+                if (dist <= range) {
                     e.damage(damage, player);
+                    // 击退效果
+                    Vector push = e.getLocation().toVector().subtract(center.toVector()).normalize().multiply(0.3);
+                    e.setVelocity(push);
                 }
             }
         }
     }
 
+    /**
+     * 飞斧武器 - 升级后增加旋转暴击粒子与命中碎裂特效
+     */
     private class AxeWeapon extends Weapon {
         public AxeWeapon() { super("飞斧", Material.IRON_AXE, 1200); }
         @Override
         protected void doAttack(Player player, Collection<LivingEntity> enemies, Location center) {
             Vector dir = player.getLocation().getDirection().setY(0).normalize();
             Location spawn = player.getEyeLocation().add(dir);
+
+            // 发射音效
+            player.getWorld().playSound(center, Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.8f, 1.5f);
+
             ArmorStand axe = player.getWorld().spawn(spawn, ArmorStand.class);
+            ItemStack axeItem = new ItemStack(Material.IRON_AXE);
+            axe.getEquipment().setItemInMainHand(axeItem);
             axe.setVisible(false);
             axe.setSmall(true);
             axe.setGravity(false);
             axe.setMarker(true);
             axe.setVelocity(dir.multiply(1.2));
+
             new BukkitRunnable() {
                 int tick = 0;
                 @Override
@@ -754,10 +778,21 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                         cancel();
                         return;
                     }
-                    axe.getWorld().spawnParticle(Particle.CRIT, axe.getLocation(), 2, 0, 0, 0, 0);
+                    Location axeLoc = axe.getLocation();
+                    // 飞斧旋转粒子特效
+                    player.getWorld().spawnParticle(Particle.CRIT, axeLoc, 3, 0.2, 0.2, 0.2);
+                    player.getWorld().spawnParticle(Particle.FLAME, axeLoc, 1, 0.1, 0.1, 0.1);
+                    // 旋转手臂模拟飞斧旋转
+                    axe.setRightArmPose(new EulerAngle(0, tick * 0.5, 0));
+
+                    // 命中检测
                     for (LivingEntity e : enemies) {
-                        if (e.getLocation().distance(axe.getLocation()) < 1.5) {
+                        if (e.getLocation().distance(axeLoc) < 1.5) {
                             e.damage((6 + level * 1.5) * damageMultiplier, player);
+                            // 命中碎裂特效
+                            player.getWorld().spawnParticle(Particle.BLOCK, axeLoc, 15, 0.3, 0.3, 0.3, Material.IRON_BLOCK.createBlockData());
+                            player.getWorld().spawnParticle(Particle.FLASH, axeLoc, 5, 0.2, 0.2, 0.2);
+                            player.getWorld().playSound(axeLoc, Sound.ENTITY_PLAYER_ATTACK_STRONG, 1f, 1f);
                             axe.remove();
                             cancel();
                             break;
@@ -765,6 +800,205 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                     }
                 }
             }.runTaskTimer(plugin, 0L, 1L);
+        }
+    }
+
+    // ---------- 新增武器 ----------
+
+    /**
+     * 新增：十字架武器 - 回旋穿透攻击，可往返打击敌人
+     */
+    private class CrossWeapon extends Weapon {
+        public CrossWeapon() { super("神圣十字架", Material.IRON_SHOVEL, 900); }
+        @Override
+        protected void doAttack(Player player, Collection<LivingEntity> enemies, Location center) {
+            // 发射音效
+            player.getWorld().playSound(center, Sound.ENTITY_ENDER_EYE_LAUNCH, 0.7f, 1.4f);
+
+            ArmorStand cross = player.getWorld().spawn(center.clone().add(0, 1, 0), ArmorStand.class);
+            ItemStack crossItem = new ItemStack(Material.IRON_SHOVEL);
+            cross.getEquipment().setItemInMainHand(crossItem);
+            cross.setVisible(false);
+            cross.setSmall(true);
+            cross.setGravity(false);
+            cross.setMarker(true);
+
+            final double maxDist = 5 + level;
+            final double speed = 0.3;
+            final Location startLoc = center.clone();
+
+            new BukkitRunnable() {
+                int tick = 0;
+                boolean returning = false;
+                @Override
+                public void run() {
+                    if (!cross.isValid()) {
+                        cancel();
+                        return;
+                    }
+                    Location crossLoc = cross.getLocation();
+
+                    // 移动逻辑：先飞出去，再飞回来
+                    if (!returning) {
+                        double dist = crossLoc.distance(startLoc);
+                        if (dist >= maxDist) {
+                            returning = true;
+                        } else {
+                            // 向外扩散旋转
+                            double angle = tick * 0.2;
+                            double x = Math.cos(angle) * speed;
+                            double z = Math.sin(angle) * speed;
+                            cross.setVelocity(new Vector(x, 0, z));
+                        }
+                    } else {
+                        // 飞回玩家
+                        Vector dir = center.toVector().subtract(crossLoc.toVector()).normalize();
+                        cross.setVelocity(dir.multiply(speed * 1.5));
+                        if (crossLoc.distance(center) < 1) {
+                            cross.remove();
+                            cancel();
+                            return;
+                        }
+                    }
+
+                    // 十字架轨迹特效
+                    player.getWorld().spawnParticle(Particle.END_ROD, crossLoc, 2, 0.1, 0.1, 0.1);
+                    player.getWorld().spawnParticle(Particle.ENCHANT, crossLoc, 1, 0.2, 0.2, 0.2);
+
+                    // 穿透伤害
+                    for (LivingEntity e : enemies) {
+                        if (e.getLocation().distance(crossLoc) < 1.2) {
+                            e.damage((7 + level * 1.2) * damageMultiplier, player);
+                            player.getWorld().spawnParticle(Particle.FLASH, e.getLocation().add(0,1,0), 2);
+                        }
+                    }
+
+                    if (tick++ > 60) {
+                        cross.remove();
+                        cancel();
+                    }
+                }
+            }.runTaskTimer(plugin, 0L, 1L);
+        }
+    }
+
+    /**
+     * 新增：火焰之刃武器 - 环绕玩家的旋转火焰剑，范围灼烧
+     */
+    private class FireBladeWeapon extends Weapon {
+        public FireBladeWeapon() { super("火焰之刃", Material.DIAMOND_SWORD, 500); }
+        @Override
+        protected void doAttack(Player player, Collection<LivingEntity> enemies, Location center) {
+            double range = 3 + level * 0.5;
+            double damage = (4 + level) * damageMultiplier;
+
+            // 火焰音效
+            player.getWorld().playSound(center, Sound.ENTITY_BLAZE_BURN, 0.6f, 1.3f);
+
+            // 生成3把旋转的火焰剑
+            for (int i = 0; i < 3; i++) {
+                double startAngle = (i / 3.0) * 2 * Math.PI;
+                ArmorStand blade = player.getWorld().spawn(center.clone().add(0, 1, 0), ArmorStand.class);
+                ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+                blade.getEquipment().setItemInMainHand(sword);
+                blade.setVisible(false);
+                blade.setSmall(true);
+                blade.setGravity(false);
+                blade.setMarker(true);
+
+                final int bladeIndex = i;
+                new BukkitRunnable() {
+                    int tick = 0;
+                    @Override
+                    public void run() {
+                        if (!blade.isValid() || tick++ > 20) {
+                            blade.remove();
+                            cancel();
+                            return;
+                        }
+                        double angle = startAngle + tick * 0.3;
+                        double x = Math.cos(angle) * range;
+                        double z = Math.sin(angle) * range;
+                        Location loc = center.clone().add(x, 1, z);
+                        blade.teleport(loc);
+
+                        // 火焰轨迹特效
+                        player.getWorld().spawnParticle(Particle.FLAME, loc, 3, 0.1, 0.1, 0.1);
+                        player.getWorld().spawnParticle(Particle.LAVA, loc, 1, 0.05, 0.05, 0.05);
+
+                        // 灼烧伤害
+                        for (LivingEntity e : enemies) {
+                            if (e.getLocation().distance(loc) < 1) {
+                                e.damage(damage, player);
+                                e.setFireTicks(20); // 灼烧效果
+                            }
+                        }
+                    }
+                }.runTaskTimer(plugin, 0L, 1L);
+            }
+        }
+    }
+
+    /**
+     * 新增：闪电法杖武器 - 连锁闪电，可跳跃攻击多个敌人
+     */
+    private class LightningStaffWeapon extends Weapon {
+        public LightningStaffWeapon() { super("闪电法杖", Material.BREEZE_ROD, 1100); }
+        @Override
+        protected void doAttack(Player player, Collection<LivingEntity> enemies, Location center) {
+            if (enemies.isEmpty()) return;
+
+            // 找最近的目标
+            LivingEntity firstTarget = enemies.stream()
+                    .min((a, b) -> (int) (a.getLocation().distanceSquared(center) - b.getLocation().distanceSquared(center)))
+                    .orElse(null);
+            if (firstTarget == null) return;
+
+            // 闪电音效
+            player.getWorld().playSound(center, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5f, 2f);
+            player.getWorld().playSound(center, Sound.ENTITY_CREEPER_PRIMED, 0.4f, 1.5f);
+
+            // 连锁跳跃
+            int jumpCount = 2 + level;
+            Set<LivingEntity> hit = new HashSet<>();
+            LivingEntity current = firstTarget;
+
+            for (int jump = 0; jump < jumpCount; jump++) {
+                if (current == null) break;
+                hit.add(current);
+
+                // 闪电特效
+                Location from = jump == 0 ? player.getEyeLocation() : hit.stream().skip(jump-1).findFirst().get().getEyeLocation();
+                Location to = current.getEyeLocation();
+
+                // 绘制闪电连线粒子
+                Vector dir = to.toVector().subtract(from.toVector()).normalize();
+                double dist = from.distance(to);
+                for (double d = 0; d < dist; d += 0.3) {
+                    Location loc = from.clone().add(dir.clone().multiply(d));
+                    loc.add(random.nextGaussian()*0.1, random.nextGaussian()*0.1, random.nextGaussian()*0.1);
+                    player.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, loc, 1);
+                    player.getWorld().spawnParticle(Particle.SCRAPE, loc, 1);
+                }
+
+                // 伤害
+                current.damage((10 + level * 2) * damageMultiplier, player);
+                player.getWorld().spawnParticle(Particle.FLASH, current.getLocation(), 5, 0.5, 0.5, 0.5);
+
+                // 找下一个最近的未命中目标
+                LivingEntity next = null;
+                double minDist = 4;
+                for (LivingEntity e : enemies) {
+                    if (!hit.contains(e)) {
+                        double d = e.getLocation().distance(current.getLocation());
+                        if (d < minDist) {
+                            minDist = d;
+                            next = e;
+                        }
+                    }
+                }
+                current = next;
+            }
         }
     }
 
@@ -791,20 +1025,17 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
     private static class CooldownPassive extends PassiveItem {
         public CooldownPassive() { super("怀表", Material.CLOCK); }
     }
-
     // ---------- 升级菜单（博彩风格） ----------
     private class UpgradeMenu {
         private final Player player;
         private final Inventory inv;
         private final List<Consumer<Player>> actions;
         private final List<String> descriptions;
-
         public UpgradeMenu(Player player, List<Weapon> weapons, List<PassiveItem> passives, Consumer<Consumer<Player>> onSelectCallback) {
             this.player = player;
             this.inv = Bukkit.createInventory(null, 27, ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "🎰 选择升级奖励 🎰");
             this.actions = new ArrayList<>();
             this.descriptions = new ArrayList<>();
-
             int slot = 10;
             // 升级现有武器
             for (Weapon w : weapons) {
@@ -822,29 +1053,55 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                 actions.add(p -> weapon.levelUp());
                 slot++;
             }
-
-            // 获得新武器
+            // 获得新武器 - 改为从内部数组随机挑选
             if (weapons.size() < 6 && slot <= 16) {
                 ItemStack newWep = new ItemStack(Material.NETHER_STAR);
                 ItemMeta meta = newWep.getItemMeta();
                 meta.setDisplayName(ChatColor.LIGHT_PURPLE + "随机新武器");
-                meta.setLore(Collections.singletonList(ChatColor.GRAY + "获得一把随机武器"));
+                meta.setLore(Collections.singletonList(ChatColor.GRAY + "从所有武器中随机获得一把未拥有的"));
                 newWep.setItemMeta(meta);
                 inv.setItem(slot, newWep);
+
+                // 所有可用武器的供应者数组，从这里随机挑选
+                Supplier<Weapon>[] allWeapons = new Supplier[] {
+                        () -> new WhipWeapon(),
+                        () -> new MagicWandWeapon(),
+                        () -> new GarlicWeapon(),
+                        () -> new AxeWeapon(),
+                        () -> new CrossWeapon(),
+                        () -> new FireBladeWeapon(),
+                        () -> new LightningStaffWeapon()
+                };
+
+                // 过滤掉已经拥有的武器
+                List<Supplier<Weapon>> availableWeapons = new ArrayList<>();
+                for (Supplier<Weapon> sup : allWeapons) {
+                    Weapon test = sup.get();
+                    boolean hasOwned = false;
+                    for (Weapon owned : weapons) {
+                        if (owned.getClass().equals(test.getClass())) {
+                            hasOwned = true;
+                            break;
+                        }
+                    }
+                    if (!hasOwned) {
+                        availableWeapons.add(sup);
+                    }
+                }
+
+                // 随机选择一个可用的武器
                 actions.add(p -> {
-                    Weapon newWeapon;
-                    double r = random.nextDouble();
-                    if (r < 0.25) newWeapon = new WhipWeapon();
-                    else if (r < 0.5) newWeapon = new MagicWandWeapon();
-                    else if (r < 0.75) newWeapon = new GarlicWeapon();
-                    else newWeapon = new AxeWeapon();
-                    weapons.add(newWeapon);
-                    p.sendMessage(ChatColor.GREEN + "🎲 获得新武器: " + newWeapon.getName());
-                    p.getWorld().playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
+                    if (!availableWeapons.isEmpty()) {
+                        Collections.shuffle(availableWeapons);
+                        Supplier<Weapon> selected = availableWeapons.get(0);
+                        Weapon newWeapon = selected.get();
+                        weapons.add(newWeapon);
+                        p.sendMessage(ChatColor.GREEN + "🎲 获得新武器: " + newWeapon.getName());
+                        p.getWorld().playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
+                    }
                 });
                 slot++;
             }
-
             // 被动道具选项
             List<PassiveItem> availablePassives = Arrays.asList(
                     new HealthPassive(), new ArmorPassive(), new MagnetPassive(), new StrengthPassive(), new CooldownPassive()
@@ -858,14 +1115,14 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                 meta.setLore(Collections.singletonList(ChatColor.GRAY + "获得被动效果"));
                 icon.setItemMeta(meta);
                 inv.setItem(slot, icon);
+                final PassiveItem finalPassive = passive;
                 actions.add(p -> {
-                    passives.add(passive);
-                    p.sendMessage(ChatColor.AQUA + "🎁 获得被动: " + passive.getName());
+                    passives.add(finalPassive);
+                    p.sendMessage(ChatColor.AQUA + "🎁 获得被动: " + finalPassive.getName());
                     p.getWorld().playSound(p.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 1.5f);
                 });
                 slot++;
             }
-
             // 装饰性博彩边框
             for (int i = 0; i < 27; i++) {
                 if (inv.getItem(i) == null) {
@@ -873,7 +1130,6 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                 }
             }
         }
-
         private ItemStack createGlassPane(int slot) {
             ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
             ItemMeta meta = pane.getItemMeta();
@@ -881,12 +1137,10 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             pane.setItemMeta(meta);
             return pane;
         }
-
         public void open() {
             player.openInventory(inv);
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 0.8f, 1f);
         }
-
         public boolean handleClick(int slot) {
             int index = slot - 10;
             if (index >= 0 && index < actions.size()) {

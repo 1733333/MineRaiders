@@ -423,7 +423,7 @@ public class ContainerListener implements Listener {
                         ,"§b||","§c||",bound,count);
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                         TextComponent.fromLegacy(message + ChatColor.WHITE +
-                                "(" + content.length +")"));
+                                " (" + content.length +")"));
                 if(count >= bound) {
                     if (getContainerRarity(container) < 0) {
                         Sound s = switch (getContainerRarity(container)) {
