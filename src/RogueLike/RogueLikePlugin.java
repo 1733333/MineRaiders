@@ -68,12 +68,10 @@ public class RogueLikePlugin implements Listener {
     }
 
     private boolean handleCommand(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage(ChatColor.RED + "This command can only be used by players!");
             return true;
         }
-
-        Player player = (Player) sender;
 
         if (args.length == 0) {
             sendHelp(player);

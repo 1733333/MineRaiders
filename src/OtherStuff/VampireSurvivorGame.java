@@ -85,6 +85,9 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
     private Scoreboard scoreboard;
     private Objective objective;
     private UpgradeMenu currentMenu;
+    private LivingEntity currentBoss;
+    private long bossLastSkillTime;
+    private BossBar bossBar;
 
     // 玩家属性
     private double maxHealth = 20.0;
@@ -175,7 +178,57 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                         continue;
                     }
                     Vector dir = playerLoc.toVector().subtract(e.getLocation().toVector()).normalize();
-                    e.setVelocity(dir.multiply(e instanceof Monster ? 0.18 : 0.1));
+
+                    if (e == currentBoss) {
+                        // BOSS专属AI
+                        long now = System.currentTimeMillis();
+                        // 每5秒释放一次技能
+                        if (now - bossLastSkillTime > 5000) {
+                            bossLastSkillTime = now;
+                            int skill = random.nextInt(3);
+                            if (skill == 0) {
+                                // 冲刺技能
+                                e.setVelocity(dir.multiply(1.5));
+                                player.sendMessage(ChatColor.RED + "⚠ BOSS正在向你冲刺！快躲开！");
+                                player.playSound(playerLoc, Sound.ENTITY_WITHER_SPAWN, 1.0f, 0.5f);
+                            } else if (skill == 1) {
+                                // 震地技能
+                                if (e.getLocation().distance(playerLoc) < 4) {
+                                    player.damage(6.0);
+                                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1));
+                                    player.getWorld().spawnParticle(Particle.CLOUD, e.getLocation(), 20, 2, 0, 2);
+                                    player.playSound(playerLoc, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1.0f, 0.8f);
+                                }
+                            } else {
+                                // 召唤小怪技能
+                                for (int i = 0; i < 3; i++) {
+                                    Location loc = e.getLocation().add(random.nextDouble() * 4 - 2, 0, random.nextDouble() * 4 - 2);
+                                    Zombie zombie = (Zombie) e.getWorld().spawnEntity(loc, EntityType.ZOMBIE);
+                                    zombie.setAdult();
+                                    AttributeInstance zHp = zombie.getAttribute(Attribute.MAX_HEALTH);
+                                    if (zHp != null) zHp.setBaseValue(10);
+                                    zombie.setHealth(10);
+                                    zombie.setRemoveWhenFarAway(false);
+                                    enemies.add(zombie);
+                                }
+                                player.sendMessage(ChatColor.RED + "⚠ BOSS召唤了小怪支援！");
+                                player.playSound(playerLoc, Sound.ENTITY_ZOMBIE_AMBIENT, 1.0f, 0.6f);
+                            }
+                        } else {
+                            // BOSS普通移动，比普通怪更快
+                            e.setVelocity(dir.multiply(0.25));
+                        }
+                        // 更新BOSS血条
+                        if (bossBar != null) {
+                            AttributeInstance bossMaxHp = e.getAttribute(Attribute.MAX_HEALTH);
+                            if (bossMaxHp != null) {
+                                bossBar.setProgress(Math.min(1.0, e.getHealth() / bossMaxHp.getValue()));
+                            }
+                        }
+                    } else {
+                        // 普通敌人AI
+                        e.setVelocity(dir.multiply(e instanceof Monster ? 0.18 : 0.1));
+                    }
                 }
 
                 // 武器攻击
@@ -245,6 +298,10 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             expBar.removeAll();
             expBar = null;
         }
+        if (bossBar != null) {
+            bossBar.removeAll();
+            bossBar = null;
+        }
         if (scoreboard != null) {
             player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
         }
@@ -292,15 +349,24 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
 
     private void spawnBoss() {
         Location spawnLoc = getSpawnLocation(12);
-        Giant giant = (Giant) arenaCenter.getWorld().spawnEntity(spawnLoc, EntityType.GIANT);
+        Zombie giant = (Zombie) arenaCenter.getWorld().spawnEntity(spawnLoc, EntityType.ZOMBIE);
         giant.setCustomName(ChatColor.DARK_RED + "☠ 巨型僵尸王 ☠");
         giant.setCustomNameVisible(true);
+        giant.getAttribute(Attribute.SCALE).setBaseValue(2);
         AttributeInstance hpAttr = giant.getAttribute(Attribute.MAX_HEALTH);
-        if (hpAttr != null) hpAttr.setBaseValue(150 + wave * 30);
-        giant.setHealth(hpAttr != null ? hpAttr.getBaseValue() : 150);
+        double maxHp = 150 + wave * 30;
+        if (hpAttr != null) hpAttr.setBaseValue(maxHp);
+        giant.setHealth(maxHp);
         giant.setRemoveWhenFarAway(false);
         enemies.add(giant);
         spawnedThisWave++;
+
+        // 初始化BOSS状态
+        this.currentBoss = giant;
+        this.bossLastSkillTime = System.currentTimeMillis();
+        // 创建BOSS专属血条
+        this.bossBar = Bukkit.createBossBar(giant.getCustomName(), BarColor.RED, BarStyle.SOLID);
+        bossBar.addPlayer(player);
     }
 
     private void addExperience(int amount) {
@@ -463,6 +529,15 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
             totalKills++;
             event.getDrops().clear();
             event.setDroppedExp(0);
+
+            // 处理BOSS死亡清理
+            if (e == currentBoss) {
+                if (bossBar != null) {
+                    bossBar.removeAll();
+                    bossBar = null;
+                }
+                currentBoss = null;
+            }
 
             // 掉落经验球
             int orbValue = 5 + (e instanceof Giant ? 30 : 0);
@@ -1018,7 +1093,7 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                 }
 
                 current.damage((10 + level * 2) * damageMultiplier, player);
-                player.getWorld().spawnParticle(Particle.FLASH, current.getLocation(), 5, 0.5, 0.5, 0.5);
+                player.getWorld().spawnParticle(Particle.FLASH, current.getLocation(), 5, 0.5, 0.5, 0.5,Color.WHITE);
 
                 LivingEntity next = null;
                 double minDist = 4;
