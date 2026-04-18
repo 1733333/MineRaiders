@@ -1,7 +1,7 @@
 package Universal;
 
 import Events.PlayerShieldAmountChangeEvent;
-import io.github.Alligrater.DelayedGive;
+import io.github.devgrater.SendItemHelpers;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -778,15 +778,27 @@ public enum Kit {
         List<ItemStack> itemsToSend = new ArrayList<>();
         for(ItemStack item : contents) {
             if(item != null && !isLockedItem(item)) {
-                if(record) {
+                if(record && isBannedItem(item)) {
                     itemsToSend.add(item);
                 }
                 inv.remove(item);
             }
         }
-        if(record){
-            PlayerStats.INSTANCE.recordPlayerItems(player,itemsToSend.toArray(new ItemStack[0]));
+        if(!itemsToSend.isEmpty()) {
+            try{
+                SendItemHelpers.sendItems(itemsToSend.toArray(new ItemStack[0]), "金胡萝卜神",player.getName());
+            }
+            catch (Exception e){
+                player.sendMessage(ChatColor.RED + "无法将物品送至邮箱！请联系管理员");
+            }
         }
+    }
+
+    public boolean isBannedItem(ItemStack item){
+        if(item == null)return false;
+        Material type = item.getType();
+        if(type == Material.WIND_CHARGE)return true;
+        return false;
     }
 
     public String progressMessage(String title,String end,String done, String undone,int total,int step){
