@@ -25,7 +25,7 @@ import java.util.*;
 
 public enum Kit {
     INSTANCE;
-    private static final String LOCK_MARK = "§7已锁定";
+    public static final String LOCK_MARK = "§7已锁定";
     JavaPlugin plugin;
     Random r = new Random();
     public int[] gameOver = new int[]{
@@ -734,7 +734,7 @@ public enum Kit {
      * @param requiredLevel 所需等级（1/2/3）
      * @return 对应颜色的锁定玻璃板
      */
-    private ItemStack createLockedPane(int requiredLevel) {
+    public ItemStack createLockedPane(int requiredLevel) {
         Material material;
         switch (requiredLevel) {
             case 1:
@@ -767,31 +767,24 @@ public enum Kit {
         return meta.hasLore() && meta.getLore().contains(LOCK_MARK);
     }
 
-    public void clearInventory(Player p){
-        clearInventory(p,false);
-    }
-
-    public void clearInventory(Player player,boolean record) {
+    public void clearInventory(Player player) {
         Inventory inv = player.getInventory();
         ItemStack[] contents = inv.getContents();
         player.getEquipment().clear();
         List<ItemStack> itemsToSend = new ArrayList<>();
         for(ItemStack item : contents) {
             if(item != null && !isLockedItem(item)) {
-                if(record && isBannedItem(item)) {
+                if(isBannedItem(item)) {
                     itemsToSend.add(item);
                 }
                 inv.remove(item);
             }
         }
         if(!itemsToSend.isEmpty()) {
-            try{
-                SendItemHelpers.sendItems(itemsToSend.toArray(new ItemStack[0]), "金胡萝卜神",player.getName());
-            }
-            catch (Exception e){
-                player.sendMessage(ChatColor.RED + "无法将物品送至邮箱！请联系管理员");
-            }
+            sendItemsToMail(player, itemsToSend.toArray(new ItemStack[0]), "金胡萝卜神",
+                    "金胡萝卜神将你的一部分物品送到了你的邮箱,请在游戏外检查邮箱");
         }
+        setInventoryLimit(player, PlayerStats.INSTANCE.getIslandLevel(player));
     }
 
     public boolean isBannedItem(ItemStack item){
@@ -814,5 +807,34 @@ public enum Kit {
         }
         progress.append(end);
         return progress.toString();
+    }
+
+    /**
+     * 将物品发送至玩家邮箱
+     * @param player 目标玩家
+     * @param items 物品数组
+     * @param sourceName 来源描述（如 "末影箱"）
+     */
+    public static void sendItemsToMail(Player player, ItemStack[] items, String sourceName,String message) {
+        if (items == null || items.length == 0) return;
+        List<ItemStack> validItems = new ArrayList<>();
+        for (ItemStack item : items) {
+            if (item != null && !item.getType().isAir()) {
+                validItems.add(item.clone());
+            }
+        }
+        if (validItems.isEmpty()) return;
+        try {
+            SendItemHelpers.sendItems(validItems.toArray(new ItemStack[0]), sourceName, player.getName());
+            if(message != null) {
+                player.sendMessage(ChatColor.GREEN + message);
+            }
+        } catch (Exception e) {
+            player.sendMessage(ChatColor.RED + "发送邮件失败，请联系管理员。");
+            Bukkit.getLogger().warning("发送物品失败: " + e.getMessage());
+        }
+    }
+    public static void sendItemsToMail(Player player, ItemStack[] items, String sourceName) {
+        sendItemsToMail(player, items, sourceName, null);
     }
 }

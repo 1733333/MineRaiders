@@ -15,12 +15,6 @@ public class MR extends JavaPlugin {
     RogueLikePlugin rogueLike;
     @Override
     public void onEnable() {
-        Recipes recipes = Recipes.INSTANCE;
-        BoxPool boxPool = BoxPool.INSTANCE;
-        LootPool lootPool = LootPool.INSTANCE;
-        Monsters monsters = Monsters.INSTANCE;
-        Kit k = Kit.INSTANCE;
-
         new ArmorEquipListener(this);
         new ContainerListener(this);
         new GadgetListener(this);
@@ -40,17 +34,17 @@ public class MR extends JavaPlugin {
         getCommand("mr").setTabCompleter(new MineRaidersCommand(this));
 
 
-        k.setPlugin(this);
-        recipes.setPlugin(this);
-        monsters.setPlugin(this);
+        Kit.INSTANCE.setPlugin(this);
+        Recipes.INSTANCE.setPlugin(this);
+        Monsters.INSTANCE.setPlugin(this);
 
-        recipes.registerFreeRecipe();
-        recipes.registerRecipe();
-        recipes.registerStack();
-        boxPool.registerBooks();
-        boxPool.registerHorns();
-        boxPool.registerPotions();
-        lootPool.registerRecycleMap();
+        Recipes.INSTANCE.registerFreeRecipe();
+        Recipes.INSTANCE.registerRecipe();
+        Recipes.INSTANCE.registerStack();
+        BoxPool.INSTANCE.registerBooks();
+        BoxPool.INSTANCE.registerHorns();
+        BoxPool.INSTANCE.registerPotions();
+        LootPool.INSTANCE.registerRecycleMap();
 
         Bukkit.broadcastMessage(ChatColor.AQUA + "插件已重载");
         for (Player p : Bukkit.getOnlinePlayers()){

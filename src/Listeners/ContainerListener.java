@@ -20,6 +20,7 @@ import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -91,6 +92,8 @@ public class ContainerListener implements Listener {
         Material.ENCHANTING_TABLE,
         Material.ENDER_CHEST,
     };
+    private static final int ENDER_CHEST_SIZE = 9;
+    private static final int PERMANENT_LOCKED_SLOTS = 5;   // 后5格永久锁定
 
     public ContainerListener(JavaPlugin plugin){
         this.plugin = plugin;
@@ -212,6 +215,10 @@ public class ContainerListener implements Listener {
                 }
             }
             if(!playerStats.isInGame(p))return;
+            if (b.getType() == Material.ENDER_CHEST) {
+                interactEvent.setCancelled(true);
+                handleEnderChest(p);
+            }
             if(b.getType() == Material.IRON_DOOR){
                 Block b1 = w.getBlockAt(b.getLocation().add(0,1,0));
                 Block b2 = w.getBlockAt(b.getLocation().add(0,-1,0));
@@ -550,5 +557,44 @@ public class ContainerListener implements Listener {
         ItemStack[] potions = bp.getPotions();
         contentList.add(potions[r.nextInt(potions.length)]);
         return contentList.toArray(new ItemStack[0]);
+    }
+    public void handleEnderChest(Player player) {
+        // 若玩家不在游戏中，不允许打开末影箱（发送逻辑由 GameListener 处理）
+        if (!playerStats.isInGame(player)) {
+            player.sendMessage(ChatColor.RED + "你不在游戏中，无法使用末影箱传送物品");
+            return;
+        }
+        int islandLevel = playerStats.getIslandLevel(player);
+        Inventory inv = Bukkit.createInventory(player, ENDER_CHEST_SIZE, ChatColor.DARK_PURPLE + "末影箱");
+        ItemStack[] stored = PlayerStats.playerEnderItems.getOrDefault(player.getName(), new ItemStack[ENDER_CHEST_SIZE]);
+        for (int i = 0; i < ENDER_CHEST_SIZE; i++) {
+            if (i >= ENDER_CHEST_SIZE - PERMANENT_LOCKED_SLOTS) {
+                // 永久锁定格子（后5格）
+                inv.setItem(i, createPermanentLockedPane());
+            } else {
+                if (i <= islandLevel) {
+                    if (stored[i] != null) {
+                        inv.setItem(i, stored[i].clone());
+                    }
+                } else {
+                    inv.setItem(i, Kit.INSTANCE.createLockedPane(i));
+                }
+            }
+        }
+        PlayerStats.playerMenuStatus.put(player.getName(), PlayerStats.MenuStatus.ENDER_CHEST_MENU);
+        player.openInventory(inv);
+    }
+
+    // 永久锁定玻璃板（黑色，不可解锁）
+    private ItemStack createPermanentLockedPane() {
+        ItemStack pane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta meta = pane.getItemMeta();
+        meta.setDisplayName("§c永久锁定");
+        List<String> lore = new ArrayList<>();
+        lore.add(Kit.LOCK_MARK);
+        lore.add("§7该格子已永久锁定，无法解锁");
+        meta.setLore(lore);
+        pane.setItemMeta(meta);
+        return pane;
     }
 }

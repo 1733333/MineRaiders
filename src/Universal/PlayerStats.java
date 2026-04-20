@@ -18,10 +18,13 @@ import java.util.HashSet;
 public enum PlayerStats {
     INSTANCE;
     public static final int MAX_SHIELD = 20;
+    public static final int ENDER_CHEST_SIZE = 9;
+    public static final int MAX_UNLOCKABLE_SLOTS = 4;  // 前4格可解锁
     public static HashMap<String, MenuStatus> playerMenuStatus = new HashMap<>();
     public static HashMap<String, Double> playerShield = new HashMap<>();
     public static HashMap<String, BossBar> playerShieldBar = new HashMap<>();
     public static HashMap<String, ItemStack[]> recordedPlayerItems = new HashMap<>();
+    public static HashMap<String, ItemStack[]> playerEnderItems = new HashMap<>();
 
     public enum MenuStatus {
         NOT_MENU,
@@ -37,7 +40,8 @@ public enum PlayerStats {
         DEV_MENU,
         MAP_MENU,
         END_MENU,
-        MAIN_MENU
+        MAIN_MENU,
+        ENDER_CHEST_MENU,
     }
 
     HashSet<String> isDying = new HashSet<>();

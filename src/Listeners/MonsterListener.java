@@ -482,21 +482,20 @@ public class MonsterListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void mobDamageReduction(EntityDamageEvent damageEvent){
         Entity e = damageEvent.getEntity();
-        DamageSource source = damageEvent.getDamageSource();
-        DamageType type = source.getDamageType();
+        EntityDamageEvent.DamageCause cause = damageEvent.getCause();
         double damage = damageEvent.getFinalDamage();
         if(e instanceof LivingEntity l){
             String name = l.getCustomName();
             if(name != null){
                 switch (name){
                     case "§e机魂", "§7堡垒底盘", "§7堡垒炮塔" ->{
-                        if(type == DamageType.IN_WALL){
+                        if(cause == EntityDamageEvent.DamageCause.SUFFOCATION){
                             damageEvent.setDamage(0);
                             damageEvent.setCancelled(true);
                         }
                     }
                     case "§c公爵","§c公爵引擎"->{
-                        if(type == DamageType.IN_WALL){
+                        if(cause == EntityDamageEvent.DamageCause.SUFFOCATION){
                             damageEvent.setDamage(0);
                             damageEvent.setCancelled(true);
                         }else{
@@ -504,7 +503,7 @@ public class MonsterListener implements Listener {
                         }
                     }
                     case "§a跳蚤" -> {
-                        if (type == DamageType.FALL) {
+                        if (cause == EntityDamageEvent.DamageCause.FALL) {
                             damageEvent.setDamage(0);
                             damageEvent.setCancelled(true);
                         }

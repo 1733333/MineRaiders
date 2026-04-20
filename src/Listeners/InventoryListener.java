@@ -123,7 +123,7 @@ public class InventoryListener implements Listener {
             p.performCommand("mr debug " + slot);
             return;
         }
-        if (status != PlayerStats.MenuStatus.NOT_MENU) {
+        if (status != PlayerStats.MenuStatus.NOT_MENU && status != PlayerStats.MenuStatus.ENDER_CHEST_MENU) {
             if (slot < 54) {
                 ItemStack[] stack = switch (status) {
                     case LOOT_MENU -> lp.getAllLoots();
@@ -225,6 +225,22 @@ public class InventoryListener implements Listener {
             if (pStatus == PlayerStats.MenuStatus.FREE_RECIPE_MENU) {
                 p.performCommand("mr freerecipe");
             }
+        }
+
+        if (closeEvent.getView().getTitle().equals(ChatColor.DARK_PURPLE + "末影箱")) {
+            Inventory inv = closeEvent.getInventory();
+            ItemStack[] oldStored = PlayerStats.playerEnderItems.getOrDefault(name, new ItemStack[9]);
+            ItemStack[] newStored = new ItemStack[9];
+
+            for (int i = 0; i < 9; i++) {
+                ItemStack item = inv.getItem(i);
+                if (!Kit.INSTANCE.isLockedItem(item)) {
+                    newStored[i] = (item != null) ? item.clone() : null;
+                } else {
+                    newStored[i] = oldStored[i];
+                }
+            }
+            PlayerStats.playerEnderItems.put(name, newStored);
         }
         playerMenuStatus.put(name, PlayerStats.MenuStatus.NOT_MENU);
         playerPage.remove(name);

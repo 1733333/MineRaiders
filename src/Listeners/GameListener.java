@@ -261,7 +261,6 @@ public class GameListener implements Listener {
             updateScoreboard();  // 立即刷新显示
             // 恢复游戏状态
             player.setGameMode(GameMode.ADVENTURE);
-            player.setCustomNameVisible(false);
             player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 30, 0));
             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             PlayerStats.INSTANCE.setInGame(player);
@@ -595,15 +594,17 @@ public class GameListener implements Listener {
         player.sendMessage("§c撤离失败，所有物品已丢失！");
         player.setHealth(20);
         player.setFoodLevel(20);
+        for(PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
         player.setCustomNameVisible(false);
         // 清除游戏状态标记
         PlayerStats.INSTANCE.stopInGame(player);
         PlayerStats.INSTANCE.removeShieldBar(player);
-        int level = PlayerStats.INSTANCE.getIslandLevel(player);
-        Kit.INSTANCE.setInventoryLimit(player, level);
         if (session != null) {
             clearPlayerReady(player, world.getName());
         }
+        sendEnderChestToMail(player);
     }
 
     // ========================= 事件处理 =========================
@@ -649,35 +650,38 @@ public class GameListener implements Listener {
         Collections.shuffle(playersToTeleport);
         Collections.shuffle(spawnList);
         for (int i = 0; i < playersToTeleport.size(); i++) {
-            Player t = playersToTeleport.get(i);
+            Player player = playersToTeleport.get(i);
             Location spawnLoc = spawnList.get(i % spawnList.size());
             PlayerStats.INSTANCE.setInGame(playersToTeleport.get(i));
             // 清除准备状态
-            clearPlayerReady(t, world.getName());
-            t.teleport(spawnLoc);
-            t.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 30, 0));
-            t.playSound(t.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            t.setGameMode(GameMode.ADVENTURE);
-            t.setHealth(20);
-            t.setFoodLevel(20);
-            t.setCustomNameVisible(false);
-            playerStats.createShieldBar(t);
+            clearPlayerReady(player, world.getName());
+            player.teleport(spawnLoc);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 30, 0));
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            player.setGameMode(GameMode.ADVENTURE);
+            player.setHealth(20);
+            player.setFoodLevel(20);
+            for(PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
+            player.setCustomNameVisible(false);
+            playerStats.createShieldBar(player);
             BukkitRunnable createShield = new BukkitRunnable() {
                 @Override
                 public void run() {
-                        if (k.isArmored(t)) {
-                            playerStats.openShield(t);
+                        if (k.isArmored(player)) {
+                            playerStats.openShield(player);
                             GadgetListener gadgetListener = new GadgetListener(plugin);
-                            gadgetListener.battery(t, 5, playerStats.getMaxShield() + 1, new ItemStack(Material.NETHER_PORTAL));
+                            gadgetListener.battery(player, 5, playerStats.getMaxShield() + 1, new ItemStack(Material.NETHER_PORTAL));
                         } else {
-                            playerStats.closeShield(t);
+                            playerStats.closeShield(player);
                         }
                 }
             };
             createShield.runTaskLater(plugin, 5L);
             //记得删
-            k.clearInventory(t);
-            freeKit(t);
+            k.clearInventory(player);
+            freeKit(player);
         }
         // 为每个玩家添加容器高亮任务
         for (Player p : playersToTeleport) {
@@ -834,6 +838,9 @@ public class GameListener implements Listener {
         Location spawnLoc = spawnList.get(rand.nextInt(spawnList.size()));
         player.setHealth(20);
         player.setFoodLevel(20);
+        for(PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
         player.teleport(spawnLoc);
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 0));
@@ -1025,7 +1032,11 @@ public class GameListener implements Listener {
         session.removePlayer(player);
         PlayerStats.INSTANCE.stopInGame(player);
         PlayerStats.INSTANCE.removeShieldBar(player);
-        player.setCustomNameVisible(true);
+        player.setHealth(20);
+        player.setFoodLevel(20);
+        for(PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
         // 清除准备状态
         clearPlayerReady(player, world.getName());
         // 传送到世界出生点
@@ -1041,6 +1052,7 @@ public class GameListener implements Listener {
         // 发送消息给玩家本人
         player.sendMessage("§a[撤离成功] 用时: " + timeStr + " 收益: " + String.format("%.1f", profit));
 
+        sendEnderChestToMail(player);
         //记得删
         k.clearInventory(player);
     }
@@ -1139,6 +1151,8 @@ public class GameListener implements Listener {
         clearWorldReady(world.getName());
         // 10. 从全局活跃游戏映射中移除
         activeGames.remove(world);
+        int id = gameStatus.getWorldId(world.getName());
+        Bukkit.broadcastMessage("§e" + gameStatus.getWorldNameByID(id) + "的游戏已结束！");
     }
 
     @EventHandler
@@ -1277,5 +1291,10 @@ public class GameListener implements Listener {
             }
         }
     }
-
+    private void sendEnderChestToMail(Player player) {
+        ItemStack[] items = PlayerStats.playerEnderItems.remove(player.getName());
+        if (items != null) {
+            Kit.sendItemsToMail(player, items, "末影箱");
+        }
+    }
 }

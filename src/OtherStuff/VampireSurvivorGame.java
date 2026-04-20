@@ -506,7 +506,7 @@ public class VampireSurvivorGame implements Listener, CommandExecutor {
                 double damage = (8.0 + dartLevel * 1.5) * damageMultiplier;
                 le.damage(damage, player);
                 int poisonDuration = 60 + dartLevel * 20; // 中毒持续时间，等级越高越长
-                le.addPotionEffect(new PotionEffect(PotionEffectType.POISON, poisonDuration, 1));
+                le.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, poisonDuration, 1));
                 player.getWorld().spawnParticle(Particle.ITEM_SLIME, le.getLocation(), 10, 0.3, 0.3, 0.3);
             }
             arrow.remove();
